@@ -32,24 +32,118 @@
 #include "dataprocess.h"
 #include "config.h"
 #include "GUI.h"
+#include "stdbool.h"
 
+#include "config.h"
 
-void GPIO_Configuration(void);
+#include "hydbg.h"
+#include "hy_instance.h"
+
+#define HY_LOG_TAG    "main"
 /*In <debug_frmwrk. H >file can choose to a serial port*/
 
+
+void printf_logo()
+{
+	LOG_PRINT("HH      HH       YY        YY \r\n");
+	LOG_PRINT("HH      HH        YY      YY  \r\n");
+	LOG_PRINT("HH      HH         YY    YY   \r\n");
+	LOG_PRINT("HH      HH          YY  YY    \r\n");
+	LOG_PRINT("HHHHHHHHHH           YYYY     \r\n");
+	LOG_PRINT("HH      HH            YY      \r\n");
+	LOG_PRINT("HH      HH            YY      \r\n");
+	LOG_PRINT("HH      HH            YY      \r\n");
+	LOG_PRINT("HH      HH            YY      \r\n");
+	
+	LOG_PRINT("BUILD TIME: %s || %s\r\n",__DATE__,__TIME__);
+}
+
+/*
+* warning: this funciont only call once!!
+*/
+int hy_instance_get_config(hy_instance *hy_handle,void* arg)
+{
+	int ret = -1;
+	hy_config_init();
+	ret = hy_config_datareading();
+	if( ret != 0 ){
+		LOG_INFO_TAG(HY_LOG_TAG,"hy instance get config failed!! ret [%d]",ret);
+		return ret;
+	}
+	LOG_PRINT("==================\r\n");
+	hy_handle->config.voltagerange = hy_config_readvoltagerange();
+	hy_handle->config.currentrange = hy_config_readcurrentrange();
+	hy_handle->config.controlstyle = hy_config_readctrlstyle();
+	hy_handle->config.balancecurrent = hy_config_readbalancecurrent();
+	
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom voltagerange   [%d] ",hy_handle->config.voltagerange);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom currentrange   [%d] ",hy_handle->config.currentrange);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom ctrlstyle      [%d] 0 for can 1 for local",hy_handle->config.controlstyle);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom balancecurrent [%d] ",hy_handle->config.balancecurrent);
+	LOG_PRINT("==================\r\n");
+	hy_handle->config.chargecurrent_1 = hy_config_readchargecurrent_1();
+	hy_handle->config.limitvoltage_1  = hy_config_readlimitvoltage_1();
+	hy_handle->config.chargetimeout_1_min = hy_config_readchargetimeout_1();
+	hy_handle->config.switchvoltage_1 = hy_config_readswitchvoltage_1();
+	
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargecurrent_1   [%d] ",hy_handle->config.chargecurrent_1);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitvoltage_1    [%d] ",hy_handle->config.limitvoltage_1);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_1   [%d] min",hy_handle->config.chargetimeout_1_min);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom switchvoltage_1   [%d] ",hy_handle->config.switchvoltage_1);
+	LOG_PRINT("==================\r\n");
+	hy_handle->config.chargecurrent_2 = hy_config_readchargecurrent_2();
+	hy_handle->config.limitvoltage_2  = hy_config_readlimitvoltage_2();
+	hy_handle->config.chargetimeout_2_min = hy_config_readchargetimeout_2();
+	hy_handle->config.switchvoltage_2 = hy_config_readswitchvoltage_2();
+	
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargecurrent_2   [%d] ",hy_handle->config.chargecurrent_2);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitvoltage_2    [%d] ",hy_handle->config.limitvoltage_2);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_2   [%d] min",hy_handle->config.chargetimeout_2_min);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom switchvoltage_2   [%d] ",hy_handle->config.switchvoltage_2);
+  LOG_PRINT("==================\r\n");
+	
+	hy_handle->config.chargevoltage_3 = hy_config_readchargevoltage_3();
+	hy_handle->config.limitcurrent_3  = hy_config_readlimitcurrent_3();
+	hy_handle->config.chargetimeout_3_min = hy_config_readchargetimeout_3();
+	hy_handle->config.switchcurrent_3 = hy_config_readswitchcurrent_3();
+	
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargevoltage_3   [%d] ",hy_handle->config.limitcurrent_3);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitcurrent_3    [%d] ",hy_handle->config.limitcurrent_3);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_3   [%d] min",hy_handle->config.chargetimeout_3_min);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom switchcurrent_3   [%d] ",hy_handle->config.switchcurrent_3);
+  LOG_PRINT("==================\r\n");
+	
+	return 0;
+}
+#define delay_power
 int main(void)
 {
-	#ifdef TEST_0623
+	int ret = 0;
+	
+	hy_instance s_hy_instance;
+	
+	#ifdef delay_power
 		long long int i = 50000000;
 		while(i--);
 	#endif
 
-	delay_init();
+	/*debug init*/
 	debug_frmwrk_init();
-	DEBUG_PRINT("[I]:system start \r\n");
+	LOG_INFO_TAG(HY_LOG_TAG,"HY system start %s\r\n");
+	printf_logo();
+	/*rom config init*/
+	ret = hy_instance_get_config(&s_hy_instance,NULL);
+	if(ret == 0){
+	  s_hy_instance.configed_flag = true;
+	}else{
+		s_hy_instance.configed_flag = false;
+	}
+	/*todo input init*/
+	
+	/*todo can init if in can control mode*/
 	
 	
-	MainProcess();
+//	MainProcess();
 
 
   while(1);

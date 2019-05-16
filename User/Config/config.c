@@ -21,6 +21,9 @@ Purpose     : Write config data to EEPROM
     #include "uart.h"
 #endif
 #define PCA8581_SLVADDR	(0xA6>>1)
+
+
+#define HY_LOG_TAG    "HY_config"
 #ifndef DEBUG_PRINT
 #define DEBUG_PRINT
 #define DEBUG_PRINT(format, ...) _printf (format,##__VA_ARGS__)
@@ -235,10 +238,10 @@ int32_t ATML_Read(void)
     rxsetup.retransmissions_max = 1;
 
     if (I2C_MasterTransferData(I2CDEV, &rxsetup, I2C_TRANSFER_POLLING) == SUCCESS){
-        DEBUG_PRINT("ATML_Read success");
+        LOG_INFO_TAG(HY_LOG_TAG,"ATML_Read success");
         return (0);
     } else {        
-        DEBUG_PRINT("ATML_Read error");
+        LOG_ERROR_TAG(HY_LOG_TAG,"ATML_Read error");
         return (-1);
     }
 }
@@ -284,13 +287,11 @@ void Config_EraseConfig(void){
 uint8_t Config_DataReading(void){
 	uint8_t i;
 	if(ATML_Read() != 0){
-			DEBUG_PRINT("ATML_Read error\r\n");
 			for (i = 0 ; i < sizeof(config_wrdat) ; i++){
 				 config_wrdat[i] = config_defdat[i];
 			}
 	}
-	else{
-			DEBUG_PRINT("ATML_Read success\r\n");			
+	else{		
 			for (i = 0; i < 8; i++){
 					config_wrdat[i+1]  = config_rddat[i] ;
 					config_wrdat[i+10] = config_rddat[i+8] ;
@@ -301,14 +302,14 @@ uint8_t Config_DataReading(void){
 	}
 	if((config_rddat[34]==0)&&(config_rddat[35]==0)&&(config_rddat[36]==1)&&
 		(config_rddat[37]==1)&&(config_rddat[38]==1)&&(config_rddat[39]==1)){
-			DEBUG_PRINT("The eeprom has been configured!\r\n");	
-			return 1;
+			LOG_INFO_TAG(HY_LOG_TAG, "The eeprom has been configured!");	
+			return 0;
 		}
 	else{
-			DEBUG_PRINT("ATML_Read success,but did not init\r\n");		
-			DEBUG_PRINT("I will Init it soon!\r\n");	
+			LOG_WARN_TAG(HY_LOG_TAG,"ATML_Read success,but did not init");		
+			LOG_WARN_TAG(HY_LOG_TAG,"I will Init it soon!");	
 			Config_EraseConfig();
-			return 0;
+			return -1;
 	}
 }
 
