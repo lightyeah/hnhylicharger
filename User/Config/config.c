@@ -365,8 +365,46 @@ uint16_t Config_ReadVoltageRange(void){
 uint16_t Config_ReadCurrentRange(void){
     return (uint16_t)(config_wrdat[33]*256+config_wrdat[32]);
 }
-uint16_t Config_ReadCommunicationRate(void){
+
+/*for can baudrate*/
+const uint32_t baudrate[5] = {50000,125000,250000,500000,800000};
+void Config_WriteCommunicationRate_n(uint16_t data){
+    config_wrdat[35] =(uint8_t)( (data & 0xff00)>>8);
+    config_wrdat[34] =(uint8_t)( data & 0x00ff);
+}
+uint16_t Config_ReadCommunicationRate_n(void){
     return (uint16_t)(config_wrdat[35]*256+config_wrdat[34]);
+}
+void Config_WriteCommunicationRate(uint32_t data){
+		switch(data){
+			case 50000:
+				Config_WriteCommunicationRate_n(0);
+				break;
+			case 125000:
+				Config_WriteCommunicationRate_n(1);
+				break;
+			case 250000:
+				Config_WriteCommunicationRate_n(2);
+				break;
+			case 500000:
+				Config_WriteCommunicationRate_n(3);
+				break;
+			case 800000:
+				Config_WriteCommunicationRate_n(4);
+				break;
+			default:
+				Config_WriteCommunicationRate_n(2);
+				break;
+		}
+}
+uint32_t Config_ReadCommunicationRate(void){
+		uint16_t rate_n = 0;
+		rate_n = Config_ReadCommunicationRate_n();
+		if(rate_n >= 0 && rate_n < 5){
+			return baudrate[rate_n];
+		}else{/*error for default baudrete 250k*/
+			return baudrate[2];
+		}
 }
 uint16_t Config_ReadCurrentBalane(void){
     return (uint16_t)(config_wrdat[38]*256+config_wrdat[37]);
@@ -433,10 +471,7 @@ void Config_WriteCurrentRange(uint16_t data){
     config_wrdat[33] =(uint8_t)( (data & 0xff00)>>8);
     config_wrdat[32] =(uint8_t)( data & 0x00ff);
 }
-void Config_WriteCommunicationRate(uint16_t data){
-    config_wrdat[35] =(uint8_t)( (data & 0xff00)>>8);
-    config_wrdat[34] =(uint8_t)( data & 0x00ff);
-}
+
 void Config_WriteCurrentBalane(uint16_t data){
     config_wrdat[38] =(uint8_t)( (data & 0xff00)>>8);
     config_wrdat[37] =(uint8_t)( data & 0x00ff);

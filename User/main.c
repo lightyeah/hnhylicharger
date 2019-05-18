@@ -29,15 +29,17 @@
 #include "debug_frmwrk.h"
 #include "systen_delay.h"
 #include "lpc17xx_gpio.h"
-#include "dataprocess.h"
+
 #include "config.h"
-#include "GUI.h"
+//#include "GUI.h"
 #include "stdbool.h"
 
 #include "config.h"
 
-#include "hydbg.h"
+
 #include "hy_instance.h"
+#include "hy_dbg.h"
+#include "hy_can.h"
 
 #define HY_LOG_TAG    "main"
 /*In <debug_frmwrk. H >file can choose to a serial port*/
@@ -61,7 +63,7 @@ void printf_logo()
 /*
 * warning: this funciont only call once!!
 */
-int hy_instance_get_config(hy_instance *hy_handle,void* arg)
+int hy_instance_get_config(hy_instance_t *hy_handle,void* arg)
 {
 	int ret = -1;
 	hy_config_init();
@@ -74,28 +76,29 @@ int hy_instance_get_config(hy_instance *hy_handle,void* arg)
 	hy_handle->config.voltagerange = hy_config_readvoltagerange();
 	hy_handle->config.currentrange = hy_config_readcurrentrange();
 	hy_handle->config.controlstyle = hy_config_readctrlstyle();
+	hy_handle->config.communicaterate = hy_config_readcommunicaterate();
 	hy_handle->config.balancecurrent = hy_config_readbalancecurrent();
-	
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom voltagerange   [%d] ",hy_handle->config.voltagerange);
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom currentrange   [%d] ",hy_handle->config.currentrange);
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom ctrlstyle      [%d] 0 for can 1 for local",hy_handle->config.controlstyle);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom canrate      [%d] ",hy_handle->config.communicaterate);
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom balancecurrent [%d] ",hy_handle->config.balancecurrent);
 	LOG_PRINT("==================\r\n");
+	
 	hy_handle->config.chargecurrent_1 = hy_config_readchargecurrent_1();
 	hy_handle->config.limitvoltage_1  = hy_config_readlimitvoltage_1();
 	hy_handle->config.chargetimeout_1_min = hy_config_readchargetimeout_1();
 	hy_handle->config.switchvoltage_1 = hy_config_readswitchvoltage_1();
-	
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargecurrent_1   [%d] ",hy_handle->config.chargecurrent_1);
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitvoltage_1    [%d] ",hy_handle->config.limitvoltage_1);
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_1   [%d] min",hy_handle->config.chargetimeout_1_min);
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom switchvoltage_1   [%d] ",hy_handle->config.switchvoltage_1);
 	LOG_PRINT("==================\r\n");
+	
 	hy_handle->config.chargecurrent_2 = hy_config_readchargecurrent_2();
 	hy_handle->config.limitvoltage_2  = hy_config_readlimitvoltage_2();
 	hy_handle->config.chargetimeout_2_min = hy_config_readchargetimeout_2();
 	hy_handle->config.switchvoltage_2 = hy_config_readswitchvoltage_2();
-	
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargecurrent_2   [%d] ",hy_handle->config.chargecurrent_2);
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitvoltage_2    [%d] ",hy_handle->config.limitvoltage_2);
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_2   [%d] min",hy_handle->config.chargetimeout_2_min);
@@ -106,12 +109,12 @@ int hy_instance_get_config(hy_instance *hy_handle,void* arg)
 	hy_handle->config.limitcurrent_3  = hy_config_readlimitcurrent_3();
 	hy_handle->config.chargetimeout_3_min = hy_config_readchargetimeout_3();
 	hy_handle->config.switchcurrent_3 = hy_config_readswitchcurrent_3();
-	
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargevoltage_3   [%d] ",hy_handle->config.limitcurrent_3);
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitcurrent_3    [%d] ",hy_handle->config.limitcurrent_3);
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_3   [%d] min",hy_handle->config.chargetimeout_3_min);
 	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom switchcurrent_3   [%d] ",hy_handle->config.switchcurrent_3);
   LOG_PRINT("==================\r\n");
+	
 	
 	return 0;
 }
@@ -120,7 +123,7 @@ int main(void)
 {
 	int ret = 0;
 	
-	hy_instance s_hy_instance;
+	hy_instance_t s_hy_instance;
 	
 	#ifdef delay_power
 		long long int i = 50000000;
@@ -139,10 +142,22 @@ int main(void)
 		s_hy_instance.configed_flag = false;
 	}
 	/*todo input init*/
+	hy_input_init(&s_hy_instance);
+
+	/*todo output init*/
 	
 	/*todo can init if in can control mode*/
-	
-	
+	if(s_hy_instance.config.controlstyle == HY_CONTROLSTYLE_CAN &&
+			s_hy_instance.configed_flag){
+//				hy_can_init(&s_hy_instance);
+	}
+		while(1){
+		i=50000000;
+		while(i--);
+		hy_get_voltagefb_x10();
+		hy_get_currentfb_x10();
+		LOG_PRINT("==================\r\n");
+	}
 //	MainProcess();
 
 

@@ -9,12 +9,35 @@
 #include "systen_delay.h"
 #include "lpc17xx_gpio.h"
 
+#include "hy_can.h"
+#include "hy_input.h"
+
+#define INT8TO32(a,b,c,d)         (uint32_t)(a|(((b)<<8)&0xff00)|(((c)<<16)&0xff0000)|(((d)<<24)&0xff000000))  
+#define INT8TO16(a,b)             INT8TO32(a,b,0,0)
+#define INT32TO8_1(a)             (uint8_t)((a)&0xff)
+#define INT32TO8_2(a)	 		  (uint8_t)(((a)&0xff00)>>8)
+#define INT32TO8_3(a)             (uint8_t)(((a)&0xff0000)>>16)
+#define INT32TO8_4(a)             (uint8_t)(((a)&0xff000000)>>24)
+#define INT16TO8_1(a)             INT32TO8_1(a)
+#define INT16TO8_2(a)             INT32TO8_2(a)
+#define HY_32NTOH(a)              (((a&0xff)<<24)|((a&0xff00)<<8)|((a&0xff0000)>>8)|((a&0xff000000)>>24))
+
+
+
+
 #define HY_CONTROLSTYLE_CAN                         0
 #define HY_CONTROLSTYLE_LOCAL                       1
 
-/*error define*/
 
+/*error code define*/
+#define HY_OK                                       0
+#define HY_ERROR                                    -1
 
+#define HY_TRUE                                     1
+#define HY_FALSE                                    0
+
+#define HY_TRIGGERED                                1
+#define HY_NOTRIGGERED                              0       
 typedef struct Hy_Config{
 	/*for all*/
 	uint16_t voltagerange;
@@ -39,7 +62,7 @@ typedef struct Hy_Config{
 	uint16_t switchcurrent_3;
 
 	/*for can */	
-	uint16_t ommunicationrate;
+	uint32_t communicaterate;
 	
 }hy_config;
 
@@ -47,6 +70,10 @@ typedef struct Hy_Instance
 {
 	hy_config config;
 	int configed_flag;
-}hy_instance;
+	
+	cancom_t cancom;
+	
+	hy_inputsignal_t hy_inputsignal;
+}hy_instance_t;
 
 #endif

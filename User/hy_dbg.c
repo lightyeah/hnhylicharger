@@ -1,6 +1,6 @@
 
 #include "hy_instance.h"
-#include "hydbg.h"
+#include "hy_dbg.h"
 
 void arch_printf_end(void)
 {

@@ -2,7 +2,7 @@
 #define __CONFIG_H__
 
 #include "stdint.h"
-#include "hydbg.h"
+#include "hy_dbg.h"
 
 #define hy_config_init                  Config_Init
 #define hy_config_eraseconfig           Config_EraseConfig
@@ -27,7 +27,7 @@
 #define hy_config_readctrlstyle           Config_ReadCtrlStyle
 #define hy_config_readvoltagerange        Config_ReadVoltageRange
 #define hy_config_readcurrentrange        Config_ReadCurrentRange
-#define hy_config_readcommunicationrate   Config_ReadCommunicationRate
+#define hy_config_readcommunicaterate     Config_ReadCommunicationRate
 #define hy_config_readbalancecurrent      Config_ReadCurrentBalane
 
 #define hy_config_writechargecurrent_1    Config_WrtieCurrent_1
@@ -79,7 +79,7 @@ uint16_t Config_ReadSwitchCur_3(void);
 uint16_t Config_ReadCtrlStyle(void);
 uint16_t Config_ReadVoltageRange(void);
 uint16_t Config_ReadCurrentRange(void);
-uint16_t Config_ReadCommunicationRate(void);
+uint32_t Config_ReadCommunicationRate(void);
 uint16_t Config_ReadCurrentBalane(void);
 
 void Config_WrtieCurrent_1(uint16_t data);
@@ -100,7 +100,7 @@ void Config_WrtieSwitchVol_3(uint16_t data);
 void Config_WriteCtrlStyle(uint16_t data);
 void Config_WriteVoltageRange(uint16_t data);
 void Config_WriteCurrentRange(uint16_t data);
-void Config_WriteCommunicationRate(uint16_t data);
+void Config_WriteCommunicationRate(uint32_t data);
 void Config_WriteCurrentBalane(uint16_t data);
 
 uint16_t ConfigReadFromAddr(uint8_t addr);

@@ -19,26 +19,35 @@
 #ifndef  __INPUT_H__
 #define  __INPUT_H__
 
-void Input_Init_ENTx(void);
-void Input_Open_ENTx(void);
-void Input_Close_ENTx(void);
-uint8_t Input_Get_ENTx(void);
-uint8_t Input_Get_ENT_1_UV(void);
-uint8_t Input_Get_ENT_2_WU(void);
-uint8_t Input_Get_ENT_3_VW(void);
-void EINT1_IRQHandler(void);
-void EINT2_IRQHandler(void);
-void EINT3_IRQHandler(void);
+#include "stdint.h"
 
-void Input_Init_CTRL(void);
-uint8_t Input_Start_Relay(void);
-uint8_t Input_Stop_Relay(void);
-uint8_t Input_Is_Emergency(void);
+#define HY_SAMPLE_INTERVAL 100  /*unit: ms*/
+#define HY_SAMPLE_COUNT    5    /* 5 for average */
+
+#define HY_ADC_OLD_PERCENT   3
+#define HY_ADC_NEW_PERCENT   7
+/*!!!! TOTAL PERCENT must be 10!!!!*/
+#define HY_ADC_TOTAL_PERCENT (HY_ADC_OLD_PERCENT+HY_ADC_NEW_PERCENT)
 
 
-void Input_Init_Sample(void);
-uint16_t Input_Get_SampleV(void);
-uint16_t Input_Get_SampleI(void);
+int hy_input_init(void* hy_instance_handle);
+uint8_t hy_get_heatwarn(void);
+uint8_t hy_get_resettrigger(void);
+uint8_t hy_get_embtrigger(void);
+
+uint16_t hy_get_voltagefb_x10(void);
+uint16_t hy_get_currentfb_x10(void);
+
+typedef struct HYInputSignalStruct{
+	uint16_t voltagefb;
+	uint16_t currentfb;
+	uint16_t voltagefb_x10;
+	uint16_t currentfb_x10;
+	uint16_t heatwarn;
+	uint16_t resettrigger;
+	uint16_t embtrigger;
+}hy_inputsignal_t;
+
 
 
 

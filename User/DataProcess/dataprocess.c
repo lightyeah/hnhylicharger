@@ -10,7 +10,7 @@
 #include "cos_map.h"
 #include "input.h"
 #include "output.h"
-#include "can.h"
+#include "hy_can.h"
 #include "systen_delay.h"
 #include "stdlib.h"
 #include "lpc17xx_gpio.h"
