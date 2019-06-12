@@ -11,6 +11,7 @@
 
 #include "hy_can.h"
 #include "hy_input.h"
+#include "hy_systime.h"
 
 #define INT8TO32(a,b,c,d)         (uint32_t)(a|(((b)<<8)&0xff00)|(((c)<<16)&0xff0000)|(((d)<<24)&0xff000000))  
 #define INT8TO16(a,b)             INT8TO32(a,b,0,0)
@@ -71,9 +72,12 @@ typedef struct Hy_Instance
 	hy_config config;
 	int configed_flag;
 	
-	cancom_t cancom;
+	hy_cancom_t cancom;
 	
-	hy_inputsignal_t hy_inputsignal;
+	hy_inputsignal_t inputsignal;
+	
+	hy_systime_t systime;
+	
 }hy_instance_t;
 
 #endif

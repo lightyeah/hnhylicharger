@@ -16,6 +16,7 @@ typedef int log_level_t;
 
 #define arch_printf								_printf//todo for hy
 
+void arch_printf_time(void);
 void arch_printf_end(void);
 void arch_dump_hex(const void *data, int len,const char *tips);
 
@@ -31,6 +32,7 @@ void arch_dump_hex(const void *data, int len,const char *tips);
 	do{\
 		extern log_level_t g_log_level;\
 		if(g_log_level <= LOG_LEVEL_INFO){\
+			arch_printf_time();\
 			arch_printf("[I] "_fmt_, ##__VA_ARGS__);\
 			arch_printf_end();\
 		}\
@@ -39,6 +41,7 @@ void arch_dump_hex(const void *data, int len,const char *tips);
 #define LOG_INFO_TAG(TAG, _fmt_, ...) \
 	do{\
 		if((LOG_LEVEL) <= LOG_LEVEL_INFO){\
+			arch_printf_time();\
 			arch_printf("[I] %s: "_fmt_, TAG, ##__VA_ARGS__);\
 			arch_printf_end();\
 		}\
@@ -58,6 +61,7 @@ void arch_dump_hex(const void *data, int len,const char *tips);
 	do{\
 		extern log_level_t g_log_level;\
 		if(g_log_level <= LOG_LEVEL_WARNING){\
+			arch_printf_time();\
 			arch_printf("[W] "_fmt_" (%s,%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__);\
 			arch_printf_end();\
 		}\
@@ -65,6 +69,7 @@ void arch_dump_hex(const void *data, int len,const char *tips);
 #define LOG_WARN_TAG(TAG, _fmt_, ...) \
 	do{\
 		if((LOG_LEVEL) <= LOG_LEVEL_WARNING){\
+			arch_printf_time();\
 			arch_printf("[W] %s: "_fmt_" (%s,%d)", TAG, ##__VA_ARGS__, __FUNCTION__, __LINE__);\
 			arch_printf_end();\
 		}\
@@ -81,6 +86,7 @@ void arch_dump_hex(const void *data, int len,const char *tips);
 	do{\
 		extern log_level_t g_log_level;\
 		if(g_log_level <= LOG_LEVEL_ERROR){\
+			arch_printf_time();\
 			arch_printf("[EEEEE] "_fmt_" (%s,%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__);\
 			arch_printf_end();\
 		}\
@@ -88,6 +94,7 @@ void arch_dump_hex(const void *data, int len,const char *tips);
 #define LOG_ERROR_TAG(TAG, _fmt_, ...) \
 	do{\
 		if((LOG_LEVEL) <= LOG_LEVEL_ERROR){\
+			arch_printf_time();\
 			arch_printf("[E] %s: "_fmt_" (%s,%d)", TAG, ##__VA_ARGS__, __FUNCTION__, __LINE__);\
 			arch_printf_end();\
 		}\
@@ -104,6 +111,7 @@ void arch_dump_hex(const void *data, int len,const char *tips);
 	do{\
 		extern log_level_t g_log_level;\
 		if(g_log_level <= LOG_LEVEL_FATAL){\
+			arch_printf_time();\
 			arch_printf("[F] "_fmt_" (%s,%d)", ##__VA_ARGS__, __FUNCTION__, __LINE__);\
 			arch_printf_end();\
 		}\
@@ -111,6 +119,7 @@ void arch_dump_hex(const void *data, int len,const char *tips);
 #define LOG_FATAL_TAG(TAG, _fmt_, ...) \
 	do{\
 		if((LOG_LEVEL) <= LOG_LEVEL_FATAL){\
+			arch_printf_time();\
 			arch_printf("[F] %s: "_fmt_" (%s,%d)", TAG, ##__VA_ARGS__, __FUNCTION__, __LINE__);\
 			arch_printf_end();\
 		}\
@@ -128,6 +137,7 @@ void arch_dump_hex(const void *data, int len,const char *tips);
 	do{\
 		extern log_level_t g_log_level;\
 		if(g_log_level <= LOG_LEVEL_VERBOSE){\
+			arch_printf_time();\
 			arch_printf("[D] "_fmt_, ##__VA_ARGS__);\
 			arch_printf_end();\
 		}\
@@ -135,6 +145,7 @@ void arch_dump_hex(const void *data, int len,const char *tips);
 #define LOG_DEBUG_TAG(TAG, _fmt_, ...) \
 	do{\
 		if((LOG_LEVEL) <= LOG_LEVEL_VERBOSE){\
+			arch_printf_time();\
 			arch_printf("[D] %s: "_fmt_, TAG, ##__VA_ARGS__);\
 			arch_printf_end();\
 		}\

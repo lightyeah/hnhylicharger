@@ -23,11 +23,11 @@ int hy_input_init(void* hy_instance_handle)
 
 	hy_instance = (hy_instance_t*)hy_instance_handle;
 	/*software init*/
-	hy_instance->hy_inputsignal.currentfb = 0;
-	hy_instance->hy_inputsignal.currentfb_x10 = 0;
-	hy_instance->hy_inputsignal.voltagefb = 0;
-	hy_instance->hy_inputsignal.voltagefb_x10 = 0;
-	hy_instance->hy_inputsignal.heatwarn = 0;/*todo ensure init state*/
+	hy_instance->inputsignal.currentfb = 0;
+	hy_instance->inputsignal.currentfb_x10 = 0;
+	hy_instance->inputsignal.voltagefb = 0;
+	hy_instance->inputsignal.voltagefb_x10 = 0;
+	hy_instance->inputsignal.heatwarn = 0;/*todo ensure init state*/
 	/*hardware init*/  
     //Init the input control message 
     PinCfg.Funcnum = 0;
@@ -89,7 +89,7 @@ uint8_t hy_get_heatwarn(void){
 	if(hy_instance==NULL){
 		LOG_ERROR_TAG(HY_LOG_TAG,"hy input not init!!");
 	}
-	hy_instance->hy_inputsignal.heatwarn = ret;
+	hy_instance->inputsignal.heatwarn = ret;
 	LOG_INFO_TAG(HY_LOG_TAG,"hy get heatwarn [%d]",ret);
 	if(ret){	
 		return ret;
@@ -103,7 +103,7 @@ uint8_t hy_get_embtrigger(void){
 		if(hy_instance==NULL){
 		LOG_ERROR_TAG(HY_LOG_TAG,"hy input not init!!");
 	}
-	hy_instance->hy_inputsignal.embtrigger = ret;
+	hy_instance->inputsignal.embtrigger = ret;
 	LOG_INFO_TAG(HY_LOG_TAG,"hy get embtrigger [%d]",ret);
 	if(ret){	
 		return ret;
@@ -117,7 +117,7 @@ uint8_t hy_get_resettrigger(void){
 	if(hy_instance==NULL){
 		LOG_ERROR_TAG(HY_LOG_TAG,"hy input not init!!");
 	}
-	hy_instance->hy_inputsignal.resettrigger=ret;
+	hy_instance->inputsignal.resettrigger=ret;
 	LOG_INFO_TAG(HY_LOG_TAG,"hy get rettrigger [%d]",ret);
 	if(ret){	
 		return ret;
@@ -139,13 +139,13 @@ uint16_t hy_get_voltagefb_x10(void){
     rawvdata = (ADC_ChannelGetData(LPC_ADC,ADC_CHANNEL_4));	
 		ADC_ChannelCmd(LPC_ADC,ADC_ADINTEN4,DISABLE);
 	
-		hy_instance->hy_inputsignal.voltagefb_x10 = 
-				hy_instance->hy_inputsignal.voltagefb*HY_ADC_OLD_PERCENT + 
+		hy_instance->inputsignal.voltagefb_x10 = 
+				hy_instance->inputsignal.voltagefb*HY_ADC_OLD_PERCENT + 
 				rawvdata*HY_ADC_NEW_PERCENT*(hy_instance->config.voltagerange)/4096;
-	  hy_instance->hy_inputsignal.voltagefb = hy_instance->hy_inputsignal.voltagefb_x10/HY_ADC_TOTAL_PERCENT;
+	  hy_instance->inputsignal.voltagefb = hy_instance->inputsignal.voltagefb_x10/HY_ADC_TOTAL_PERCENT;
 		
-		LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1 raw data [%d]",hy_instance->hy_inputsignal.voltagefb_x10,rawvdata);
-    return hy_instance->hy_inputsignal.voltagefb_x10;
+		LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1 raw data [%d]",hy_instance->inputsignal.voltagefb_x10,rawvdata);
+    return hy_instance->inputsignal.voltagefb_x10;
 }
 
 uint16_t hy_get_currentfb_x10(void){
@@ -160,13 +160,13 @@ uint16_t hy_get_currentfb_x10(void){
     rawidata = (ADC_ChannelGetData(LPC_ADC,ADC_CHANNEL_2));	
 		ADC_ChannelCmd(LPC_ADC,ADC_ADINTEN2,DISABLE);
 	
-		hy_instance->hy_inputsignal.currentfb_x10 = 
-				hy_instance->hy_inputsignal.currentfb*HY_ADC_OLD_PERCENT + 
+		hy_instance->inputsignal.currentfb_x10 = 
+				hy_instance->inputsignal.currentfb*HY_ADC_OLD_PERCENT + 
 				(rawidata*HY_ADC_NEW_PERCENT*(hy_instance->config.currentrange))/4096;
-	  hy_instance->hy_inputsignal.currentfb = hy_instance->hy_inputsignal.currentfb_x10/HY_ADC_TOTAL_PERCENT;
+	  hy_instance->inputsignal.currentfb = hy_instance->inputsignal.currentfb_x10/HY_ADC_TOTAL_PERCENT;
 		
-		LOG_INFO_TAG(HY_LOG_TAG,"get current adc row data [%d]x0.1 raw data [%d]",hy_instance->hy_inputsignal.currentfb_x10,rawidata);
-    return hy_instance->hy_inputsignal.currentfb_x10;
+		LOG_INFO_TAG(HY_LOG_TAG,"get current adc row data [%d]x0.1 raw data [%d]",hy_instance->inputsignal.currentfb_x10,rawidata);
+    return hy_instance->inputsignal.currentfb_x10;
 }
 
 

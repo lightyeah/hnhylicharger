@@ -1,7 +1,15 @@
 
 #include "hy_instance.h"
 #include "hy_dbg.h"
+#include "hy_systime.h"
 
+void arch_printf_time(void){
+	hy_systime_t *systime = hy_get_systime_handle();
+	uint32_t hour=systime->hour_24;
+	uint32_t min=systime->minute_60;
+	uint32_t sec=systime->second_60;
+	arch_printf("%02d:%02d:%02d||",hour,min,sec);
+}
 void arch_printf_end(void)
 {
 	arch_printf("\r\n");

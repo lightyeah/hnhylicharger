@@ -40,6 +40,7 @@
 #include "hy_instance.h"
 #include "hy_dbg.h"
 #include "hy_can.h"
+#include "hy_systime.h"
 
 #define HY_LOG_TAG    "main"
 /*In <debug_frmwrk. H >file can choose to a serial port*/
@@ -129,7 +130,7 @@ int main(void)
 		long long int i = 50000000;
 		while(i--);
 	#endif
-
+	hy_systime_init(&s_hy_instance);
 	/*debug init*/
 	debug_frmwrk_init();
 	LOG_INFO_TAG(HY_LOG_TAG,"HY system start %s\r\n");

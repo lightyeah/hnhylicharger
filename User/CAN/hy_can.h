@@ -139,7 +139,7 @@ typedef struct CanComStrcut{
 	uint8_t cannum;
 	hy_canconnect canconnected;
 	hy_canmsg canmsg;
-}cancom_t;
+}hy_cancom_t;
 
 int hy_can_init(void* hy_instance);
 

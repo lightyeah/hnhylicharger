@@ -13,7 +13,7 @@
 CAN_MSG_Type TXMsg, RXMsg; // messages for test Bypass mode
 uint32_t CANRxCount, CANTxCount = 0;
 
-cancom_t *s_cancom = NULL;
+hy_cancom_t *s_cancom = NULL;
 
 
 int hy_can_init(void* hy_instance_handle)
