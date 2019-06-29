@@ -7,7 +7,20 @@
 typedef enum PAGE
 {
 	WelcomePage = 1,
-	DisplayPage1,//2
+	/*预备界面*/
+	DisplayPage0,/*初始化中*/
+	DisplayPage0_1,/*读取配置错误*/
+	/*main page
+	*  充电电压：xxxV
+	*  充电电流：xxxA
+	*  充电时间：xxxmin
+	*  状态： ********
+	*/
+	DisplayPage1,
+	DisplayPage1_1,//stop page  状态：停止充电
+	DisplayPage1_2,//start page 状态：开始充电
+	DisplayPage1_3,//end page 状态：充电完成
+	DisplayPage1_4,//查询上一次充电成功 状态->时间
 	DisplayPage2,//3
 	PassportPage,//4
 	SettingMainPage1,//5
@@ -25,10 +38,18 @@ typedef enum PAGE
 	ErrorPage,//17
 } PAGE;
 
+
+int hy_gui_page_init(void* gui_handle);
+
 void show(void);
 
 PAGE welcomepage(void);
-PAGE displaypage1(uint8_t status,uint16_t vol,uint16_t cur,uint16_t time,uint8_t * flag);
+
+PAGE displaypage1(uint32_t state,
+	uint32_t vol,
+	uint32_t cur,
+	uint32_t time);
+
 PAGE displaypage2(uint8_t mode,uint16_t no,uint16_t vol,uint8_t status,uint8_t * flag);
 	
 PAGE passportpage(void); 

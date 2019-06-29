@@ -575,6 +575,11 @@
               <FileType>1</FileType>
               <FilePath>..\User\hy_dbg.c</FilePath>
             </File>
+            <File>
+              <FileName>hy_charge_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\hy_charge_task.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -591,9 +596,9 @@
           <GroupName>Output</GroupName>
           <Files>
             <File>
-              <FileName>output.c</FileName>
+              <FileName>hy_output.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\User\Output\output.c</FilePath>
+              <FilePath>..\User\Output\hy_output.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -2,6 +2,9 @@
 #define _LCD_DRIVER_H
 
 #include "stdint.h"
+#include "lpc17xx_pinsel.h"
+#include "lpc17xx_gpio.h"
+#include "GUI.h"
 
 
 void delay(uint16_t t);
@@ -28,7 +31,7 @@ void lcd_cursor_close(void);
 void lcd_clear(void);   
 
 
-void Button_Init(void);
-uint8_t Button_Check(void);
+void hy_button_init(void* gui_handle);
+int hy_button_check(hy_button_name name);
 
 #endif

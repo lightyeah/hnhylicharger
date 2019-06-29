@@ -20,8 +20,10 @@ typedef struct SystemTimeStruct
     uint32_t timeoffset_hour;
 }hy_systime_t;
 
-
+uint32_t hy_time_now_ms(void);
+uint32_t systime_elapse_ms(uint32_t last_ms);
 hy_systime_t* hy_get_systime_handle(void);
 int hy_systime_init(void* hy_instance_handle);	
-
+void hy_delay_ms (unsigned long tick);
 #endif
+

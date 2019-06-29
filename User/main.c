@@ -123,43 +123,83 @@ int hy_instance_get_config(hy_instance_t *hy_handle,void* arg)
 int main(void)
 {
 	int ret = 0;
-	
-	hy_instance_t s_hy_instance;
-	
+	static hy_instance_t s_hy_instance;
 	#ifdef delay_power
 		long long int i = 50000000;
 		while(i--);
 	#endif
-	hy_systime_init(&s_hy_instance);
+	
+
+	s_hy_instance.initdone = HY_INSTANCE_NOT_INITDONE;
+
+	/*init*/
 	/*debug init*/
 	debug_frmwrk_init();
-	LOG_INFO_TAG(HY_LOG_TAG,"HY system start %s\r\n");
+	/*systime init*/
+	hy_systime_init(&s_hy_instance);
+	LOG_INFO_TAG(HY_LOG_TAG,"HY system start\r\n");
 	printf_logo();
+	
+
+	
 	/*rom config init*/
 	ret = hy_instance_get_config(&s_hy_instance,NULL);
 	if(ret == 0){
 	  s_hy_instance.configed_flag = true;
 	}else{
 		s_hy_instance.configed_flag = false;
+		LOG_ERROR_TAG(HY_LOG_TAG,"***get config failed!!!");
 	}
-	/*todo input init*/
-	hy_input_init(&s_hy_instance);
-
-	/*todo output init*/
-	
-	/*todo can init if in can control mode*/
+	/*can init if in can control mode*/
 	if(s_hy_instance.config.controlstyle == HY_CONTROLSTYLE_CAN &&
 			s_hy_instance.configed_flag){
-//				hy_can_init(&s_hy_instance);
+				hy_can_init(&s_hy_instance);
 	}
-		while(1){
-		i=50000000;
-		while(i--);
-		hy_get_voltagefb_x10();
-		hy_get_currentfb_x10();
-		LOG_PRINT("==================\r\n");
-	}
-//	MainProcess();
+	
+	/*for test api*/
+	s_hy_instance.config.controlstyle = HY_CONTROLSTYLE_LOCAL;
+	
+	s_hy_instance.config.chargecurrent_1 = 30;
+	s_hy_instance.config.limitvoltage_1 = 60;
+	s_hy_instance.config.chargetimeout_1_min = 15;
+	s_hy_instance.config.switchvoltage_1 = 30;
+	
+	s_hy_instance.config.chargecurrent_2 = 90;
+	s_hy_instance.config.limitvoltage_2 = 60;
+	s_hy_instance.config.chargetimeout_2_min = 15; 
+	s_hy_instance.config.switchvoltage_2 = 56;
+	
+	s_hy_instance.config.chargevoltage_3 = 59;
+	s_hy_instance.config.limitcurrent_3 = 60;
+	s_hy_instance.config.chargetimeout_3_min = 15; 
+	s_hy_instance.config.switchcurrent_3 = 10;
+	
+	s_hy_instance.config.voltagerange = 48;
+	s_hy_instance.config.currentrange = 100;
+	
+	/*input init*/
+	hy_input_init(&s_hy_instance);
+	/*output init*/
+	hy_output_init(&s_hy_instance);
+//		while(1){
+//		hy_set_output(100);
+//		hy_can_send();
+//		i=50000000;
+//		while(i--);
+//		hy_get_voltagefb_x10V();
+//		hy_get_currentfb_x10A();
+//		LOG_PRINT("==================\r\n");
+//	}
+	
+		hy_chargetask_init(&s_hy_instance);
+		/*gui_init*/
+		hy_gui_init(&s_hy_instance);
+		delay_ms(1000);
+	
+		
+		s_hy_instance.initdone = HY_INSTANCE_INITDONE;
+
+		MainProcess();
 
 
   while(1);

@@ -2,6 +2,7 @@
 #define __HY_INSTANCE_H__
 
 #include "stdint.h"
+#include "stdbool.h"
 #include "lpc17xx_i2c.h"
 #include "lpc17xx_libcfg.h"
 #include "lpc17xx_pinsel.h"
@@ -12,6 +13,9 @@
 #include "hy_can.h"
 #include "hy_input.h"
 #include "hy_systime.h"
+#include "hy_output.h"
+#include "hy_charge_task.h"
+#include "GUI.h"
 
 #define INT8TO32(a,b,c,d)         (uint32_t)(a|(((b)<<8)&0xff00)|(((c)<<16)&0xff0000)|(((d)<<24)&0xff000000))  
 #define INT8TO16(a,b)             INT8TO32(a,b,0,0)
@@ -38,7 +42,13 @@
 #define HY_FALSE                                    0
 
 #define HY_TRIGGERED                                1
-#define HY_NOTRIGGERED                              0       
+#define HY_NOTRIGGERED                              0    
+
+#define HY_CHARGETASK_DATA_NUM                      3
+
+#define HY_INSTANCE_INITDONE                        1
+#define HY_INSTANCE_NOT_INITDONE                    0 
+
 typedef struct Hy_Config{
 	/*for all*/
 	uint16_t voltagerange;
@@ -67,17 +77,29 @@ typedef struct Hy_Config{
 	
 }hy_config;
 
+
 typedef struct Hy_Instance
 {
+	int initdone; 
+
 	hy_config config;
 	int configed_flag;
 	
 	hy_cancom_t cancom;
 	
 	hy_inputsignal_t inputsignal;
+	hy_output_t output;
 	
 	hy_systime_t systime;
+	
+	hy_chargetask_t chargetask;
+	hy_chargetask_data hy_data[HY_CHARGETASK_DATA_NUM];
+	
+
+	hy_gui_t gui;
 	
 }hy_instance_t;
 
 #endif
+
+

@@ -35,14 +35,14 @@ uint8_t hy_get_heatwarn(void);
 uint8_t hy_get_resettrigger(void);
 uint8_t hy_get_embtrigger(void);
 
-uint16_t hy_get_voltagefb_x10(void);
-uint16_t hy_get_currentfb_x10(void);
+uint16_t hy_get_voltagefb_x10V(void);
+uint16_t hy_get_currentfb_x10A(void);
 
 typedef struct HYInputSignalStruct{
 	uint16_t voltagefb;
 	uint16_t currentfb;
-	uint16_t voltagefb_x10;
-	uint16_t currentfb_x10;
+	uint16_t voltagefb_x10V;
+	uint16_t currentfb_x10A;
 	uint16_t heatwarn;
 	uint16_t resettrigger;
 	uint16_t embtrigger;

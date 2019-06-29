@@ -1,9 +1,12 @@
-#include "debug_frmwrk.h"
-#include "systen_delay.h"
-#include "lpc17xx_gpio.h"
-#include "GUI_driver.h"
 
-#include "lpc17xx_pinsel.h"
+#include "GUI_driver.h"
+#include "hy_dbg.h"
+#include "hy_systime.h"
+
+#include "string.h"
+#define HY_LOG_TAG  "gui_driver"
+
+static hy_gui_t* s_gui = NULL;
 
 #define uchar uint8_t
 #define uint  uint16_t
@@ -58,10 +61,7 @@
 #define LCD_BUS6(x)  ((x) ? (LPC_GPIO1->FIOSET = PIN_BUS6) : (LPC_GPIO1->FIOCLR = PIN_BUS6));
 #define LCD_BUS7(x)  ((x) ? (LPC_GPIO1->FIOSET = PIN_BUS7) : (LPC_GPIO1->FIOCLR = PIN_BUS7));
 
-#ifndef DEBUG_PRINT
-#define DEBUG_PRINT
-#define DEBUG_PRINT(format, ...) _printf (format,##__VA_ARGS__)
-#endif
+
 void delay(uint t){
   while(t--);
 }
@@ -73,18 +73,17 @@ void LCD_Configuration(void)
         P1[0 1 4 8 9 10 14 15]
         as output.
     */
-		FIO_SetDir(1,(1<<25)|(1<<27)|(1<<28),1);
-    FIO_SetDir(1,(1<<0)|(1<<1)|(1<<8)|(1<<4)|(1<<9)|(1<<10)|(1<<14)|(1<<15),1);
-    FIO_SetValue(1,(1<<25)|(1<<27)|(1<<28));
-		FIO_SetValue(1,(1<<0)|(1<<1)|(1<<8)|(1<<4)|(1<<9)|(1<<10)|(1<<14)|(1<<15));
-		LCD_PSB(1);
+	FIO_SetDir(1,(1<<25)|(1<<27)|(1<<28),1);
+  FIO_SetDir(1,(1<<0)|(1<<1)|(1<<8)|(1<<4)|(1<<9)|(1<<10)|(1<<14)|(1<<15),1);
+  FIO_SetValue(1,(1<<25)|(1<<27)|(1<<28));
+	FIO_SetValue(1,(1<<0)|(1<<1)|(1<<8)|(1<<4)|(1<<9)|(1<<10)|(1<<14)|(1<<15));
+	LCD_PSB(1);
    
 }
 
-
-
-void Button_Init(){
-	  PINSEL_CFG_Type PinCfg;
+void hy_button_init(void* gui_handle){
+	
+	PINSEL_CFG_Type PinCfg;
 		//26 off
     PinCfg.Funcnum = 0;
     PinCfg.Pinnum = 26;
@@ -111,42 +110,102 @@ void Button_Init(){
 		GPIO_SetDir(3, (1<<26)|(1<<25),0);
 		GPIO_SetDir(0, (1<<29)|(1<<30),0);
     GPIO_SetDir(1, (1<<18)|(1<<19),0);
+		
+		s_gui = (hy_gui_t*)gui_handle;
+		s_gui->button.name = button_default;
+		s_gui->button.state = pressed_none;
+		s_gui->button.pressed_time_ms = 0;
+		s_gui->button.work_state = HY_BUTTON_WORKED;
+		LOG_INFO_TAG(HY_LOG_TAG,"hy gui button init done!!");
 }
 
-uint8_t Button_Check(){
+
+int hy_button_check(hy_button_name name){
+	switch (name){
+		case button_default:
+			return 0;
+
+
+		case button_off:
+			if(!(GPIO_ReadValue(3) & (1<<26))){
+				return HY_BUTTON_PRESSED;
+			}else{
+				return HY_BUTTON_LOOSEN;
+			}
+
+
+		case button_on:
+			if(!(GPIO_ReadValue(3) & (1<<25))){
+				return HY_BUTTON_PRESSED;
+			}else{
+				return HY_BUTTON_LOOSEN;
+			}
+
+
+		case button_esc:
+			if(!(GPIO_ReadValue(0) & (1<<29))){
+				return HY_BUTTON_PRESSED;
+			}else{
+				return HY_BUTTON_LOOSEN;
+			}
+
+
+		case button_down:
+			if(!(GPIO_ReadValue(0) & (1<<30))){
+				return HY_BUTTON_PRESSED;
+			}else{
+				return HY_BUTTON_LOOSEN;
+			}
+
+
+		case button_up:
+			if(!(GPIO_ReadValue(1) & (1<<18))){
+				return HY_BUTTON_PRESSED;
+			}else{
+				return HY_BUTTON_LOOSEN;
+			}
+
+
+		case button_set:
+			if(!(GPIO_ReadValue(1) & (1<<19))){
+				return HY_BUTTON_PRESSED;
+			}else{
+				return HY_BUTTON_LOOSEN;
+			}
+
+	}
+	
+	return HY_BUTTON_LOOSEN;
+}
+
+/*uint8_t Button_Check(){
 	if(!(GPIO_ReadValue(0) & (1<<29))){
-// 		DEBUG_PRINT("%d \r\n",4);
-		delay_ms(300);
+		hy_delay_ms(300);
 		return 0x04;
 	}
 	else if(!(GPIO_ReadValue(0) & (1<<30))){
-// 		DEBUG_PRINT("%d \r\n",3);
-		delay_ms(300);
+		hy_delay_ms(300);
 		return 0x03;
 	}
 	else if(!(GPIO_ReadValue(3) & (1<<25))){
-// 		DEBUG_PRINT("%d \r\n",5);
-		delay_ms(300);
+		hy_delay_ms(300);
 		return 0x05;
 	}
 	else if(!(GPIO_ReadValue(3) & (1<<26))){
-// 		DEBUG_PRINT("%d \r\n",6);
-		delay_ms(300);
+		hy_delay_ms(300);
 		return 0x06;
 	}
 	else if(!(GPIO_ReadValue(1) & (1<<19))){
-// 		DEBUG_PRINT("%d \r\n",1);
-		delay_ms(300);
+		hy_delay_ms(300);
 		return 0x01;
 	}
 	else if(!(GPIO_ReadValue(1) & (1<<18))){
-// 		DEBUG_PRINT("%d \r\n",4);
-		delay_ms(300);
+		hy_delay_ms(300);
 		return 0x02;	
 	}
 	else 
 		return 0;
-}
+}*/
 
 
 void LCD_BUS(uint8_t cmd){
@@ -180,24 +239,24 @@ void write_data(uint8_t Dispdata){
 
 void lcdreset()
 {  
-	 delay_ms(100);
+	 hy_delay_ms(100);
    write_com(0x30);      
-   delay_ms(5);             
+   hy_delay_ms(5);             
    write_com(0x30);       
-   delay_ms(5);             
+   hy_delay_ms(5);             
    write_com(0x0c);       
-   delay_ms(5);             
+   hy_delay_ms(5);             
    write_com(0x14);      
-   delay_ms(5);             
+   hy_delay_ms(5);             
    write_com(0x01);      
-   delay_ms(50);             
+   hy_delay_ms(50);             
    write_com(0x06);       
 }
 
 void lcd_clear()
 { 
   write_com(0x01);
-  delay_ms(5);
+  hy_delay_ms(5);
 }
  
 void lcd_goto_pos(uint8_t posy,uint8_t posx){
@@ -219,14 +278,14 @@ void lcd_goto_pos(uint8_t posy,uint8_t posx){
 			break;
 	}
 	write_com(addr);
-	delay_ms(1); 
+	hy_delay_ms(1); 
 }
 
 void lcd_display_ascii(uint8_t *s){
 	while(*s>0){  
 		write_data(*s);
     s++;
-		delay_ms(1);
+		hy_delay_ms(1);
   }
 }
 
@@ -250,11 +309,11 @@ void lcd_display_chinese_at(uint8_t posx,uint8_t posy,uint8_t *s)
 			break;
 	}
 	write_com(addr);
-	delay_ms(1); 
+	hy_delay_ms(1); 
   while(*s>0){  
 		write_data(*s);
     s++;
-		delay_ms(1);
+		hy_delay_ms(1);
   }
 }
 
@@ -262,22 +321,22 @@ void lcd_display_chinese(uint8_t *s){
   while(*s>0){  
 		write_data(*s);
     s++;
-		delay_ms(1);
+		hy_delay_ms(1);
   }
 }
 
 void lcd_display_colon(void){
 	write_data(0xa3);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(0xba);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 }
 
 void lcd_display_space(void){
 	write_data(0x20);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(0x20);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 }
 
 
@@ -288,35 +347,35 @@ void lcd_display_num4(uint16_t num,uint8_t unit){
 	uint8_t qian;
 	uint16_t numtmp;
 	numtmp = num/10;
-	if(num<1000 && num>=0){
+	if(num<1000){
 		ge = num%10;
 		shi = num/10%10;
 		bai = num/100%10;
 		qian = num/1000;
 		write_data(qian+0x30);
-		delay_ms(1);	
+		hy_delay_ms(1);	
 		write_data(bai+0x30);
-		delay_ms(1);	
+		hy_delay_ms(1);	
 		write_data(shi+0x30);
-		delay_ms(1);
+		hy_delay_ms(1);
 		write_data(0x2e);
-		delay_ms(1);		
+		hy_delay_ms(1);		
 		write_data(ge+0x30);
-		delay_ms(1);	
+		hy_delay_ms(1);	
 	}
-	else if(num<100000 && num>=1000){
+	else if(num>=1000){
 		ge = numtmp%10;
 		shi = numtmp/10%10;
 		bai = numtmp/100%10;
 		qian = numtmp/1000;
 		write_data(qian+0x30);
-		delay_ms(1);	
+		hy_delay_ms(1);	
 		write_data(bai+0x30);
-		delay_ms(1);	
+		hy_delay_ms(1);	
 		write_data(shi+0x30);
-		delay_ms(1);
+		hy_delay_ms(1);
 		write_data(ge+0x30);
-		delay_ms(1);	
+		hy_delay_ms(1);	
 	}
 	else{
 		ge = 0;
@@ -327,7 +386,7 @@ void lcd_display_num4(uint16_t num,uint8_t unit){
 
 	if(unit != ' ')
 		write_data(unit);
-	delay_ms(1);
+	hy_delay_ms(1);
 }
 
 void lcd_display_time4(uint16_t num){
@@ -335,19 +394,19 @@ void lcd_display_time4(uint16_t num){
 	uint8_t shi;
 	uint8_t bai;
 	uint8_t qian;
-	if(num<10000 && num>=0){
+	if(num<10000){
 		ge = num%10;
 		shi = num/10%10;
 		bai = num/100%10;
 		qian = num/1000;
 		write_data(qian+0x30);
-		delay_ms(1);	
+		hy_delay_ms(1);	
 		write_data(bai+0x30);
-		delay_ms(1);	
+		hy_delay_ms(1);	
 		write_data(shi+0x30);
-		delay_ms(1);
+		hy_delay_ms(1);
 		write_data(ge+0x30);
-		delay_ms(1);	
+		hy_delay_ms(1);	
 	}
 	else{
 		ge = 0;
@@ -356,9 +415,9 @@ void lcd_display_time4(uint16_t num){
 		qian = 0;
 	}
 	write_data(' ');
-	delay_ms(1);
+	hy_delay_ms(1);
 	write_data('M');
-	delay_ms(1);
+	hy_delay_ms(1);
 }
 
 void lcd_display_num3(uint16_t num,uint8_t unit){
@@ -376,13 +435,13 @@ void lcd_display_num3(uint16_t num,uint8_t unit){
 		bai =0;
 	}
 	write_data(bai+0x30);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(shi+0x30);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(ge+0x30);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(unit);
-	delay_ms(1);
+	hy_delay_ms(1);
 }
 
 
@@ -401,21 +460,21 @@ void lcd_display_num3_big(uint16_t num,uint8_t unit){
 		bai =0;
 	}
 	write_data(0xa3);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(bai+0xb0);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(0xa3);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(shi+0xb0);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(0xa3);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(ge+0xb0);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(0x20);
-	delay_ms(1);
+	hy_delay_ms(1);
 	write_data(unit);
-	delay_ms(1);
+	hy_delay_ms(1);
 }
 
 
@@ -431,7 +490,7 @@ void lcd_display_num2_big(uint16_t num,uint8_t unit){
 		data = 30 - num;
 		flag = 0;
 	}
-	if(num<61 && num>=0){
+	if(num<61){
 		ge = data%10;
 		shi = data/10%10;
 	}
@@ -440,44 +499,44 @@ void lcd_display_num2_big(uint16_t num,uint8_t unit){
 		shi =0;
 	}
 	write_data(0xa3);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(0xad-flag*2);//+ flag=1 - flag=0
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(0xa3);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(shi+0xb0);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(0xa3);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(ge+0xb0);
-	delay_ms(1);	
+	hy_delay_ms(1);	
 	write_data(0x20);
-	delay_ms(1);
+	hy_delay_ms(1);
 	write_data(unit);
-	delay_ms(1);
+	hy_delay_ms(1);
 }
 
 void lcd_cursor_goto(uint8_t posy,uint8_t posx){
 	write_com(0x0f);       
-  delay_ms(5);             
+  hy_delay_ms(5);             
 	lcd_goto_pos(posy,posx);
-	delay_ms(1);
+	hy_delay_ms(1);
 }
 
 void lcd_cursor_close(void){
 	write_com(0x0C);
-	delay_ms(5);             
+	hy_delay_ms(5);             
 
 }
 
 
 // void lcd_highlight(uint8_t no){
 // 	write_com(0x34);
-// 	delay_ms(1);
+// 	hy_delay_ms(1);
 // 	write_com(0x04+no);
-// 	delay_ms(1);	
+// 	hy_delay_ms(1);	
 // 	write_com(0x30);
-// 	delay_ms(1);	
+// 	hy_delay_ms(1);	
 
 // }
 
