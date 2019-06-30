@@ -133,7 +133,7 @@ uint8_t hy_get_resettrigger(void){
 /*ADC TODO use more effecient method !!!!*/
 uint16_t hy_get_voltagefb_x10V(void){
 	static uint16_t rawvdata = 0;
-	
+
 		ADC_ChannelCmd(LPC_ADC,ADC_ADINTEN4,ENABLE);
     ADC_StartCmd(LPC_ADC,ADC_START_NOW);   
     while(!(ADC_ChannelGetStatus(LPC_ADC,ADC_CHANNEL_4,ADC_DATA_DONE)));
@@ -151,9 +151,6 @@ uint16_t hy_get_voltagefb_x10V(void){
 
 uint16_t hy_get_currentfb_x10A(void){
 	static uint16_t rawidata = 0;
-	if(hy_instance==NULL){
-		LOG_ERROR_TAG(HY_LOG_TAG,"hy input not init!!");
-	}
 	
 		ADC_ChannelCmd(LPC_ADC,ADC_ADINTEN2,ENABLE);
     ADC_StartCmd(LPC_ADC,ADC_START_NOW);   

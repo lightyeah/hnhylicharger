@@ -213,7 +213,8 @@ uint32_t hy_chargetask_gettotalpower_x10kwh()
 void hy_chargetask_set_output(uint32_t currentfb_x10A,uint32_t voltagefb_x10V,uint32_t aimtype)
 {
 	LOG_INFO_TAG(HY_LOG_TAG,"aimtype [%d] fbvol[%d] fbcur[%d]",aimtype,voltagefb_x10V,currentfb_x10A);
-	LOG_INFO_TAG(HY_LOG_TAG,"aimcur [%d] aimvol [%d]",s_chargetask->aim_current_x10A,s_chargetask->aim_voltage_x10V);
+	LOG_INFO_TAG(HY_LOG_TAG,"aimcur [%d] aimvol [%d] outputvalue [%d]",
+		s_chargetask->aim_current_x10A,s_chargetask->aim_voltage_x10V,s_chargetask->output_dac_value);
 
 	if(s_chargetask->max_voltage_x10V == 0){
 		s_chargetask->max_voltage_x10V = hy_instance->config.voltagerange;
@@ -221,6 +222,8 @@ void hy_chargetask_set_output(uint32_t currentfb_x10A,uint32_t voltagefb_x10V,ui
 	if(voltagefb_x10V >= s_chargetask->max_voltage_x10V){
 		LOG_WARN_TAG(HY_LOG_TAG,"output voltaga reach max [%d]x0.1V !!!",s_chargetask->max_voltage_x10V);
 		s_chargetask->output_dac_value--;
+		if(s_chargetask->output_dac_value <= 0)
+			s_chargetask->output_dac_value = 0;
 		hy_set_output(s_chargetask->output_dac_value);
 		return;
 	}
@@ -231,6 +234,8 @@ void hy_chargetask_set_output(uint32_t currentfb_x10A,uint32_t voltagefb_x10V,ui
 	if(currentfb_x10A >= s_chargetask->max_current_x10A){
 		LOG_WARN_TAG(HY_LOG_TAG,"output current reach max [%d]x0.1A !!!",s_chargetask->max_current_x10A);
 		s_chargetask->output_dac_value--;
+		if(s_chargetask->output_dac_value <= 0)
+			s_chargetask->output_dac_value = 0;
 		hy_set_output(s_chargetask->output_dac_value);
 		return;
 	}
@@ -251,7 +256,7 @@ void hy_chargetask_set_output(uint32_t currentfb_x10A,uint32_t voltagefb_x10V,ui
 		case BMS_OBC_BCL_MODE_CUR:
 			if(currentfb_x10A > s_chargetask->aim_current_x10A){
 				s_chargetask->output_dac_value--;
-				if(s_chargetask->output_dac_value<=0)
+				if(s_chargetask->output_dac_value <= 0)
 					s_chargetask->output_dac_value = 0;
 			}else{
 				s_chargetask->output_dac_value++;
@@ -305,8 +310,7 @@ void hy_chargetask_main()
 	static uint32_t currentfb_x10A;
 	static uint32_t voltagefb_x10V; 
 	static chargetask_gui_msg gui_msg;
-	/*luoyang test*/
-	static uint32_t testvalue = 0;
+	
 	aimtype = s_chargetask->aim_type;
 	/*use CHARGETASK_CONTROL_INTERVAL to control chargetask regulate*/
 	if((systime_elapse_ms(s_chargetask->lastcontrol_time_ms)%CHARGETASK_CONTROL_INTERVAL)){
@@ -348,18 +352,14 @@ void hy_chargetask_main()
 			gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
 			if(s_chargetask->output_dac_value != 0){
 				s_chargetask->output_dac_value--;
+				if(s_chargetask->output_dac_value<=0)
+					s_chargetask->output_dac_value = 0;
 				hy_set_output(s_chargetask->output_dac_value);
 			}
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
 				LOG_INFO_TAG(HY_LOG_TAG,
 				"***chargetask idle state... \r\n******get voltage [%d]x0.1V current [%d]x0.1A",
 				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
-				/*luoyang test*/
-				hy_set_output(testvalue);
-				LOG_ERROR_TAG(HY_LOG_TAG,"test set out put[%d]",testvalue);
-				testvalue += 5;
-				if(testvalue>=1024)
-					testvalue = 0;
 				monitortime_ms = hy_time_now_ms();
 			}
 			break;
@@ -442,6 +442,8 @@ void hy_chargetask_main()
 			gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
 			if(s_chargetask->output_dac_value != 0){
 				s_chargetask->output_dac_value--;
+				if(s_chargetask->output_dac_value<=0)
+					s_chargetask->output_dac_value=0;
 				hy_set_output(s_chargetask->output_dac_value);
 			}
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
