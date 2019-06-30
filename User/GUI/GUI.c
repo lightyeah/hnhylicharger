@@ -215,6 +215,7 @@ int hy_gui_handle_button_msg(button_gui_msg* msg)
 	}
 	s_gui->button_msg_queue[0].button_name = ((button_gui_msg*)msg)->button_name;
 	s_gui->button_msg_queue[0].work_state = HY_BUTTON_NOWORK;
+	return HY_OK;
 }
 
 int hy_emit_gui_msg(hy_gui_msg_type type, void* msg)
@@ -240,6 +241,8 @@ int hy_emit_gui_msg(hy_gui_msg_type type, void* msg)
 		case ERR_MSG:
 			
 			break;
+		default:
+			break;
 	}
 	
 	return HY_OK;
@@ -258,7 +261,6 @@ void MainProcess(void){
 	static uint32_t guicurrentx10A = 0;
   static uint32_t guichargetime_min = 0;
 	static uint32_t guichargetask_state = 0;
-	static uint8_t canstate = 0;
 	
 	PageState = WelcomePage;
 	while(1){

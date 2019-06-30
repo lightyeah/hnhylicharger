@@ -95,7 +95,9 @@ void arch_dump_hex(const void *data, int len,const char *tips);
 	do{\
 		if((LOG_LEVEL) <= LOG_LEVEL_ERROR){\
 			arch_printf_time();\
-			arch_printf("[E] %s: "_fmt_" (%s,%d)", TAG, ##__VA_ARGS__, __FUNCTION__, __LINE__);\
+			arch_printf("\r\n**************\r\n");\
+			arch_printf("[EEEEE] %s: "_fmt_" (%s,%d)", TAG, ##__VA_ARGS__, __FUNCTION__, __LINE__);\
+			arch_printf("\r\n**************");\
 			arch_printf_end();\
 		}\
 	}while(0)

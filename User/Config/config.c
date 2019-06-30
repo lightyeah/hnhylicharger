@@ -13,6 +13,7 @@ Purpose     : Write config data to EEPROM
 #include "debug_frmwrk.h"
 #include "lpc17xx_gpio.h"
 #include "systen_delay.h"
+#include "hy_dbg.h"
 
 #define I2CDEV LPC_I2C2
 #define Debug
@@ -24,10 +25,6 @@ Purpose     : Write config data to EEPROM
 
 
 #define HY_LOG_TAG    "HY_config"
-#ifndef DEBUG_PRINT
-#define DEBUG_PRINT
-#define DEBUG_PRINT(format, ...) _printf (format,##__VA_ARGS__)
-#endif
 
 
 /************************** PRIVATE DATA *************************/
@@ -213,9 +210,9 @@ int32_t ATML_Write(void){
 
 		if (I2C_MasterTransferData(I2CDEV, &txsetup, I2C_TRANSFER_POLLING) == SUCCESS)
 		{
-				DEBUG_PRINT("ATML_Write page%d success\r\n",index);
+				LOG_INFO_TAG(HY_LOG_TAG,"ATML_Write page%d success\r\n",index);
 		} else {
-				DEBUG_PRINT("ATML_Write page%d error\r\n",index);
+				LOG_INFO_TAG(HY_LOG_TAG,"ATML_Write page%d error\r\n",index);
 				return (-1);
 		}
 	}
@@ -276,9 +273,9 @@ void Config_EraseConfig(void){
 
 		if (I2C_MasterTransferData(I2CDEV, &txsetup, I2C_TRANSFER_POLLING) == SUCCESS)
 		{
-				DEBUG_PRINT("ATML_Write page%d success\r\n",index);
+				LOG_INFO_TAG(HY_LOG_TAG,"ATML_Write page%d success\r\n",index);
 		} else {
-				DEBUG_PRINT("ATML_Write page%d error\r\n",index);
+				LOG_INFO_TAG(HY_LOG_TAG,"ATML_Write page%d error\r\n",index);
 		}
 	}
 }
@@ -309,13 +306,13 @@ uint8_t Config_DataReading(void){
 			LOG_WARN_TAG(HY_LOG_TAG,"ATML_Read success,but did not init");		
 			LOG_WARN_TAG(HY_LOG_TAG,"I will Init it soon!");	
 			Config_EraseConfig();
-			return -1;
+			return 1;
 	}
 }
 
 void Config_DataWriting(void){
 	while(ATML_Write() != 0){
-		DEBUG_PRINT("ATML_Read error,retrying\r\n");
+		LOG_INFO_TAG(HY_LOG_TAG,"ATML_Read error,retrying\r\n");
 		delay_ms(100);
 	}
 }
@@ -498,7 +495,7 @@ void ConfigWriteToAddr(uint8_t addr, uint16_t data){//0-16
 void eepromtest(){
 	unsigned int index;
 	for(index = 0;index<sizeof((config_rddat));index++){
-		DEBUG_PRINT("%d: %d\r\n",index,config_rddat[index]);
+		LOG_INFO_TAG(HY_LOG_TAG,"%d: %d\r\n",index,config_rddat[index]);
 		delay_ms(200);
 	}
 }

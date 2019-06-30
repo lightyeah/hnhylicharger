@@ -36,7 +36,11 @@ typedef struct HY_ChargeTask_T{
 	uint32_t output_voltage_x10V;
 	uint32_t output_current_x10A;
 	uint32_t output_dac_value;
+	uint32_t statestarttime_ms;
+
 	uint32_t max_voltage_x10V;
+	uint32_t max_current_x10A;
+	uint32_t max_chargetimeout_ms;
 	
 	uint32_t total_chargepower_x10kwh;
 	uint32_t total_chargepower_mj;
@@ -61,16 +65,23 @@ typedef struct HY_ChargeTask_Data{
 int hy_chargetask_init(void* hy_instance_handle);
 int hy_chargetask_start(int controltype, void* ctx);
 int hy_chargetask_stop(int stop_code,void* ctx);
+
+int hy_chargetask_end(void);
+int hy_chargetask_emergencystop(void);
+
 int hy_chargetask_setmaxvoltage_x10V(uint32_t voltage);
+int hy_chargetask_setmaxcurrent_x10A(uint32_t currnet);
 int hy_chargetask_setaim(uint8_t type, uint32_t value);
+
 
 uint32_t hy_chargetask_getoutputvol_x10V(void);
 uint32_t hy_chargetask_getoutputcur_x10A(void);
 uint32_t hy_chargetask_getchargetime_min(void);
 uint32_t hy_chargetask_gettotalpower_x10kwh(void);
 
-int hy_chargetask_end(void);
-int hy_chargetask_emergencystop(void);
+
+
+void hy_chargetask_local_turntostate(hy_chargetask_state state);
 
 void hy_chargetask_main(void);
 #endif

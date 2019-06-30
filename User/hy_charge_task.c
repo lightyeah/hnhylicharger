@@ -48,10 +48,15 @@ int hy_chargetask_start(int controltype, void* ctx)
 	switch(controltype){
 		case HY_CONTROLSTYLE_CAN:
 			s_chargetask->state = CHARGETASK_CAN;
+			s_chargetask->max_chargetimeout_ms = 600*60*1000;/*10 hours*/
+			s_chargetask->statestarttime_ms = hy_time_now_ms();
 			break;
 		case HY_CONTROLSTYLE_LOCAL:
 			s_chargetask->state = CHARGETASK_LOCAL_ONE;
-			hy_chargetask_setaim(BMS_OBC_BCL_MODE_CUR,hy_instance->config.chargecurrent_1);
+			hy_chargetask_local_turntostate(CHARGETASK_LOCAL_ONE);
+			// hy_chargetask_setaim(BMS_OBC_BCL_MODE_CUR,hy_instance->config.chargecurrent_1);
+			// hy_chargetask_setmaxvoltage_x10V(hy_instance->config.limitvoltage_1*10);
+			// hy_chargetask_setmaxvoltage_x10V(hy_instance->config.currentrange*10);
 			break;
 		default:
 			LOG_ERROR_TAG(HY_LOG_TAG,"***chargetask start controltype error!!");
@@ -67,6 +72,10 @@ int hy_chargetask_start(int controltype, void* ctx)
 	if(s_chargetask->max_voltage_x10V == 0){
 		LOG_WARN_TAG(HY_LOG_TAG,"!!!chargetask no set max voltage!!!");
 		s_chargetask->max_voltage_x10V  = hy_instance->config.voltagerange * 10;
+	}
+	if(s_chargetask->max_current_x10A == 0){
+		LOG_WARN_TAG(HY_LOG_TAG,"!!!chargetask no set max voltage!!!");
+		s_chargetask->max_voltage_x10V  = hy_instance->config.currentrange * 10;
 	}
 	
 	s_chargetask->output_current_x10A = 0;
@@ -130,6 +139,14 @@ int hy_chargetask_setmaxvoltage_x10V(uint32_t voltage)
 	s_chargetask->max_voltage_x10V = voltage;
 	LOG_INFO_TAG(HY_LOG_TAG,"chargettask set max voltage limit = [%d]x0.1V",
 								s_chargetask->max_voltage_x10V);
+	return HY_OK;
+}
+
+int hy_chargetask_setmaxcurrent_x10A(uint32_t current)
+{
+	s_chargetask->max_current_x10A = current;
+	LOG_INFO_TAG(HY_LOG_TAG,"chargettask set max current limit = [%d]x0.1A",
+								s_chargetask->max_current_x10A);
 	return HY_OK;
 }
 
@@ -197,25 +214,90 @@ void hy_chargetask_set_output(uint32_t currentfb_x10A,uint32_t voltagefb_x10V,ui
 {
 	LOG_INFO_TAG(HY_LOG_TAG,"aimtype [%d] fbvol[%d] fbcur[%d]",aimtype,voltagefb_x10V,currentfb_x10A);
 	LOG_INFO_TAG(HY_LOG_TAG,"aimcur [%d] aimvol [%d]",s_chargetask->aim_current_x10A,s_chargetask->aim_voltage_x10V);
+
+	if(s_chargetask->max_voltage_x10V == 0){
+		s_chargetask->max_voltage_x10V = hy_instance->config.voltagerange;
+	}
+	if(voltagefb_x10V >= s_chargetask->max_voltage_x10V){
+		LOG_WARN_TAG(HY_LOG_TAG,"output voltaga reach max [%d]x0.1V !!!",s_chargetask->max_voltage_x10V);
+		s_chargetask->output_dac_value--;
+		hy_set_output(s_chargetask->output_dac_value);
+		return;
+	}
+
+	if(s_chargetask->max_current_x10A == 0){
+		s_chargetask->max_current_x10A = hy_instance->config.currentrange;
+	}
+	if(currentfb_x10A >= s_chargetask->max_current_x10A){
+		LOG_WARN_TAG(HY_LOG_TAG,"output current reach max [%d]x0.1A !!!",s_chargetask->max_current_x10A);
+		s_chargetask->output_dac_value--;
+		hy_set_output(s_chargetask->output_dac_value);
+		return;
+	}
+	
+
 	switch(aimtype){
 		case BMS_OBC_BCL_MODE_VOL:
 			if(voltagefb_x10V > s_chargetask->aim_voltage_x10V){
 				s_chargetask->output_dac_value--;
+				if(s_chargetask->output_dac_value<=0)
+					s_chargetask->output_dac_value = 0;
 			}else{
 				s_chargetask->output_dac_value++;
+				if(s_chargetask->output_dac_value>=1024)
+					s_chargetask->output_dac_value = 1023;
 			}
 			break;
 		case BMS_OBC_BCL_MODE_CUR:
 			if(currentfb_x10A > s_chargetask->aim_current_x10A){
 				s_chargetask->output_dac_value--;
+				if(s_chargetask->output_dac_value<=0)
+					s_chargetask->output_dac_value = 0;
 			}else{
 				s_chargetask->output_dac_value++;
+				if(s_chargetask->output_dac_value>=1024)
+					s_chargetask->output_dac_value = 1023;
 			}
 			break;
 	}
 	hy_set_output(s_chargetask->output_dac_value);
 }
 
+void hy_chargetask_local_turntostate(hy_chargetask_state state)
+{
+	switch (state){
+		case CHARGETASK_LOCAL_ONE:
+			hy_chargetask_setaim(BMS_OBC_BCL_MODE_CUR,hy_instance->config.chargecurrent_1);
+			s_chargetask->max_voltage_x10V = (hy_instance->config.limitvoltage_1*10);
+			s_chargetask->max_current_x10A = (hy_instance->config.currentrange*10);
+			s_chargetask->max_chargetimeout_ms = (hy_instance->config.chargetimeout_1_min*60*1000);
+			s_chargetask->statestarttime_ms = hy_time_now_ms();
+		  LOG_INFO_TAG(HY_LOG_TAG,"set max voltage [%d] x0.1V",s_chargetask->max_voltage_x10V);
+			LOG_INFO_TAG(HY_LOG_TAG,"set max current [%d]");
+			LOG_INFO_TAG(HY_LOG_TAG,"");
+			LOG_INFO_TAG(HY_LOG_TAG,"");
+		break;
+		case CHARGETASK_LOCAL_TWO:
+			hy_chargetask_setaim(BMS_OBC_BCL_MODE_CUR,hy_instance->config.chargecurrent_2);
+			s_chargetask->max_voltage_x10V = (hy_instance->config.limitvoltage_2*10);
+			s_chargetask->max_current_x10A = (hy_instance->config.currentrange*10);
+			s_chargetask->max_chargetimeout_ms = (hy_instance->config.chargetimeout_2_min*60*1000);
+			s_chargetask->statestarttime_ms = hy_time_now_ms();
+		break;
+		case CHARGETASK_LOCAL_THREE:
+			hy_chargetask_setaim(BMS_OBC_BCL_MODE_CUR,hy_instance->config.chargevoltage_3);
+			s_chargetask->max_voltage_x10V = (hy_instance->config.limitcurrent_3*10);
+			s_chargetask->max_current_x10A = (hy_instance->config.voltagerange*10);
+			s_chargetask->max_chargetimeout_ms = (hy_instance->config.chargetimeout_3_min*60*1000);
+			s_chargetask->statestarttime_ms = hy_time_now_ms();
+		default:
+		break;
+	}
+	LOG_INFO_TAG(HY_LOG_TAG,"set max voltage [%d] x0.1V",s_chargetask->max_voltage_x10V);
+	LOG_INFO_TAG(HY_LOG_TAG,"set max current [%d] x0.1A",s_chargetask->max_current_x10A);
+	LOG_INFO_TAG(HY_LOG_TAG,"set max chargetimeout [%d] ms",s_chargetask->max_chargetimeout_ms);
+	LOG_INFO_TAG(HY_LOG_TAG,"set state start time [%d] ms",s_chargetask->statestarttime_ms);
+}
 void hy_chargetask_main()
 {
 	static uint32_t monitortime_ms;
@@ -223,7 +305,7 @@ void hy_chargetask_main()
 	static uint32_t currentfb_x10A;
 	static uint32_t voltagefb_x10V; 
 	static chargetask_gui_msg gui_msg;
-	
+
 	aimtype = s_chargetask->aim_type;
 	/*use CHARGETASK_CONTROL_INTERVAL to control chargetask regulate*/
 	if((systime_elapse_ms(s_chargetask->lastcontrol_time_ms)%CHARGETASK_CONTROL_INTERVAL)){
@@ -236,7 +318,7 @@ void hy_chargetask_main()
 	s_chargetask->output_current_x10A = currentfb_x10A;
 	s_chargetask->output_voltage_x10V = voltagefb_x10V;
 	
-	if(voltagefb_x10V>=50){/*通过电池电压判断电池是否连接*/
+	if(voltagefb_x10V>=50){/*閫氳繃鐢垫睜鐢靛帇鍒ゆ柇鐢垫睜鏄惁鎺ュ叆*/
 		gui_msg.state |= HY_GUI_BATTERY_ON_MASK;
 		if(s_chargetask->batter_flag == HY_BATTERY_DISCONNECT){
 			if(hy_instance->config.controlstyle == HY_CONTROLSTYLE_LOCAL){
@@ -246,6 +328,9 @@ void hy_chargetask_main()
 		s_chargetask->batter_flag = HY_BATTERY_CONNECT;
 	}else{
 		gui_msg.state &= ~HY_GUI_BATTERY_ON_MASK;
+		if(s_chargetask->batter_flag == HY_BATTERY_CONNECT){
+			hy_chargetask_stop(0,NULL);
+		}		
 		s_chargetask->state = CHARGETASK_IDLE;
 		s_chargetask->batter_flag = HY_BATTERY_DISCONNECT;
 		
@@ -280,9 +365,12 @@ void hy_chargetask_main()
 				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
 				monitortime_ms = hy_time_now_ms();
 			}
-			if(voltagefb_x10V >= (hy_instance->config.switchvoltage_1 *10)){/*change to local [two]*/
+			if(voltagefb_x10V >= (hy_instance->config.switchvoltage_1 *10)
+				|| systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){
+				/*change to local [two]*/
+				LOG_INFO_TAG(HY_LOG_TAG,"switch to local state [two]");
 				s_chargetask->state = CHARGETASK_LOCAL_TWO;
-				hy_chargetask_setaim(BMS_OBC_BCL_MODE_CUR,hy_instance->config.chargecurrent_2);
+				hy_chargetask_local_turntostate(CHARGETASK_LOCAL_TWO);
 			}
 			break;
 
@@ -295,9 +383,11 @@ void hy_chargetask_main()
 				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
 				monitortime_ms = hy_time_now_ms();
 			}
-			if(voltagefb_x10V >= (hy_instance->config.switchvoltage_2 *10)){/*change to local [two]*/
+			if(voltagefb_x10V >= (hy_instance->config.switchvoltage_2 *10)
+				|| systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){/*change to local [two]*/
+				LOG_INFO_TAG(HY_LOG_TAG,"switch to local state [three]");
 				s_chargetask->state = CHARGETASK_LOCAL_THREE;
-				hy_chargetask_setaim(BMS_OBC_BCL_MODE_VOL,hy_instance->config.chargevoltage_3);
+				hy_chargetask_local_turntostate(CHARGETASK_LOCAL_THREE);
 			}
 			break;
 
@@ -310,7 +400,13 @@ void hy_chargetask_main()
 				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
 				monitortime_ms = hy_time_now_ms();
 			}
-			if(currentfb_x10A >= (hy_instance->config.switchcurrent_3 *10)){/*change to local [two]*/
+			/*attention !!! 
+			* local_state_three switch condition is smaller!!!
+			*/
+			if(currentfb_x10A <= (hy_instance->config.switchcurrent_3 *10)
+				|| systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){/*change to local [two]*/
+				LOG_INFO_TAG(HY_LOG_TAG,"[three is end ,change to idle]");
+				hy_chargetask_stop(0,NULL);
 				s_chargetask->state = CHARGETASK_IDLE;
 			}
 			break;
@@ -323,6 +419,11 @@ void hy_chargetask_main()
 				"***chargetask can started ... get voltage [%d]x0.1V current [%d]x0.1A",
 				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
 				monitortime_ms = hy_time_now_ms();
+			}
+			if(systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){
+				LOG_WARN_TAG(HY_LOG_TAG,"***can chargetask is timeout !!!");
+				hy_chargetask_stop(0,NULL);
+				s_chargetask->state = CHARGETASK_IDLE;
 			}
 			break;	
 
