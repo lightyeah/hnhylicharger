@@ -241,7 +241,7 @@ PAGE welcomepage(){
 		lcd_clear();
     lcd_display_chinese_at(2,1,hysy);
     lcd_display_chinese_at(1,2,hypcdj);
-		hy_delay_ms(5000);
+		hy_gui_delay_ms(3000);
 		return DisplayPage1;
 }
 

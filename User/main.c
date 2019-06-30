@@ -157,7 +157,7 @@ int main(void)
 	}
 	
 	/*for test api*/
-	s_hy_instance.config.controlstyle = HY_CONTROLSTYLE_LOCAL;
+//	s_hy_instance.config.controlstyle = HY_CONTROLSTYLE_LOCAL;
 	
 	s_hy_instance.config.chargecurrent_1 = 30;
 	s_hy_instance.config.limitvoltage_1 = 60;
@@ -174,7 +174,7 @@ int main(void)
 	s_hy_instance.config.chargetimeout_3_min = 15; 
 	s_hy_instance.config.switchcurrent_3 = 10;
 	
-	s_hy_instance.config.voltagerange = 48;
+	s_hy_instance.config.voltagerange = 68;
 	s_hy_instance.config.currentrange = 100;
 	
 	/*input init*/

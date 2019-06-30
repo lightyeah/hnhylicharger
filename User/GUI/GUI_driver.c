@@ -66,6 +66,12 @@ void delay(uint t){
   while(t--);
 }
 
+void hy_gui_delay_ms(uint32_t ms)
+{
+	static uint32_t systime = 0;
+	systime = hy_time_now_ms();
+	while(systime_elapse_ms(systime)<=ms);
+}
 void LCD_Configuration(void)
 {
     /* Configure the LCD Control pins

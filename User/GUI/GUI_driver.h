@@ -8,6 +8,8 @@
 
 
 void delay(uint16_t t);
+void hy_gui_delay_ms(uint32_t ms);
+
 void LCD_Configuration(void);
 void LCD_BUS(uint8_t cmd);
 void write_com(uint8_t cmdcode);

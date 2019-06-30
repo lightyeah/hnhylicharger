@@ -9,6 +9,7 @@
 #include "hy_instance.h"
 #include "hy_dbg.h"
 #include "hy_input.h"
+#include "hy_systime.h"
 
 #define  HY_LOG_TAG    "input"
 
@@ -132,9 +133,6 @@ uint8_t hy_get_resettrigger(void){
 /*ADC TODO use more effecient method !!!!*/
 uint16_t hy_get_voltagefb_x10V(void){
 	static uint16_t rawvdata = 0;
-	if(hy_instance==NULL){
-		LOG_ERROR_TAG(HY_LOG_TAG,"hy input not init!!");
-	}
 	
 		ADC_ChannelCmd(LPC_ADC,ADC_ADINTEN4,ENABLE);
     ADC_StartCmd(LPC_ADC,ADC_START_NOW);   

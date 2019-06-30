@@ -305,7 +305,8 @@ void hy_chargetask_main()
 	static uint32_t currentfb_x10A;
 	static uint32_t voltagefb_x10V; 
 	static chargetask_gui_msg gui_msg;
-
+	/*luoyang test*/
+	static uint32_t testvalue = 0;
 	aimtype = s_chargetask->aim_type;
 	/*use CHARGETASK_CONTROL_INTERVAL to control chargetask regulate*/
 	if((systime_elapse_ms(s_chargetask->lastcontrol_time_ms)%CHARGETASK_CONTROL_INTERVAL)){
@@ -341,6 +342,7 @@ void hy_chargetask_main()
 		s_chargetask->total_chargepower_x10kwh = s_chargetask->total_chargepower_mj/(1000*360);
 	}
 	
+	
 	switch (s_chargetask->state){
 		case 	CHARGETASK_IDLE:
 			gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
@@ -352,6 +354,12 @@ void hy_chargetask_main()
 				LOG_INFO_TAG(HY_LOG_TAG,
 				"***chargetask idle state... \r\n******get voltage [%d]x0.1V current [%d]x0.1A",
 				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
+				/*luoyang test*/
+				hy_set_output(testvalue);
+				LOG_ERROR_TAG(HY_LOG_TAG,"test set out put[%d]",testvalue);
+				testvalue += 5;
+				if(testvalue>=1024)
+					testvalue = 0;
 				monitortime_ms = hy_time_now_ms();
 			}
 			break;

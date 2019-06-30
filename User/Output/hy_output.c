@@ -126,7 +126,7 @@ int hy_set_output(uint32_t value)
 	while(Channel0_TC == 0){
 		timeout--;
 		if(timeout==0){
-			LOG_ERROR_TAG(HY_LOG_TAG,"***set dac dma blocked!!!");
+//			LOG_ERROR_TAG(HY_LOG_TAG,"***set dac dma blocked!!!");
 			break;
 		}
 	}
@@ -138,7 +138,7 @@ int hy_set_output(uint32_t value)
 
 	Channel0_TC = 0;
 	GPDMA_Setup(&GPDMACfg);
-	LOG_INFO_TAG(HY_LOG_TAG,"set output voltage [%d] value [%d]",s_hy_output->output_dac_value,value);
+//	LOG_INFO_TAG(HY_LOG_TAG,"set output voltage [%d] value [%d]",s_hy_output->output_dac_value,value);
 
 	return ret;
 }
