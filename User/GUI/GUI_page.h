@@ -23,6 +23,7 @@ typedef enum PAGE
 	DisplayPage1_4,//查询上一次充电成功 状态->时间
 	DisplayPage2,//3
 	PassportPage,//4
+	PassportPage1,//请先停止充电再进行设置
 	SettingMainPage1,//5
 	SettingMainPage2,//6
 	SettingPage11,//7
@@ -36,10 +37,32 @@ typedef enum PAGE
 	SettingPage22,//15
 	SettingPage32,//16
 	ErrorPage,//17
+	ErrorPage1,
 } PAGE;
 
 
-int hy_gui_page_init(void* gui_handle);
+typedef enum Data_Name
+{
+    voltagerange = 0,
+	currentrange,
+	balancecurrent,
+	controlstyle,
+	chargecurrent_1,
+	limitvoltage_1,
+	chargetimeout_1_min,
+	switchvoltage_1,	
+	chargecurrent_2,
+	limitvoltage_2,
+	chargetimeout_2_min,
+	switchvoltage_2,
+	chargevoltage_3,
+	limitcurrent_3,
+	chargetimeout_3_min,
+	switchcurrent_3,
+	communicaterate,
+} data_name;
+
+int hy_gui_page_init(void* gui_handle, void* config_handle);
 
 void show(void);
 
@@ -52,21 +75,35 @@ PAGE displaypage1(uint32_t state,
 
 PAGE displaypage2(uint8_t mode,uint16_t no,uint16_t vol,uint8_t status,uint8_t * flag);
 	
+
 PAGE passportpage(void); 
+PAGE passportpage1(void);
 
 PAGE settingmainpage(uint8_t page,uint8_t cursor);
-PAGE settingpage1(uint8_t page);
-PAGE settingpage2(uint8_t page);
-PAGE settingpage3(uint8_t page);
-PAGE settingpage4(void);
+
+PAGE settingpage11(PAGE father_page);
+PAGE settingpage12(PAGE father_page);
+
+PAGE settingpage21(PAGE father_page);
+PAGE settingpage22(PAGE father_page);
+
+PAGE settingpage31(PAGE father_page);
+PAGE settingpage32(PAGE father_page);
+
+PAGE settingpage4(PAGE father_page);
 PAGE settingpage5(void);
 PAGE settingpage6(void);
 PAGE settingpage7(void);
-PAGE datasettingpage(uint8_t ID);
+
+PAGE datasettingpage(data_name name,PAGE page);
+
 PAGE modesettingpage(void);
 PAGE communicationratesettingpage(void);
 PAGE balancesettingpage(void);
+
 PAGE errorpage(uint8_t err);
+PAGE errorpage1(void);
+
 PAGE finishpage(uint32_t vol,uint32_t time);
 PAGE finishpage2(uint32_t vol,uint32_t time,uint8_t * flag);
 #endif

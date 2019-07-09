@@ -15,11 +15,11 @@
 #define HY_GUI_REFRESH_INTERVAL     333/*unit ms*/
 
 #define HY_GUI_BATTERY_ON_MASK          (1)
-#define HY_GUI_CAN_ON_MASK              (1<<(3))
-#define HY_GUI_CHARGETASK_ON_MASK       (1<<(5))
-#define HY_GUI_CHARGETASK_END_MASK      (1<<(7)) 
+#define HY_GUI_CAN_ON_MASK              (1<<(2))
+#define HY_GUI_CHARGETASK_ON_MASK       (1<<(3))
+#define HY_GUI_CHARGETASK_END_MASK      (1<<(4)) 
 
-#define HY_GUI_ERR_MASK                 (1<<(9))
+#define HY_GUI_ERR_MASK                 (1<<(12))
 
 typedef enum Hy_Gui_Msg_Type{
 	NO_MSG = 0,

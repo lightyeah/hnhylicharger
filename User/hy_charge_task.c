@@ -19,7 +19,7 @@ int hy_chargetask_init(void* hy_instance_handle)
 	s_chargetask = &(hy_instance->chargetask);
 	memset(s_chargetask,0,sizeof(hy_chargetask_t));
 	memset(&(hy_instance->hy_data),0,HY_CHARGETASK_DATA_NUM*sizeof(hy_chargetask_data));
-	
+	s_chargetask->controltype = hy_instance->config.controlstyle;
 
 	LOG_INFO_TAG(HY_LOG_TAG,"chargetask init done....");
 
@@ -50,10 +50,12 @@ int hy_chargetask_start(int controltype, void* ctx)
 			s_chargetask->state = CHARGETASK_CAN;
 			s_chargetask->max_chargetimeout_ms = 600*60*1000;/*10 hours*/
 			s_chargetask->statestarttime_ms = hy_time_now_ms();
+			s_chargetask->controltype = HY_CONTROLSTYLE_CAN;
 			break;
 		case HY_CONTROLSTYLE_LOCAL:
 			s_chargetask->state = CHARGETASK_LOCAL_ONE;
 			hy_chargetask_local_turntostate(CHARGETASK_LOCAL_ONE);
+			s_chargetask->controltype = HY_CONTROLSTYLE_LOCAL;
 			// hy_chargetask_setaim(BMS_OBC_BCL_MODE_CUR,hy_instance->config.chargecurrent_1);
 			// hy_chargetask_setmaxvoltage_x10V(hy_instance->config.limitvoltage_1*10);
 			// hy_chargetask_setmaxvoltage_x10V(hy_instance->config.currentrange*10);
@@ -106,6 +108,18 @@ int hy_chargetask_stop(int stop_code,void* ctx)
 	LOG_INFO_TAG(HY_LOG_TAG,"**********************");
 	LOG_INFO_TAG(HY_LOG_TAG,"chargetask stop.......");
 	LOG_INFO_TAG(HY_LOG_TAG,"**********************");
+
+	if (stop_code == CHARGETASK_CAN_STOP_CODE){
+		if (*(int*)ctx == HY_CAN_OBC_STOP_CANTIMEOUT){
+			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
+			s_chargetask->gui_msg.state &= ~HY_GUI_CAN_ON_MASK;
+		}else if(*(int*)ctx == HY_CAN_BMS_STOP){
+			/*todo*/
+			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
+			s_chargetask->gui_msg.state |= HY_GUI_CAN_ON_MASK;
+			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_END_MASK;
+		}
+	}
 	s_chargetask->start_flag = HY_FALSE;
 	s_chargetask->end_flag = HY_TRUE;
 	s_chargetask->state = CHARGETASK_IDLE;
@@ -309,8 +323,7 @@ void hy_chargetask_main()
 	static uint32_t aimtype;
 	static uint32_t currentfb_x10A;
 	static uint32_t voltagefb_x10V; 
-	static chargetask_gui_msg gui_msg;
-	
+	static uint32_t battery_on_time_ms;
 	aimtype = s_chargetask->aim_type;
 	/*use CHARGETASK_CONTROL_INTERVAL to control chargetask regulate*/
 	if((systime_elapse_ms(s_chargetask->lastcontrol_time_ms)%CHARGETASK_CONTROL_INTERVAL)){
@@ -324,21 +337,23 @@ void hy_chargetask_main()
 	s_chargetask->output_voltage_x10V = voltagefb_x10V;
 	
 	if(voltagefb_x10V>=50){/*通过电池电压判断电池是否接入*/
-		gui_msg.state |= HY_GUI_BATTERY_ON_MASK;
-		if(s_chargetask->batter_flag == HY_BATTERY_DISCONNECT){
+		s_chargetask->gui_msg.state |= HY_GUI_BATTERY_ON_MASK;
+		if(s_chargetask->battery_flag == HY_BATTERY_DISCONNECT){
 			if(hy_instance->config.controlstyle == HY_CONTROLSTYLE_LOCAL){
 				hy_chargetask_start(HY_CONTROLSTYLE_LOCAL,NULL);
 			}
 		}
-		s_chargetask->batter_flag = HY_BATTERY_CONNECT;
+		s_chargetask->battery_flag = HY_BATTERY_CONNECT;
+		battery_on_time_ms = hy_time_now_ms();
 	}else{
-		gui_msg.state &= ~HY_GUI_BATTERY_ON_MASK;
-		if(s_chargetask->batter_flag == HY_BATTERY_CONNECT){
-			hy_chargetask_stop(0,NULL);
-		}		
-		s_chargetask->state = CHARGETASK_IDLE;
-		s_chargetask->batter_flag = HY_BATTERY_DISCONNECT;
-		
+		if ( systime_elapse_ms(battery_on_time_ms) >= 500 ){/*battery disconnected*/				
+			s_chargetask->gui_msg.state &= ~HY_GUI_BATTERY_ON_MASK;
+			if(s_chargetask->battery_flag == HY_BATTERY_CONNECT){
+				hy_chargetask_stop(0,NULL);
+			}		
+			s_chargetask->state = CHARGETASK_IDLE;
+			s_chargetask->battery_flag = HY_BATTERY_DISCONNECT;
+		}
 	}
 
 	if(s_chargetask->start_flag){
@@ -349,7 +364,7 @@ void hy_chargetask_main()
 	
 	switch (s_chargetask->state){
 		case 	CHARGETASK_IDLE:
-			gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
+			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
 			if(s_chargetask->output_dac_value != 0){
 				s_chargetask->output_dac_value--;
 				if(s_chargetask->output_dac_value<=0)
@@ -360,12 +375,18 @@ void hy_chargetask_main()
 				LOG_INFO_TAG(HY_LOG_TAG,
 				"***chargetask idle state... \r\n******get voltage [%d]x0.1V current [%d]x0.1A",
 				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
+				if(s_chargetask->controltype == HY_CONTROLSTYLE_CAN){
+					if (!hy_can_connected()){/*can disconnected*/
+						s_chargetask->gui_msg.state &= ~HY_GUI_CAN_ON_MASK;
+					}
+					LOG_INFO_TAG(HY_LOG_TAG,"can connected status = [%d]",hy_can_connected());
+				}
 				monitortime_ms = hy_time_now_ms();
 			}
 			break;
 
 	  case CHARGETASK_LOCAL_ONE:
-			gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
+			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
 			hy_chargetask_set_output(currentfb_x10A,voltagefb_x10V,aimtype);
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
 				LOG_INFO_TAG(HY_LOG_TAG,
@@ -383,7 +404,7 @@ void hy_chargetask_main()
 			break;
 
 	  case CHARGETASK_LOCAL_TWO:
-			gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
+			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
 	  		hy_chargetask_set_output(currentfb_x10A,voltagefb_x10V,aimtype);
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
 				LOG_INFO_TAG(HY_LOG_TAG,
@@ -400,7 +421,7 @@ void hy_chargetask_main()
 			break;
 
 		case CHARGETASK_LOCAL_THREE:
-			gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
+			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
 			hy_chargetask_set_output(currentfb_x10A,voltagefb_x10V,aimtype);
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
 				LOG_INFO_TAG(HY_LOG_TAG,
@@ -420,12 +441,22 @@ void hy_chargetask_main()
 			break;
 
 		case CHARGETASK_CAN:
-			gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
+			if (!hy_can_connected()){/*can disconnected*/
+				s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
+				s_chargetask->gui_msg.state &= ~HY_GUI_CAN_ON_MASK;
+				s_chargetask->state = CHARGETASK_IDLE;
+			}else{
+				s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
+			}
+
 			hy_chargetask_set_output(currentfb_x10A,voltagefb_x10V,aimtype);
+
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
 				LOG_INFO_TAG(HY_LOG_TAG,
-				"***chargetask can started ... get voltage [%d]x0.1V current [%d]x0.1A",
-				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
+				"***chargetask can start ... get voltage [%d]x0.1V current [%d]x0.1A",
+				s_chargetask->output_voltage_x10V,
+				s_chargetask->output_current_x10A);
+
 				monitortime_ms = hy_time_now_ms();
 			}
 			if(systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){
@@ -439,7 +470,7 @@ void hy_chargetask_main()
 			break;
 
 		default:
-			gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
+			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
 			if(s_chargetask->output_dac_value != 0){
 				s_chargetask->output_dac_value--;
 				if(s_chargetask->output_dac_value<=0)
@@ -454,10 +485,10 @@ void hy_chargetask_main()
 			}
 			break;
 	}
-	gui_msg.chargetime_min = hy_chargetask_getchargetime_min();
-	gui_msg.currentx10A = hy_chargetask_getoutputcur_x10A();
-	gui_msg.voltagex10V = hy_chargetask_getoutputvol_x10V();
-	hy_emit_gui_msg(CHARGETASK_MSG,&gui_msg);
+	s_chargetask->gui_msg.chargetime_min = hy_chargetask_getchargetime_min();
+	s_chargetask->gui_msg.currentx10A = hy_chargetask_getoutputcur_x10A();
+	s_chargetask->gui_msg.voltagex10V = hy_chargetask_getoutputvol_x10V();
+	hy_emit_gui_msg(CHARGETASK_MSG,&s_chargetask->gui_msg);
 	
 }
 

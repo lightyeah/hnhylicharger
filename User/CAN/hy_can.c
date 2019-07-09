@@ -43,7 +43,8 @@ int hy_can_init(void* hy_instance_handle)
 		s_cancom->msgupdate_flag = HY_FALSE;
 		s_cancom->bms_stop_code = 0;
 		s_cancom->obc_stop_code = 0;
-
+		s_cancom->canconnected = HY_FALSE;
+		s_cancom->connectupdate_time_ms = 0;
     
     PinCfg.Funcnum = 1;
     PinCfg.OpenDrain = 0;
@@ -93,15 +94,14 @@ int hy_can_send(hy_canmsg* msg)
 int hy_can_getmsg()
 {
 	int ret = HY_OK;
-	if(s_cancom == NULL){
-		LOG_ERROR_TAG(HY_LOG_TAG,"***hy can not init!!!");
-		ret = HY_ERROR;
-		goto err_exit;
-	}
-	/*todo receive timeout!!!*/
+
 	if(s_cancom->msgupdate_flag){
-		LOG_DEBUG_TAG(HY_LOG_TAG, "get can new msg");
+		LOG_DEBUG_TAG(HY_LOG_TAG, "can update new msg");
 		s_cancom->msgupdate_flag = HY_FALSE;/*clear flag*/
+
+		s_cancom->canconnected = HY_TRUE;
+		s_cancom->connectupdate_time_ms = hy_time_now_ms();
+
 		switch(RXMsg.id){
 			case BMS_OBC_BHM_FRAME_ID:/*handshake*/
 				s_cancom->state = HY_CANTASK_HANDSHAKE;
@@ -131,7 +131,6 @@ int hy_can_getmsg()
 						
 						break;
 					default:
-						/*todo timeout*/
 						LOG_ERROR_TAG(HY_LOG_TAG,"bms_obc_bcl can msg is wrong!!!");						
 						break;
 				}
@@ -147,13 +146,17 @@ int hy_can_getmsg()
 			default:
 				break;
 		}
-	}else{
+	}else{/*receive timeout!!!*/
+		
+		if (systime_elapse_ms(s_cancom->connectupdate_time_ms) >= HY_CAN_CONNECT_TIMEOUT){
+			s_cancom->state = HY_CANTASK_IDLE;
+			s_cancom->canconnected = HY_FALSE;
+			s_cancom->obc_stop_code = HY_CAN_OBC_STOP_CANTIMEOUT;
+			hy_chargetask_stop(CHARGETASK_CAN_STOP_CODE,&(s_cancom->obc_stop_code));
+		}
+
 	}
 	
-	err_exit:
-	if(s_cancom){
-		s_cancom->msgupdate_flag = HY_FALSE;
-	}
 	return ret;
 }
 
@@ -162,10 +165,6 @@ void hy_can_task_main()
 	static hy_canmsg msg = {0};
 	static uint32_t lastsendtime_ms = 0;
 	static uint32_t canmonitortime_ms = 0;
-	if(s_cancom == NULL){
-		LOG_ERROR_TAG(HY_LOG_TAG,"***hy can not init!!!");
-		goto err_exit;
-	}
 	
 	hy_can_getmsg();
 	if(systime_elapse_ms(canmonitortime_ms)>=HY_CAN_TASK_MONITOR_INTERVAL){
@@ -246,8 +245,8 @@ void hy_can_task_main()
 			
 			
 		case HY_CANTASK_BMS_STOP:
-			s_cancom->bms_stop_code = hy_can_msg_stop_handle();
-			hy_chargetask_stop(CHARGETASK_CAN_STOP_CODE,NULL);
+			s_cancom->bms_stop_code = HY_CAN_BMS_STOP;
+			hy_chargetask_stop(CHARGETASK_CAN_STOP_CODE,&(s_cancom->bms_stop_code));
 			if(msg.resendcounts == HY_CAN_MSG_RESEND_DONE){
 				msg.resendcounts = HY_CAN_MSG_NO_RESEND;
 				s_cancom->state = HY_CANTASK_END;
@@ -255,6 +254,7 @@ void hy_can_task_main()
 			}else if(msg.resendcounts > HY_CAN_MSG_NEED_RESEND){
 				if(systime_elapse_ms(lastsendtime_ms)>=OBC_BMS_CST_INTERVAL){
 					hy_can_send(&msg);
+					LOG_INFO_TAG(HY_LOG_TAG,"can resend [bms stop] counts = [%d]",msg.resendcounts);
 					lastsendtime_ms = hy_time_now_ms();
 				}	
 				break;
@@ -283,6 +283,7 @@ void hy_can_task_main()
 			}else if(msg.resendcounts > HY_CAN_MSG_NEED_RESEND){
 				if(systime_elapse_ms(lastsendtime_ms)>=OBC_BMS_CSD_INTERVAL){
 					hy_can_send(&msg);
+					LOG_INFO_TAG(HY_LOG_TAG,"can resend [cantask end] counts = [%d]",msg.resendcounts);
 					lastsendtime_ms = hy_time_now_ms();
 				}	
 				break;
@@ -303,8 +304,7 @@ void hy_can_task_main()
 		default:
 			break;
 	}
-	err_exit:
-	return;
+
 }
 
 
@@ -325,4 +325,12 @@ void CAN_IRQHandler()
     }
 }
 
+int hy_can_connected(void)
+{
+	return s_cancom->canconnected;
+}
 
+int hy_can_get_taskstate(void)
+{
+	return s_cancom->state;
+}

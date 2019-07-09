@@ -157,48 +157,48 @@ int main(void)
 	}
 	
 	/*for test api*/
-	s_hy_instance.config.controlstyle = HY_CONTROLSTYLE_LOCAL;
-	
-	s_hy_instance.config.chargecurrent_1 = 30;
-	s_hy_instance.config.limitvoltage_1 = 60;
-	s_hy_instance.config.chargetimeout_1_min = 15;
-	s_hy_instance.config.switchvoltage_1 = 30;
-	
-	s_hy_instance.config.chargecurrent_2 = 90;
-	s_hy_instance.config.limitvoltage_2 = 60;
-	s_hy_instance.config.chargetimeout_2_min = 15; 
-	s_hy_instance.config.switchvoltage_2 = 56;
-	
-	s_hy_instance.config.chargevoltage_3 = 59;
-	s_hy_instance.config.limitcurrent_3 = 60;
-	s_hy_instance.config.chargetimeout_3_min = 15; 
-	s_hy_instance.config.switchcurrent_3 = 10;
-	
-	s_hy_instance.config.voltagerange = 68;
-	s_hy_instance.config.currentrange = 100;
-	
-	LOG_PRINT("==================test\r\n");
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom voltagerange   [%d] ",s_hy_instance.config.voltagerange);
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom currentrange   [%d] ",s_hy_instance.config.currentrange);
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom ctrlstyle      [%d] 0 for can 1 for local",s_hy_instance.config.controlstyle);
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom canrate      [%d] ",s_hy_instance.config.communicaterate);
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom balancecurrent [%d] ",s_hy_instance.config.balancecurrent);
-	LOG_PRINT("==================tset\r\n");
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargecurrent_1   [%d] ",s_hy_instance.config.chargecurrent_1);
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitvoltage_1    [%d] ",s_hy_instance.config.limitvoltage_1);
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_1   [%d] min",s_hy_instance.config.chargetimeout_1_min);
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom switchvoltage_1   [%d] ",s_hy_instance.config.switchvoltage_1);
-	LOG_PRINT("==================test\r\n");
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargecurrent_2   [%d] ",s_hy_instance.config.chargecurrent_2);
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitvoltage_2    [%d] ",s_hy_instance.config.limitvoltage_2);
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_2   [%d] min",s_hy_instance.config.chargetimeout_2_min);
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom switchvoltage_2   [%d] ",s_hy_instance.config.switchvoltage_2);
-  LOG_PRINT("==================test\r\n");
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargevoltage_3   [%d] ",s_hy_instance.config.limitcurrent_3);
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitcurrent_3    [%d] ",s_hy_instance.config.limitcurrent_3);
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_3   [%d] min",s_hy_instance.config.chargetimeout_3_min);
-	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom switchcurrent_3   [%d] ",s_hy_instance.config.switchcurrent_3);
-  LOG_PRINT("==================\r\n");
+//	s_hy_instance.config.controlstyle = HY_CONTROLSTYLE_LOCAL;
+//	
+//	s_hy_instance.config.chargecurrent_1 = 30;
+//	s_hy_instance.config.limitvoltage_1 = 60;
+//	s_hy_instance.config.chargetimeout_1_min = 15;
+//	s_hy_instance.config.switchvoltage_1 = 30;
+//	
+//	s_hy_instance.config.chargecurrent_2 = 90;
+//	s_hy_instance.config.limitvoltage_2 = 60;
+//	s_hy_instance.config.chargetimeout_2_min = 15; 
+//	s_hy_instance.config.switchvoltage_2 = 56;
+//	
+//	s_hy_instance.config.chargevoltage_3 = 59;
+//	s_hy_instance.config.limitcurrent_3 = 60;
+//	s_hy_instance.config.chargetimeout_3_min = 15; 
+//	s_hy_instance.config.switchcurrent_3 = 10;
+//	
+//	s_hy_instance.config.voltagerange = 68;
+//	s_hy_instance.config.currentrange = 100;
+//	
+//	LOG_PRINT("==================test\r\n");
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom voltagerange   [%d] ",s_hy_instance.config.voltagerange);
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom currentrange   [%d] ",s_hy_instance.config.currentrange);
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom ctrlstyle      [%d] 0 for can 1 for local",s_hy_instance.config.controlstyle);
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom canrate      [%d] ",s_hy_instance.config.communicaterate);
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom balancecurrent [%d] ",s_hy_instance.config.balancecurrent);
+//	LOG_PRINT("==================tset\r\n");
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargecurrent_1   [%d] ",s_hy_instance.config.chargecurrent_1);
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitvoltage_1    [%d] ",s_hy_instance.config.limitvoltage_1);
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_1   [%d] min",s_hy_instance.config.chargetimeout_1_min);
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom switchvoltage_1   [%d] ",s_hy_instance.config.switchvoltage_1);
+//	LOG_PRINT("==================test\r\n");
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargecurrent_2   [%d] ",s_hy_instance.config.chargecurrent_2);
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitvoltage_2    [%d] ",s_hy_instance.config.limitvoltage_2);
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_2   [%d] min",s_hy_instance.config.chargetimeout_2_min);
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom switchvoltage_2   [%d] ",s_hy_instance.config.switchvoltage_2);
+//  LOG_PRINT("==================test\r\n");
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargevoltage_3   [%d] ",s_hy_instance.config.limitcurrent_3);
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitcurrent_3    [%d] ",s_hy_instance.config.limitcurrent_3);
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_3   [%d] min",s_hy_instance.config.chargetimeout_3_min);
+//	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom switchcurrent_3   [%d] ",s_hy_instance.config.switchcurrent_3);
+//  LOG_PRINT("==================\r\n");
 	
 	/*input init*/
 	hy_input_init(&s_hy_instance);

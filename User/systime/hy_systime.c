@@ -110,7 +110,16 @@ void SysTick_Handler(void)
 
 void hy_delay_ms (unsigned long tick) 
 {
-		 unsigned long long systickcnt = tick*12000;
-	   while(systickcnt--);
+	unsigned long long systickcnt = tick*12000;
+	uint32_t updatetime_ms;
+	updatetime_ms = hy_time_now_ms();
+	if (tick >= 10)
+	{
+		while(systime_elapse_ms(updatetime_ms)<tick);
+	}else{
+		while(systickcnt--);
+	}
+	
+	
 
 }

@@ -2,6 +2,7 @@
 #define __HY_CHARGE_TASK_H__
 
 #include "stdint.h"
+#include "GUI.h"
 
 #define CHARGETASK_MONITOR_INTERVAL 3000/*unit ms*/
 #define CHARGETASK_CONTROL_INTERVAL 100/*unit ms*/
@@ -30,6 +31,7 @@ typedef struct HY_ChargeTask_T{
 	uint32_t end_time_ms;
 	uint32_t total_charge_time_ms;
 	
+	uint32_t controltype;
 	uint32_t aim_type;
 	uint32_t aim_voltage_x10V;
 	uint32_t aim_current_x10A;
@@ -47,8 +49,9 @@ typedef struct HY_ChargeTask_T{
 	uint32_t average_powerrate_x10w;
 
 	hy_chargetask_state state;
-	int8_t batter_flag;
+	int8_t battery_flag;
 	
+	chargetask_gui_msg gui_msg;
 	
 }hy_chargetask_t;
 

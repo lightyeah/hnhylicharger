@@ -34,7 +34,7 @@ int hy_gui_init(void* hy_instance_handle)
 	s_gui->controlstyle = hy_instance->config.controlstyle;
 	s_gui->lastfreshtime_ms = 0;
 	
-	hy_gui_page_init(s_gui);
+	hy_gui_page_init(s_gui,&(hy_instance->config));
 	
 	LCD_Configuration();
 	
@@ -282,63 +282,41 @@ void MainProcess(void){
 
 				hy_gui_refresh();
 				break;
-				
-//			case DisplayPage2:
-//				//PAGE displaypage2(unsigned char mode,unsigned int no,unsigned int vol,unsigned char status,unsigned char * flag);
-//				guicmsg = chargemsg();
-//				if(guicmsg->updateflag == 0x01){
-//					guifeedbackvoltage = guicmsg->feedbackvoltage;
-//					guifeedbackcurrent = guicmsg->feedbackcurrent;
-//					guichargetime = guicmsg->chargetime;
-//					guilocalstate = guicmsg->localstate;
-//					guierr = guicmsg->err;
-//					guicmsg->updateflag = 0x00;
 
-//					if(guierr != 0){
-//						DEBUG_PRINT("[Y]Receive error,enter errrorpage\r\n");
-//						PageState = errorpage(guierr);
-//						CSwitch = 0;
-//						CStatus = 0;
-//						DEBUG_PRINT("[Y]Charge error\r\n");
-//					}
-//					if(guilocalstate == 12 ||guilocalstate == 24){
-//						CSwitch = 0;
-//						CStatus = 0;
-//						PageState = finishpage(guifeedbackvoltage,guichargetime);
-//						guifeedbackvoltage = 0;
-//						guifeedbackcurrent = 0;
-//						guichargetime = 0;
+			case PassportPage:
+				PageState = passportpage();
+				break;			
 
-//					}
-//				}
-//				if(ctrlstyle == 1){
-//					PageState = displaypage2(guilocalstate,1234,guifeedbackvoltage,guierr,&CSwitch);//battery number unknown
-//				}
-//				else if(ctrlstyle == 0){
-//					PageState = displaypage2(guilocalstate,1234,guifeedbackvoltage,guierr,&CANStatus);//battery number unknown
-//				}
-//				break;
-//			case PassportPage:
-//				PageState = passportpage();
-//				break;
-//			case SettingMainPage1:
-//				PageState = settingmainpage(0,0);
-//				break;
-//			case SettingMainPage2:
-//				PageState = settingmainpage(1,0);
-//				break;
-//			case SettingPage11:
-//				PageState = settingpage1(0);
-//				break;
-//			case SettingPage21:
-//				PageState = settingpage2(0);
-//				break;
-//			case SettingPage31:
-//				PageState = settingpage3(0);
-//				break;
-//			case SettingPage4:
-//				PageState = settingpage4();
-//				break;
+			case PassportPage1:
+				PageState = passportpage1();
+				break;
+
+			case SettingMainPage1:
+				PageState = settingmainpage(0,0);
+				break;
+
+			case SettingMainPage2:
+				PageState = settingmainpage(1,0);
+				break;
+
+			case SettingPage11:
+				PageState = settingpage11(SettingMainPage1);
+				LOG_INFO_TAG(HY_LOG_TAG,"SettingPage11 next PageState [%d]",PageState);
+				break;
+
+			case SettingPage21:
+				PageState = settingpage21(SettingMainPage1);
+				LOG_INFO_TAG(HY_LOG_TAG,"SettingPage21 next PageState [%d]",PageState);
+				break;
+
+			case SettingPage31:
+				PageState = settingpage31(SettingMainPage1);
+				LOG_INFO_TAG(HY_LOG_TAG,"SettingPage31 next PageState [%d]",PageState);
+				break;
+			case SettingPage4:
+				PageState = settingpage4(SettingMainPage1);
+				LOG_INFO_TAG(HY_LOG_TAG,"SettingPage4 next PageState [%d]",PageState);
+				break;
 //			case SettingPage5:
 //				guifeedbackvoltage = 0;
 //				guifeedbackcurrent=0;
@@ -353,19 +331,25 @@ void MainProcess(void){
 //			case SettingPage7:
 //				PageState = settingpage7();
 //				break;
-//			case SettingPage12:
-//				PageState = settingpage1(1);
-//				break;
-//			case SettingPage22:
-//				PageState = settingpage2(1);
-//				break;
-//			
-//			case SettingPage32:
-//				PageState = settingpage3(1);
-//				break;
-//			
+			case SettingPage12:
+				PageState = settingpage12(SettingMainPage1);
+				LOG_INFO_TAG(HY_LOG_TAG,"SettingPage12 next PageState [%d]",PageState);
+				break;
+
+			case SettingPage22:
+				PageState = settingpage22(SettingMainPage1);
+				break;
+			
+			case SettingPage32:
+				PageState = settingpage32(SettingMainPage1);
+				break;
+			
+			case ErrorPage1:
+				PageState = errorpage1();
+				break;
+
 			default:
-				PageState = welcomepage();
+				PageState = errorpage1();
 				break;
 				
 		}

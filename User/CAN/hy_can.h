@@ -88,7 +88,10 @@
 #define  FRAME_ID(x)               x##_FRAME_ID 
 #define  INTERVAL(x)               x##_INTERVAL
 
+#define  HY_CAN_CONNECT_TIMEOUT                  5000/*unit ms*/
 
+#define HY_CAN_BMS_STOP                          2/**/
+#define HY_CAN_OBC_STOP_CANTIMEOUT               3
 /*************************************/
 /********************协议********/
 /*************************************/
@@ -112,11 +115,6 @@ typedef enum HY_CANTASK_STATE{
 	HY_CANTASK_ERR
 }hy_cantask_state;
 
-typedef enum HY_CANCONNECT{
-	HY_CAN_DISCONNECTED=0,
-	HY_CAN_CONNECTED
-}hy_canconnect;
-
 typedef struct HY_CANMSG{
 	uint32_t frame_id;
 	uint8_t databyte[8];
@@ -125,8 +123,13 @@ typedef struct HY_CANMSG{
 
 typedef struct CanComStrcut{
 	uint8_t msgupdate_flag;
-	hy_canconnect canconnected;
+	int canconnected;
+	uint32_t connectupdate_time_ms;
 	hy_canmsg canmsg;
+	/*注意：
+	* bms_stop_code 都定义为偶数
+	* obc_stop_code	都定义为奇数
+	*/
 	int bms_stop_code;
 	int obc_stop_code;
 	hy_cantask_state state;
@@ -138,4 +141,6 @@ int hy_can_init(void* hy_instance);
 int hy_can_getmsg(void);
 void hy_can_task_main(void);
 
+int hy_can_connected(void);
+int hy_can_get_taskstate(void);
 #endif

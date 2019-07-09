@@ -19,8 +19,17 @@ void lcdreset(void);
 void lcd_display_chinese_at(uint8_t posx,uint8_t posy,uint8_t *s);
 void lcd_display_chinese(uint8_t *s);
 void lcd_display_ascii(uint8_t *s);
+
+void lcd_display_index(int index);
+
 void lcd_display_num4(uint16_t num,uint8_t unit);
+void lcd_display_num4_forset(uint16_t num,uint8_t unit);
+
+void lcd_display_botelv4(uint16_t num);
+
 void lcd_display_time4(uint16_t num);
+void lcd_display_time4_forset(uint16_t num);
+
 void lcd_display_num3(uint16_t num,uint8_t unit);
 void lcd_display_num3_big(uint16_t num,uint8_t unit);
 void lcd_display_num2_big(uint16_t num,uint8_t unit);

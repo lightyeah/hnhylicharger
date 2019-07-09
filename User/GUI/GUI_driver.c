@@ -245,7 +245,7 @@ void write_data(uint8_t Dispdata){
 
 void lcdreset()
 {  
-	 hy_delay_ms(100);
+   hy_delay_ms(100);
    write_com(0x30);      
    hy_delay_ms(5);             
    write_com(0x30);       
@@ -263,6 +263,7 @@ void lcd_clear()
 { 
   write_com(0x01);
   hy_delay_ms(5);
+  lcd_cursor_close();
 }
  
 void lcd_goto_pos(uint8_t posy,uint8_t posx){
@@ -345,6 +346,13 @@ void lcd_display_space(void){
 	hy_delay_ms(1);	
 }
 
+void lcd_display_index(int index)
+{
+	write_data(index+0x30);
+	hy_delay_ms(1);
+	write_data(0x2e);
+	hy_delay_ms(1);
+}
 
 void lcd_display_num4(uint16_t num,uint8_t unit){
 	uint8_t ge;
@@ -353,7 +361,7 @@ void lcd_display_num4(uint16_t num,uint8_t unit){
 	uint8_t qian;
 	uint16_t numtmp;
 	numtmp = num/10;
-	if(num<1000){
+	if(num<=9999){
 		ge = num%10;
 		shi = num/10%10;
 		bai = num/100%10;
@@ -369,25 +377,21 @@ void lcd_display_num4(uint16_t num,uint8_t unit){
 		write_data(ge+0x30);
 		hy_delay_ms(1);	
 	}
-	else if(num>=1000){
-		ge = numtmp%10;
-		shi = numtmp/10%10;
-		bai = numtmp/100%10;
-		qian = numtmp/1000;
+	else if(num >= 10000){
+		ge = 9;
+		shi = 9;
+		bai = 9;
+		qian = 9;
 		write_data(qian+0x30);
 		hy_delay_ms(1);	
 		write_data(bai+0x30);
 		hy_delay_ms(1);	
 		write_data(shi+0x30);
 		hy_delay_ms(1);
+		write_data(0x2e);
+		hy_delay_ms(1);	
 		write_data(ge+0x30);
 		hy_delay_ms(1);	
-	}
-	else{
-		ge = 0;
-		shi =0;
-		bai =0;
-		qian = 0;
 	}
 
 	if(unit != ' ')
@@ -395,7 +399,53 @@ void lcd_display_num4(uint16_t num,uint8_t unit){
 	hy_delay_ms(1);
 }
 
-void lcd_display_time4(uint16_t num){
+void lcd_display_num4_forset(uint16_t num,uint8_t unit){
+	uint8_t ge;
+	uint8_t shi;
+	uint8_t bai;
+	uint8_t qian;
+	uint16_t numtmp;
+	numtmp = num/10;
+	if(num<=9999){
+		ge = num%10;
+		shi = num/10%10;
+		bai = num/100%10;
+		qian = num/1000;
+	}
+	else if(num >= 10000){
+		ge = 9;
+		shi = 9;
+		bai = 9;
+		qian = 9;
+	}
+	write_data(qian+0x30);
+	hy_delay_ms(1);
+	write_data(0x20);
+	hy_delay_ms(1);	
+	write_data(bai+0x30);
+	hy_delay_ms(1);	
+	write_data(0x20);
+	hy_delay_ms(1);	
+	write_data(shi+0x30);
+	hy_delay_ms(1);
+	write_data(0x20);
+	hy_delay_ms(1);
+	write_data(0x2e);
+	hy_delay_ms(1);	
+	write_data(0x20);
+	hy_delay_ms(1);	
+	write_data(ge+0x30);
+	hy_delay_ms(1);	
+	write_data(0x20);
+	hy_delay_ms(1);
+	if(unit != ' ')
+		write_data(unit);
+	hy_delay_ms(1);
+}
+
+
+void lcd_display_botelv4(uint16_t num)
+{
 	uint8_t ge;
 	uint8_t shi;
 	uint8_t bai;
@@ -415,10 +465,82 @@ void lcd_display_time4(uint16_t num){
 		hy_delay_ms(1);	
 	}
 	else{
-		ge = 0;
-		shi =0;
-		bai =0;
-		qian = 0;
+		ge = 9;
+		shi = 9;
+		bai = 9;
+		qian = 9;
+	}
+	write_data(' ');
+	hy_delay_ms(1);
+	write_data('K');
+	hy_delay_ms(1);
+}
+
+void lcd_display_time4(uint16_t num)
+{
+	uint8_t ge;
+	uint8_t shi;
+	uint8_t bai;
+	uint8_t qian;
+	if(num<10000){
+		ge = num%10;
+		shi = num/10%10;
+		bai = num/100%10;
+		qian = num/1000;
+		write_data(qian+0x30);
+		hy_delay_ms(1);	
+		write_data(bai+0x30);
+		hy_delay_ms(1);	
+		write_data(shi+0x30);
+		hy_delay_ms(1);
+		write_data(ge+0x30);
+		hy_delay_ms(1);	
+	}
+	else{
+		ge = 9;
+		shi = 9;
+		bai = 9;
+		qian = 9;
+	}
+	write_data(' ');
+	hy_delay_ms(1);
+	write_data('M');
+	hy_delay_ms(1);
+}
+
+void lcd_display_time4_forset(uint16_t num)
+{
+	uint8_t ge;
+	uint8_t shi;
+	uint8_t bai;
+	uint8_t qian;
+	if(num<10000){
+		ge = num%10;
+		shi = num/10%10;
+		bai = num/100%10;
+		qian = num/1000;
+		write_data(qian+0x30);
+		hy_delay_ms(1);	
+		write_data(0x20);
+		hy_delay_ms(1);
+		write_data(bai+0x30);
+		hy_delay_ms(1);	
+		write_data(0x20);
+		hy_delay_ms(1);
+		write_data(shi+0x30);
+		hy_delay_ms(1);
+		write_data(0x20);
+		hy_delay_ms(1);
+		write_data(ge+0x30);
+		hy_delay_ms(1);	
+		write_data(0x20);
+		hy_delay_ms(1);
+	}
+	else{
+		ge = 9;
+		shi = 9;
+		bai = 9;
+		qian = 9;
 	}
 	write_data(' ');
 	hy_delay_ms(1);
@@ -524,7 +646,7 @@ void lcd_display_num2_big(uint16_t num,uint8_t unit){
 
 void lcd_cursor_goto(uint8_t posy,uint8_t posx){
 	write_com(0x0f);       
-  hy_delay_ms(5);             
+    hy_delay_ms(5);             
 	lcd_goto_pos(posy,posx);
 	hy_delay_ms(1);
 }
