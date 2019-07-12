@@ -33,7 +33,9 @@ int hy_gui_init(void* hy_instance_handle)
 	
 	s_gui->controlstyle = hy_instance->config.controlstyle;
 	s_gui->lastfreshtime_ms = 0;
-	
+	s_gui->set_in_flash = HY_FALSE;
+	s_gui->machine_stop_flag = HY_FALSE;
+
 	hy_gui_page_init(s_gui,&(hy_instance->config));
 	
 	LCD_Configuration();
@@ -51,6 +53,7 @@ void hy_gui_refresh(void)
 	s_gui->lastfreshtime_ms = hy_time_now_ms();
 	
 }
+
 void hy_button_task(void)
 {
 	static button_gui_msg msg;
@@ -270,6 +273,10 @@ void MainProcess(void){
 				PageState = welcomepage();
 				break;
 			case DisplayPage1:
+				if (s_gui->machine_stop_flag){
+					PageState = DisplayPage1_1;
+					break;
+				}
 				if(s_gui->chargetask_flag == CHARGETASK_MSG){
 					guivoltagex10V = s_gui->charge2gui_msg.voltagex10V;
 					guicurrentx10A = s_gui->charge2gui_msg.currentx10A;
@@ -282,7 +289,22 @@ void MainProcess(void){
 
 				hy_gui_refresh();
 				break;
+			case DisplayPage1_1:
+				if(s_gui->chargetask_flag == CHARGETASK_MSG){
+					guivoltagex10V = s_gui->charge2gui_msg.voltagex10V;
+					guicurrentx10A = s_gui->charge2gui_msg.currentx10A;
+					guichargetime_min = s_gui->charge2gui_msg.chargetime_min;
+					guichargetask_state = s_gui->charge2gui_msg.state;
+					s_gui->chargetask_flag = NO_MSG;
+				}
 
+				PageState = displaypage1_1(guichargetask_state,guivoltagex10V,guicurrentx10A,guichargetime_min);//conmunication state unknown
+
+				hy_gui_refresh();
+				break;
+			case DisplayPage1_2:
+				PageState = displaypage1_2(DisplayPage1);
+				break;
 			case PassportPage:
 				PageState = passportpage();
 				break;			
@@ -317,20 +339,18 @@ void MainProcess(void){
 				PageState = settingpage4(SettingMainPage1);
 				LOG_INFO_TAG(HY_LOG_TAG,"SettingPage4 next PageState [%d]",PageState);
 				break;
-//			case SettingPage5:
-//				guifeedbackvoltage = 0;
-//				guifeedbackcurrent=0;
-//				guichargetime = 0;
-//				guilocalstate = 0;
-//				guierr = 0;
-//				PageState = settingpage5();
-//				break;
-//			case SettingPage6:
-//				PageState = settingpage6();
-//				break;
-//			case SettingPage7:
-//				PageState = settingpage7();
-//				break;
+			case SettingPage5:
+				PageState = settingpage5(SettingMainPage2);
+				LOG_INFO_TAG(HY_LOG_TAG,"SettingPage5 next PageState [%d]",PageState);
+				break;
+			case SettingPage6:
+				PageState = settingpage6(SettingMainPage2);
+				LOG_INFO_TAG(HY_LOG_TAG,"SettingPage6 next PageState [%d]",PageState);
+				break;
+			case SettingPage7:
+				PageState = settingpage7(SettingMainPage2);
+				LOG_INFO_TAG(HY_LOG_TAG,"SettingPage7 next PageState [%d]",PageState);
+				break;
 			case SettingPage12:
 				PageState = settingpage12(SettingMainPage1);
 				LOG_INFO_TAG(HY_LOG_TAG,"SettingPage12 next PageState [%d]",PageState);

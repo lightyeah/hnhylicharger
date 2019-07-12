@@ -12,7 +12,7 @@
 #define HY_PRESSED_VALID_TIME_MS    50
 #define HY_PRESSED_TIMEOUT_MS       1000
 
-#define HY_GUI_REFRESH_INTERVAL     333/*unit ms*/
+#define HY_GUI_REFRESH_INTERVAL     200/*unit ms*/
 
 #define HY_GUI_BATTERY_ON_MASK          (1)
 #define HY_GUI_CAN_ON_MASK              (1<<(2))
@@ -75,7 +75,6 @@ typedef struct Button_Gui_Msg
 typedef struct Hy_Gui_Struct{
 	hy_button_t button;
 
-
 	hy_gui_msg_type chargetask_flag;
 	hy_gui_msg_type button_flag;
 	hy_gui_msg_type end_flag;
@@ -87,6 +86,9 @@ typedef struct Hy_Gui_Struct{
 	uint8_t controlstyle;
 
 	uint32_t lastfreshtime_ms;
+
+	int8_t set_in_flash;
+	int8_t machine_stop_flag;
 }hy_gui_t;
 
 

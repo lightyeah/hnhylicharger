@@ -7,8 +7,16 @@
 #define CHARGETASK_MONITOR_INTERVAL 3000/*unit ms*/
 #define CHARGETASK_CONTROL_INTERVAL 100/*unit ms*/
 
-#define CHARGETASK_CAN_STOP_CODE    1
-#define CHARGETASK_LOCAL_STOP_CODE  2
+#define CHARGETASK_CAN_STOP_CODE                1
+#define CHARGETASK_LOCAL_NORMAL_STOP_CODE       2
+#define CHARGETASK_BATTERY_DISCONNECT_STOP_CODE 3
+#define CHARGETASK_ERR_STOP_CODE                4
+#define CHARGETASK_BUTTON_STOP_CODE             5
+
+
+#define CHARGETASK_CAN_START_CODE               1
+#define CHARGETASK_LOCAL_START_CODE             2
+#define CHARGETASK_BUTTON_START_CODE            3
 
 #define HY_BATTERY_CONNECT          1
 #define HY_BATTERY_DISCONNECT       0
@@ -51,6 +59,8 @@ typedef struct HY_ChargeTask_T{
 	hy_chargetask_state state;
 	int8_t battery_flag;
 	
+	int8_t machine_start_flag;
+
 	chargetask_gui_msg gui_msg;
 	
 }hy_chargetask_t;

@@ -19,7 +19,9 @@ int hy_chargetask_init(void* hy_instance_handle)
 	s_chargetask = &(hy_instance->chargetask);
 	memset(s_chargetask,0,sizeof(hy_chargetask_t));
 	memset(&(hy_instance->hy_data),0,HY_CHARGETASK_DATA_NUM*sizeof(hy_chargetask_data));
+
 	s_chargetask->controltype = hy_instance->config.controlstyle;
+	s_chargetask->machine_start_flag = HY_TRUE;
 
 	LOG_INFO_TAG(HY_LOG_TAG,"chargetask init done....");
 
@@ -29,15 +31,23 @@ int hy_chargetask_init(void* hy_instance_handle)
 int hy_chargetask_start(int controltype, void* ctx)
 {
 	int ret = HY_OK;
-	if(s_chargetask == NULL){
-		LOG_ERROR_TAG(HY_LOG_TAG,"***chargetask not init!!!");
-		ret = HY_ERROR;
-		goto err_exit;
+
+	if (ctx != NULL){
+		if (*(uint32_t*)ctx == CHARGETASK_BUTTON_START_CODE){
+			s_chargetask->machine_start_flag = HY_TRUE;
+			controltype = hy_instance->config.controlstyle;
+		}
+	}
+
+	if (s_chargetask->machine_start_flag != HY_TRUE){
+		LOG_WARN_TAG(HY_LOG_TAG,"chargetask machine is not ready");
+		return HY_ERROR;
 	}
 	
 	if(s_chargetask->start_flag == HY_TRUE){
 		return HY_OK;
 	}
+
 	LOG_INFO_TAG(HY_LOG_TAG,"*********************");
 	LOG_INFO_TAG(HY_LOG_TAG,"chargetask start....");
 	LOG_INFO_TAG(HY_LOG_TAG,"*********************");
@@ -109,17 +119,35 @@ int hy_chargetask_stop(int stop_code,void* ctx)
 	LOG_INFO_TAG(HY_LOG_TAG,"chargetask stop.......");
 	LOG_INFO_TAG(HY_LOG_TAG,"**********************");
 
-	if (stop_code == CHARGETASK_CAN_STOP_CODE){
-		if (*(int*)ctx == HY_CAN_OBC_STOP_CANTIMEOUT){
+	switch (stop_code){
+		case CHARGETASK_CAN_STOP_CODE:
+			if (*(int*)ctx == HY_CAN_OBC_STOP_CANTIMEOUT){
+				s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
+				s_chargetask->gui_msg.state &= ~HY_GUI_CAN_ON_MASK;
+			}else if(*(int*)ctx == HY_CAN_BMS_STOP){
+				/*todo ???*/
+				s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
+				s_chargetask->gui_msg.state |= HY_GUI_CAN_ON_MASK;
+				s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_END_MASK;
+			}/*todo can timeout 600min*/
+		break;
+		case CHARGETASK_LOCAL_NORMAL_STOP_CODE:
 			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
-			s_chargetask->gui_msg.state &= ~HY_GUI_CAN_ON_MASK;
-		}else if(*(int*)ctx == HY_CAN_BMS_STOP){
-			/*todo*/
+			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_END_MASK;		
+		break;
+		case CHARGETASK_BATTERY_DISCONNECT_STOP_CODE:
 			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
-			s_chargetask->gui_msg.state |= HY_GUI_CAN_ON_MASK;
-			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_END_MASK;
-		}
+		break;
+		case CHARGETASK_ERR_STOP_CODE:
+		break;
+		case CHARGETASK_BUTTON_STOP_CODE:
+			s_chargetask->machine_start_flag = HY_FALSE;
+			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
+		break;
+		default:
+		break;
 	}
+
 	s_chargetask->start_flag = HY_FALSE;
 	s_chargetask->end_flag = HY_TRUE;
 	s_chargetask->state = CHARGETASK_IDLE;
@@ -304,7 +332,7 @@ void hy_chargetask_local_turntostate(hy_chargetask_state state)
 			s_chargetask->statestarttime_ms = hy_time_now_ms();
 		break;
 		case CHARGETASK_LOCAL_THREE:
-			hy_chargetask_setaim(BMS_OBC_BCL_MODE_CUR,hy_instance->config.chargevoltage_3);
+			hy_chargetask_setaim(BMS_OBC_BCL_MODE_VOL,hy_instance->config.chargevoltage_3);
 			s_chargetask->max_voltage_x10V = (hy_instance->config.limitcurrent_3*10);
 			s_chargetask->max_current_x10A = (hy_instance->config.voltagerange*10);
 			s_chargetask->max_chargetimeout_ms = (hy_instance->config.chargetimeout_3_min*60*1000);
@@ -349,7 +377,7 @@ void hy_chargetask_main()
 		if ( systime_elapse_ms(battery_on_time_ms) >= 500 ){/*battery disconnected*/				
 			s_chargetask->gui_msg.state &= ~HY_GUI_BATTERY_ON_MASK;
 			if(s_chargetask->battery_flag == HY_BATTERY_CONNECT){
-				hy_chargetask_stop(0,NULL);
+				hy_chargetask_stop(CHARGETASK_BATTERY_DISCONNECT_STOP_CODE,NULL);
 			}		
 			s_chargetask->state = CHARGETASK_IDLE;
 			s_chargetask->battery_flag = HY_BATTERY_DISCONNECT;
@@ -435,7 +463,7 @@ void hy_chargetask_main()
 			if(currentfb_x10A <= (hy_instance->config.switchcurrent_3 *10)
 				|| systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){/*change to local [two]*/
 				LOG_INFO_TAG(HY_LOG_TAG,"[three is end ,change to idle]");
-				hy_chargetask_stop(0,NULL);
+				hy_chargetask_stop(CHARGETASK_LOCAL_NORMAL_STOP_CODE,NULL);
 				s_chargetask->state = CHARGETASK_IDLE;
 			}
 			break;
@@ -461,7 +489,7 @@ void hy_chargetask_main()
 			}
 			if(systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){
 				LOG_WARN_TAG(HY_LOG_TAG,"***can chargetask is timeout !!!");
-				hy_chargetask_stop(0,NULL);
+				hy_chargetask_stop(CHARGETASK_CAN_STOP_CODE,NULL);//todo there can not be NULL!!!!!
 				s_chargetask->state = CHARGETASK_IDLE;
 			}
 			break;	

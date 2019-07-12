@@ -73,6 +73,12 @@ PAGE displaypage1(uint32_t state,
 	uint32_t cur,
 	uint32_t time);
 
+PAGE displaypage1_1(uint32_t state,
+	uint32_t vol,
+	uint32_t cur,
+	uint32_t time);
+PAGE displaypage1_2(PAGE father_page);
+
 PAGE displaypage2(uint8_t mode,uint16_t no,uint16_t vol,uint8_t status,uint8_t * flag);
 	
 
@@ -91,9 +97,9 @@ PAGE settingpage31(PAGE father_page);
 PAGE settingpage32(PAGE father_page);
 
 PAGE settingpage4(PAGE father_page);
-PAGE settingpage5(void);
-PAGE settingpage6(void);
-PAGE settingpage7(void);
+PAGE settingpage5(PAGE father_page);
+PAGE settingpage6(PAGE father_page);
+PAGE settingpage7(PAGE father_page);
 
 PAGE datasettingpage(data_name name,PAGE page);
 

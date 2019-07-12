@@ -15,6 +15,8 @@ Purpose     : Write config data to EEPROM
 #include "systen_delay.h"
 #include "hy_dbg.h"
 
+#include "hy_instance.h"
+
 #define I2CDEV LPC_I2C2
 #define Debug
 
@@ -23,6 +25,8 @@ Purpose     : Write config data to EEPROM
 #endif
 #define PCA8581_SLVADDR	(0xA6>>1)
 
+static hy_config *s_config = NULL;
+static hy_instance_t *hy_instance = NULL;
 
 #define HY_LOG_TAG    "HY_config"
 
@@ -244,20 +248,25 @@ int32_t ATML_Read(void)
 }
 
 /*-------------------------PUBLIC FUNCTIONS------------------------------*/
-void Config_Init(void){
+void Config_Init(void* hy_handle)
+{
     PINSEL_CFG_Type PinCfg;
 
     PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
     PinCfg.Pinmode = 0;
     PinCfg.Funcnum = 2;
-		PinCfg.Pinnum = 10;
-		PinCfg.Portnum = 0;	//P0.10 SDA2
-		PINSEL_ConfigPin(&PinCfg);
-		PinCfg.Pinnum = 11;	//P0.11 SCL2
-		PINSEL_ConfigPin(&PinCfg);
+
+	PinCfg.Pinnum = 10;
+	PinCfg.Portnum = 0;	//P0.10 SDA2
+	PINSEL_ConfigPin(&PinCfg);
+	PinCfg.Pinnum = 11;	//P0.11 SCL2
+	PINSEL_ConfigPin(&PinCfg);
 
     I2C_Init(I2CDEV, 100000);
     I2C_Cmd(I2CDEV, ENABLE);
+
+    hy_instance = (hy_instance_t*)hy_handle;
+    s_config = &(hy_instance->config);
 }
 
 void Config_EraseConfig(void){
@@ -313,7 +322,7 @@ uint8_t Config_DataReading(void){
 void Config_DataWriting(void){
 	while(ATML_Write() != 0){
 		LOG_INFO_TAG(HY_LOG_TAG,"ATML_Read error,retrying\r\n");
-		delay_ms(100);
+		hy_delay_ms(100);
 	}
 }
 
@@ -440,11 +449,11 @@ void Config_WriteSwitchVol_2(uint16_t data){
     config_wrdat[16] =(uint8_t)( data & 0x00ff);
 }
 
-void Config_WriteCurrent_3(uint16_t data){
+void Config_WriteVoltage_3(uint16_t data){
     config_wrdat[20] =(uint8_t)( (data & 0xff00)>>8);
     config_wrdat[19] =(uint8_t)( data & 0x00ff);
 }
-void Config_WriteVolLimit_3(uint16_t data){
+void Config_WriteCurLimit_3(uint16_t data){
     config_wrdat[22] =(uint8_t)( (data & 0xff00)>>8);
     config_wrdat[21] =(uint8_t)( data & 0x00ff);
 }
@@ -452,7 +461,7 @@ void Config_WriteChargeTime_3(uint16_t data){
     config_wrdat[24] = (uint8_t)((data & 0xff00)>>8);
     config_wrdat[23] = (uint8_t)(data & 0x00ff);
 }
-void Config_WriteSwitchVol_3(uint16_t data){
+void Config_WriteSwitchCur_3(uint16_t data){
     config_wrdat[26] =(uint8_t)( (data & 0xff00)>>8);
     config_wrdat[25] =(uint8_t)( data & 0x00ff);
 }
@@ -496,6 +505,61 @@ void eepromtest(){
 	unsigned int index;
 	for(index = 0;index<sizeof((config_rddat));index++){
 		LOG_INFO_TAG(HY_LOG_TAG,"%d: %d\r\n",index,config_rddat[index]);
-		delay_ms(200);
+		hy_delay_ms(200);
 	}
 }
+
+void hy_config_reset(void)
+{
+	int ret;
+	ret = hy_config_datareading();
+	if( ret != 0 ){
+		LOG_INFO_TAG(HY_LOG_TAG,"hy instance get config failed!! ret [%d]",ret);
+		return;
+	}
+	LOG_PRINT("==================\r\n");
+	s_config->voltagerange = hy_config_readvoltagerange();
+	s_config->currentrange = hy_config_readcurrentrange();
+	s_config->controlstyle = hy_config_readctrlstyle();
+	s_config->communicaterate = hy_config_readcommunicaterate();
+	s_config->balancecurrent = hy_config_readbalancecurrent();
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom voltagerange   [%d] ",s_config->voltagerange);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom currentrange   [%d] ",s_config->currentrange);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom ctrlstyle      [%d] 0 for can 1 for local",s_config->controlstyle);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom canrate      [%d] ",s_config->communicaterate);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom balancecurrent [%d] ",s_config->balancecurrent);
+	LOG_PRINT("==================\r\n");
+	
+	s_config->chargecurrent_1 = hy_config_readchargecurrent_1();
+	s_config->limitvoltage_1  = hy_config_readlimitvoltage_1();
+	s_config->chargetimeout_1_min = hy_config_readchargetimeout_1();
+	s_config->switchvoltage_1 = hy_config_readswitchvoltage_1();
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargecurrent_1   [%d] ",s_config->chargecurrent_1);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitvoltage_1    [%d] ",s_config->limitvoltage_1);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_1   [%d] min",s_config->chargetimeout_1_min);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom switchvoltage_1   [%d] ",s_config->switchvoltage_1);
+	LOG_PRINT("==================\r\n");
+	
+	s_config->chargecurrent_2 = hy_config_readchargecurrent_2();
+	s_config->limitvoltage_2  = hy_config_readlimitvoltage_2();
+	s_config->chargetimeout_2_min = hy_config_readchargetimeout_2();
+	s_config->switchvoltage_2 = hy_config_readswitchvoltage_2();
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargecurrent_2   [%d] ",s_config->chargecurrent_2);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitvoltage_2    [%d] ",s_config->limitvoltage_2);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_2   [%d] min",s_config->chargetimeout_2_min);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom switchvoltage_2   [%d] ",s_config->switchvoltage_2);
+  LOG_PRINT("==================\r\n");
+	
+	s_config->chargevoltage_3 = hy_config_readchargevoltage_3();
+	s_config->limitcurrent_3  = hy_config_readlimitcurrent_3();
+	s_config->chargetimeout_3_min = hy_config_readchargetimeout_3();
+	s_config->switchcurrent_3 = hy_config_readswitchcurrent_3();
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargevoltage_3   [%d] ",s_config->limitcurrent_3);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom limitcurrent_3    [%d] ",s_config->limitcurrent_3);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom chargetimeout_3   [%d] min",s_config->chargetimeout_3_min);
+	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom switchcurrent_3   [%d] ",s_config->switchcurrent_3);
+  LOG_PRINT("==================\r\n");
+	
+}
+
+

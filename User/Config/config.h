@@ -33,20 +33,20 @@
 #define hy_config_readcommunicaterate     Config_ReadCommunicationRate
 #define hy_config_readbalancecurrent      Config_ReadCurrentBalane
 
-#define hy_config_writechargecurrent_1    Config_WrtieCurrent_1
-#define hy_config_writelimitvoltage_1     Config_WrtieVolLimit_1
-#define hy_config_writechargetimeout_1    Config_WrtieChargeTime_1
-#define hy_config_writeswitchvoltage_1    Config_WrtieSwitchVol_1
+#define hy_config_writechargecurrent_1    Config_WriteCurrent_1
+#define hy_config_writelimitvoltage_1     Config_WriteVolLimit_1
+#define hy_config_writechargetimeout_1    Config_WriteChargeTime_1
+#define hy_config_writeswitchvoltage_1    Config_WriteSwitchVol_1
 
-#define hy_config_writechargecurrent_2    Config_WrtieCurrent_2
-#define hy_config_writelimitvoltage_2     Config_WrtieVolLimit_2
-#define hy_config_writechargetimeout_2    Config_WrtieChargeTime_2
-#define hy_config_writeswitchvoltage_2    Config_WrtieSwitchVol_2
+#define hy_config_writechargecurrent_2    Config_WriteCurrent_2
+#define hy_config_writelimitvoltage_2     Config_WriteVolLimit_2
+#define hy_config_writechargetimeout_2    Config_WriteChargeTime_2
+#define hy_config_writeswitchvoltage_2    Config_WriteSwitchVol_2
 
-#define hy_config_writechargecurrent_3    Config_WrtieCurrent_3
-#define hy_config_writelimitvoltage_3     Config_WrtieVolLimit_3
-#define hy_config_writechargetimeout_3    Config_WrtieChargeTime_3
-#define hy_config_writeswitchvoltage_3    Config_WrtieSwitchVol_3
+#define hy_config_writechargevoltage_3    Config_WriteVoltage_3
+#define hy_config_writelimitcurrent_3     Config_WriteCurLimit_3
+#define hy_config_writechargetimeout_3    Config_WriteChargeTime_3
+#define hy_config_writeswitchcurrent_3    Config_WriteSwitchCur_3
 
 #define hy_config_writectrlstyle          Config_WriteCtrlStyle
 #define hy_config_writevoltagerange       Config_WriteVoltageRange
@@ -58,7 +58,7 @@
 #define hy_config_writetoaddr             ConfigWriteToAddr
 #define hy_config_eepromtest              eepromtest
 
-void Config_Init(void);
+void Config_Init(void* hy_handle);
 void Config_EraseConfig(void);
 uint8_t Config_DataReading(void);
 void Config_DataWriting(void);
@@ -85,20 +85,20 @@ uint16_t Config_ReadCurrentRange(void);
 uint32_t Config_ReadCommunicationRate(void);
 uint16_t Config_ReadCurrentBalane(void);
 
-void Config_WrtieCurrent_1(uint16_t data);
-void Config_WrtieVolLimit_1(uint16_t data);
-void Config_WrtieChargeTime_1(uint16_t data);
-void Config_WrtieSwitchVol_1(uint16_t data);
+void Config_WriteCurrent_1(uint16_t data);
+void Config_WriteVolLimit_1(uint16_t data);
+void Config_WriteChargeTime_1(uint16_t data);
+void Config_WriteSwitchVol_1(uint16_t data);
 
-void Config_WrtieCurrent_2(uint16_t data);
-void Config_WrtieVolLimit_2(uint16_t data);
-void Config_WrtieChargeTime_2(uint16_t data);
-void Config_WrtieSwitchVol_2(uint16_t data);
+void Config_WriteCurrent_2(uint16_t data);
+void Config_WriteVolLimit_2(uint16_t data);
+void Config_WriteChargeTime_2(uint16_t data);
+void Config_WriteSwitchVol_2(uint16_t data);
 
-void Config_WrtieCurrent_3(uint16_t data);
-void Config_WrtieVolLimit_3(uint16_t data);
-void Config_WrtieChargeTime_3(uint16_t data);
-void Config_WrtieSwitchVol_3(uint16_t data);
+void Config_WriteVoltage_3(uint16_t data);
+void Config_WriteCurLimit_3(uint16_t data);
+void Config_WriteChargeTime_3(uint16_t data);
+void Config_WriteSwitchCur_3(uint16_t data);
 
 void Config_WriteCtrlStyle(uint16_t data);
 void Config_WriteVoltageRange(uint16_t data);
@@ -110,5 +110,6 @@ uint16_t ConfigReadFromAddr(uint8_t addr);
 void ConfigWriteToAddr(uint8_t addr, uint16_t data);
 void eepromtest(void); 
 
+void hy_config_reset(void);
 
 #endif

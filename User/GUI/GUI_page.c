@@ -15,6 +15,8 @@
 
 #define key_time 700
 
+#define HY_SETTING_PAGE_TIMEOUT_MS    30000/**/
+
 static hy_gui_t* s_gui = NULL;
 static hy_config* config_data = NULL;
 
@@ -87,6 +89,9 @@ uint8_t zhengque[5] = {0xd5,0xfd,0xc8,0xb7,0x00};//正确
 uint8_t mima[5] = {0xc3,0xdc,0xc2,0xeb,0x00};//密码
 uint8_t chongqi[5] = {0xd6,0xd8,0xc6,0xf4,0x00};//重启
 uint8_t botelv[7] = {0xb2,0xa8,0xcc,0xd8,0xc2,0xca,0x00};//波特率
+uint8_t zhong[3] = {0xd6,0xd0,0x00};//中
+uint8_t wancheng[5] = {0xcd,0xea,0xb3,0xc9,0x00};//完成
+uint8_t kaishi[5] = {0xbf,0xaa,0xca,0xbc,0x00};//开始
 
 uint8_t pass[6] ={2,2,2,3,3,3};
 uint8_t unit[17] = {'A','V','M','V','A','V','M','V','V','A','M','A',' ','V','A','K','%'};
@@ -139,9 +144,9 @@ void showmainsettingitem(uint8_t no){
 			lcd_display_chinese(sz);		
 			break;
 		case 4:
-			lcd_display_chinese(hf);
 			lcd_display_chinese(cc);
-			lcd_display_chinese(cs);		
+			lcd_display_chinese(cs);
+			lcd_display_chinese(sz);		
 			break;
 		case 5:
 			lcd_display_chinese(dian);
@@ -273,8 +278,9 @@ PAGE displaypage1(uint32_t state,
 	uint32_t cur,
 	uint32_t time)
 {
-//		lcd_clear();
-	
+
+		lcd_clear();
+
 		lcd_display_chinese_at(0,0,chong);
 		lcd_display_chinese(dian);
 		lcd_display_chinese(dian);
@@ -299,6 +305,8 @@ PAGE displaypage1(uint32_t state,
 		lcd_display_chinese_at(0,3,zt);
 		lcd_display_colon();
 
+		s_gui->set_in_flash = HY_FALSE;
+
 		if (!(state&HY_GUI_BATTERY_ON_MASK))/*no battery*/{
 			lcd_display_chinese(dian);
 			lcd_display_chinese(chi);
@@ -316,6 +324,11 @@ PAGE displaypage1(uint32_t state,
 				lcd_display_chinese(chong);
 				lcd_display_chinese(dian);
 			}
+		}else if((state & HY_GUI_BATTERY_ON_MASK) 
+					&& (state & HY_GUI_CHARGETASK_END_MASK)){/*charge normal end*/
+				lcd_display_chinese(chong);
+				lcd_display_chinese(dian);
+				lcd_display_chinese(wancheng);
 		}else{/*err*/
 			if (s_gui->controlstyle == HY_CONTROLSTYLE_CAN)
 			{
@@ -333,31 +346,37 @@ PAGE displaypage1(uint32_t state,
 			}
 		}
 		/*todo errmsg display!!!*/
-		if(s_gui->button_flag == BUTTON_MSG)
-		{
-			s_gui->button_flag = NO_MSG;
-			switch (s_gui->button_msg_queue[0].button_name){
-				case button_set://0x01
-					LOG_ERROR_TAG(HY_LOG_TAG,"DisplayPage1 get button_set [%d]",(state & HY_GUI_BATTERY_ON_MASK) && (state & HY_GUI_CHARGETASK_ON_MASK));
-					if ((state & HY_GUI_BATTERY_ON_MASK) && (state & HY_GUI_CHARGETASK_ON_MASK)){
-						return PassportPage1;
-					}else{
-						return PassportPage;
-					}
-				break;
-				case button_off:/*stop charge*///0x06
-				break;
-				case button_on://0x05
-				break;
-				case button_up://0x02
-				break;
-				case button_down://0x03
-				break;
-				case button_esc://0x04
-				break;
-			}
-		}	
+		while(1){
+			if(s_gui->button_flag == BUTTON_MSG)
+			{
+				s_gui->button_flag = NO_MSG;
+				switch (s_gui->button_msg_queue[0].button_name){
+					case button_set://0x01
+						if ((state & HY_GUI_BATTERY_ON_MASK) && (state & HY_GUI_CHARGETASK_ON_MASK)){
+							return PassportPage1;
+						}else{
+							return PassportPage;
+						}
+					break;
+					case button_off:/*stop charge*///0x06
+						LOG_INFO_TAG(HY_LOG_TAG,"machine stopped by button");
+						hy_chargetask_stop(CHARGETASK_BUTTON_STOP_CODE,NULL);
+						s_gui->machine_stop_flag = HY_TRUE;
+						return DisplayPage1_1;
+					break;
+					case button_on://0x05
 
+					break;
+					case button_up://0x02
+					/*todo record of charge*/
+					break;
+					case button_down://0x03
+					break;
+					case button_esc://0x04
+					break;
+				}
+			}	
+		}
 /*				
 		if(s_gui->button_flag == BUTTON_MSG)
 		{
@@ -379,163 +398,99 @@ PAGE displaypage1(uint32_t state,
 				break;
 			}
 		}	*/	
-		// while(time_cnt<100){
-		// 	time_cnt++;
-			
-		// 	button = Button_Check();	
-		// 	switch(button){
-		// 		case 1://set
-		// 			if(*flag == 0){
-		// 				return PassportPage;
-		// 			}
-		// 			break;
-		// 		case 4://esc
-		// 			//查询
-		// 			return DisplayPage2;
-		// 		case 5://on
-		// 			//开始充电/
-		// 			*flag = 1;
-		// 			return DisplayPage1;
-		// 		case 6://off
-		// 			//停止充电
-		// 			*flag = 0;
-		// 			return DisplayPage1;
-		// 		default:
-		// 			hy_delay_ms(10);
-		// 			break;
-		// 	}
-		// }
+
 		return DisplayPage1;
 }
 
-//PAGE displaypage2(uint8_t mode,uint16_t no,uint16_t vol,uint8_t status,uint8_t * flag){
-//	uint8_t button;
-//	uint16_t time_cnt;
-//	time_cnt = 0;
-//	lcd_clear();
-//	lcd_display_chinese_at(0,0,ms);
-//	lcd_display_colon();
-//	switch(mode){
-//// #define STATE_IDEL 	                   			00
-//// #define CAN_STATE                            10
-//// #define CAN_STOP 		                        11
-//// #define LOCAL_STATE_CHECK                    20
-//// #define LOCAL_STATE_ONE                      21
-//// #define LOCAL_STATE_TWO                      22
-//// #define LOCAL_STATE_THREE                    23
-//// #define LOCAL_STATE_END                      24
-//		case 0:
-//			lcd_display_chinese(tj);
-//			break;
-//		case 24:
-//			lcd_display_chinese(tj);
-//			break;
-//		case 10:
-//			lcd_display_ascii("CAN ");
-//			lcd_display_chinese(chong);			
-//			lcd_display_chinese(dian);			
-//			break;
-//		case 11:
-//		case 12:
-//			lcd_display_ascii("CAN ");
-//			lcd_display_chinese(tj);
-//			break;
-//		case 20:
-//			lcd_display_chinese(jc);		
-//			break;
-//		case 21:
-//			lcd_display_chinese(yu);
-//			lcd_display_chinese(chong);			
-//			lcd_display_chinese(dian);			
-//			break;
-//		case 22:
-//			lcd_display_chinese(heng);
-//			lcd_display_chinese(liu);
-//			lcd_display_chinese(chong);			
-//			lcd_display_chinese(dian);			
-//			break;
-//		case 23:
-//			lcd_display_chinese(heng);
-//			lcd_display_chinese(ya);
-//			lcd_display_chinese(chong);			
-//			lcd_display_chinese(dian);			
-//			break;
-//		default:
-//			break;
-//	}
-//	lcd_display_chinese_at(0,1,dian);
-//	lcd_display_chinese(chi);
-//	lcd_display_chinese(bianh);
-//	lcd_display_colon();
-//	lcd_display_num4(no,' ');
 
-//	lcd_display_chinese_at(0,2,dian);
-//	lcd_display_chinese(chi);
-//	lcd_display_chinese(dian);
-//	lcd_display_chinese(ya);
-//	lcd_display_colon();
-//	lcd_display_num4(vol,'V');
+PAGE displaypage1_1(uint32_t state,
+	uint32_t vol,
+	uint32_t cur,
+	uint32_t time)
+{
+	uint32_t updatetime_ms = 0;
+	uint32_t flag = 0;
+	lcd_clear();
 
-//// #define  ERR_OK                             0
-//// #define  ERR_TIMEOUT                        1
-//// #define  ERR_LACKPHASE                      2
-//// #define  ERR_OVERHEAT                       3
-//// #define  ERR_BATTERYPROTECT								 4
-//// #define  ERR_UNKNOW                         5
-//	lcd_display_chinese_at(0,3,zt);
-//	lcd_display_colon();
-//	switch(status){
-//		case 0:
-//			lcd_display_chinese(zc);
-//			break;
-//		case 1:
-//			lcd_display_chinese(tx);
-//			lcd_display_chinese(cw);			
-//			break;
-//		case 2:
-//			lcd_display_chinese(qx);
-//			lcd_display_chinese(bh);			
-//			break;
-//		case 3:
-//			lcd_display_chinese(gw);
-//			lcd_display_chinese(bh);
-//			break;
-//		case 4:
-//			lcd_display_chinese(dian);			
-//			lcd_display_chinese(chi);			
-//			lcd_display_chinese(bh);			
-//			break;
-//		case 5:
-//			lcd_display_chinese(wz);			
-//			lcd_display_chinese(cw);		
-//			break;
+	lcd_display_chinese_at(0,0,chong);
+	lcd_display_chinese(dian);
+	lcd_display_chinese(dian);
+	lcd_display_chinese(ya);
+	lcd_display_colon();
+	lcd_display_num4(vol,'V');
 
-//		default:
-//			break;
-//	}
-//	
-//	while(time_cnt<100){
-//		time_cnt++;		
-//		chargehandler();
-//		button = Button_Check();
-//		switch(button){
-//			case 4:
-//				return DisplayPage1;
-//				break;
-//			case 6:
-//				*flag = 0;
-//				return DisplayPage1;
-//				break;
-//			default:
-//				hy_delay_ms(10);
-//				break;
-//		}
-//	}
-//	return DisplayPage2;
-//}
+	
+	lcd_display_chinese_at(0,1,chong);
+	lcd_display_chinese(dian);
+	lcd_display_chinese(dian);
+	lcd_display_chinese(liu);
+	lcd_display_colon();
+	lcd_display_num4(cur,'A');
 
 
+	lcd_display_chinese_at(0,3,zt);
+	lcd_display_colon();
+	lcd_display_chinese(tj);
+	lcd_display_chinese(zhong);
 
+	updatetime_ms = hy_time_now_ms();
+	while(1){
+		if(s_gui->button_flag == BUTTON_MSG)
+		{
+			s_gui->button_flag = NO_MSG;
+			switch (s_gui->button_msg_queue[0].button_name){
+				case button_set://0x01
+					if ((state & HY_GUI_BATTERY_ON_MASK) && (state & HY_GUI_CHARGETASK_ON_MASK)){
+						return PassportPage1;
+					}else{
+						return PassportPage;
+					}
+				break;
+				case button_off:/*stop charge*///0x06
+				break;
+				case button_on://0x05
+					flag = CHARGETASK_BUTTON_START_CODE;
+					LOG_INFO_TAG(HY_LOG_TAG,"machine startted by button");
+					s_gui->machine_stop_flag = HY_FALSE;
+					hy_chargetask_start(0,&flag);
+					return DisplayPage1_2;
+				break;
+				case button_up://0x02
+				/*todo record of charge*/
+				break;
+				case button_down://0x03
+				break;
+				case button_esc://0x04
+				break;
+			}
+		}			
+
+	}
+	return DisplayPage1;	
+
+}
+
+PAGE displaypage1_2(PAGE father_page)
+{
+	uint32_t updatetime_ms = 0;
+	lcd_clear();
+
+	lcd_display_chinese_at(0,0,kaishi);
+	lcd_display_chinese(chong);
+	lcd_display_chinese(dian);
+	write_data(0x2e);
+	hy_delay_ms(1);
+	write_data(0x2e);
+	hy_delay_ms(1);
+	write_data(0x2e);
+	hy_delay_ms(1);
+
+	updatetime_ms = hy_time_now_ms();
+	while(systime_elapse_ms(updatetime_ms) <= 1500);
+	
+	return DisplayPage1;
+
+}
 PAGE passportpage(void)
 {
 	uint8_t index,passport[6];
@@ -560,6 +515,7 @@ PAGE passportpage(void)
 		if(s_gui->button_flag == BUTTON_MSG)
 		{
 			index++;
+			updatetime_ms = hy_time_now_ms();
 			lcd_display_ascii("*");
 			lcd_display_ascii(" ");
 			s_gui->button_flag = NO_MSG;
@@ -570,7 +526,7 @@ PAGE passportpage(void)
 				case button_on://0x05
 					lcd_clear();
 					lcd_display_chinese_at(2,2,mmcw);
-					hy_delay_ms(2000);
+					hy_delay_ms(1500);
 					return DisplayPage1;
 				break;
 				case button_up://0x02
@@ -595,39 +551,18 @@ PAGE passportpage(void)
 			}else{
 				lcd_clear();
 				lcd_display_chinese_at(2,2,mmcw);
-				hy_delay_ms(2000);
+				hy_delay_ms(1500);
 				return DisplayPage1;					
 			}
 		}else if (index > 6){
 				lcd_clear();
 				lcd_display_chinese_at(2,2,mmcw);
-				hy_delay_ms(2000);
+				hy_delay_ms(1500);
 				return DisplayPage1;	
 		}	
-		// hy_delay_ms(10);
-		// button = Button_Check();
-		// if(button != 0){
-		// 	time_cnt = 0;
-		// 	passport[index] = button;
-		// 	index++;
-		// 	lcd_display_ascii("*");
-		// 	lcd_display_ascii(" ");
-		// }
-		// if(index == 6){
-		// 	if( pass[0]==passport[0] && pass[1]==passport[1] &&
-		// 			pass[2]==passport[2] && pass[3]==passport[3] &&
-		// 			pass[4]==passport[4] && pass[5]==passport[5]){
-		// 				DEBUG_PRINT("right\r\n");
-		// 				return SettingMainPage1;
-		// 	}
-		// 	else{
-		// 		lcd_clear();
-		// 		lcd_display_chinese_at(2,2,mmcw);
-		// 		hy_delay_ms(2000);
-		// 		return DisplayPage1;
-		// 	}
-		// }
+
 	}
+	lcd_cursor_close();
 	return DisplayPage1;
 }
 
@@ -664,6 +599,7 @@ PAGE settingmainpage(uint8_t page,uint8_t cursor)
 	uint8_t button,index;
 	uint8_t pa;
 	uint32_t updatetime_ms;
+
 	
 	index = 1;
 	
@@ -677,7 +613,7 @@ PAGE settingmainpage(uint8_t page,uint8_t cursor)
 	index = cursor+page*4;
 	
 	updatetime_ms = hy_time_now_ms();
-	while(systime_elapse_ms(updatetime_ms) < 30000){
+	while(systime_elapse_ms(updatetime_ms) < HY_SETTING_PAGE_TIMEOUT_MS){
 
 		if(s_gui->button_flag == BUTTON_MSG)
 		{
@@ -707,8 +643,8 @@ PAGE settingmainpage(uint8_t page,uint8_t cursor)
 				break;
 				case button_down://0x03
 					index = index + 1;
-					if (index >= 7){
-						index = 7;
+					if (index >= 6){
+						index = 6;
 					}
 					if(index == 4){
 						lcd_cursor_close();
@@ -806,7 +742,7 @@ PAGE settingpage11(PAGE father_page)
 
 	lcd_cursor_goto(index,0);	
 
-	while(systime_elapse_ms(updatetime_ms) <= 30000){	
+	while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){	
 				
 		if(s_gui->button_flag == BUTTON_MSG)
 		{
@@ -893,7 +829,7 @@ PAGE settingpage12(PAGE father_page)
 
 	lcd_cursor_goto(1,0);	
 
-	while(systime_elapse_ms(updatetime_ms) <= 30000){	
+	while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){	
 				
 		if(s_gui->button_flag == BUTTON_MSG)
 		{
@@ -969,7 +905,7 @@ PAGE settingpage21(PAGE father_page)
 
 	lcd_cursor_goto(index,0);	
 
-	while(systime_elapse_ms(updatetime_ms) <= 30000){	
+	while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){	
 				
 		if(s_gui->button_flag == BUTTON_MSG)
 		{
@@ -1055,7 +991,7 @@ PAGE settingpage22(PAGE father_page)
 
 	lcd_cursor_goto(1,0);	
 
-	while(systime_elapse_ms(updatetime_ms) <= 30000){	
+	while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){	
 				
 		if(s_gui->button_flag == BUTTON_MSG)
 		{
@@ -1129,7 +1065,7 @@ PAGE settingpage31(PAGE father_page)
 
 	lcd_cursor_goto(index,0);	
 
-	while(systime_elapse_ms(updatetime_ms) <= 30000){	
+	while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){	
 				
 		if(s_gui->button_flag == BUTTON_MSG)
 		{
@@ -1215,7 +1151,7 @@ PAGE settingpage32(PAGE father_page)
 
 	lcd_cursor_goto(1,0);	
 
-	while(systime_elapse_ms(updatetime_ms) <= 30000){	
+	while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){	
 				
 		if(s_gui->button_flag == BUTTON_MSG)
 		{
@@ -1246,127 +1182,6 @@ PAGE settingpage32(PAGE father_page)
 	return DisplayPage1;
 
 }
-//PAGE settingpage2(uint8_t page){//0 1
-//	uint16_t time_cnt;
-//	uint8_t button,index;
-//	uint8_t pa;
-//	time_cnt = 0;
-//	index = 1;
-//	
-//	lcd_clear();
-//	for(pa = 0 ; pa<4 ; pa++){
-//		lcd_goto_pos(pa,0);
-//		showsettingitem(1,pa+page);
-//	}
-//	
-//	if(page == 0){
-//		index = 1;
-//		lcd_cursor_goto(1,0);
-//	}
-//	else{
-//		index = 4;
-//		lcd_cursor_goto(3,0);		
-//	}
-//	
-//	while(time_cnt<1000){
-//		time_cnt++;		
-//		hy_delay_ms(10);
-//		button = Button_Check();
-//		switch(button){
-//			case 1:
-//				lcd_cursor_close();
-//				return datasettingpage(index+3);
-//				break;
-//			case 2:
-//				index = (index>1?index-1:1);
-//				if(page == 1 && index == 1){
-//					lcd_cursor_close();
-//					return SettingPage21;//next page
-//				}
-//				break;
-//			case 3:
-//				index = (index<4?index+1:4);
-//				if(page == 0 && index == 4){
-//					lcd_cursor_close();
-//					return SettingPage22;//next page
-//				}
-//				break;
-//			case 4:
-//				lcd_cursor_close();
-//				return SettingMainPage1;
-//				break;
-//			default:
-//				break;
-//		}
-//		if(button != 0){
-//			time_cnt = 0;
-//			lcd_cursor_goto(index-page,0);
-//		}
-//	}
-//	lcd_cursor_close();
-//	return DisplayPage1;
-//}
-
-//PAGE settingpage3(uint8_t page){//0 1
-//	uint16_t time_cnt;
-//	uint8_t button,index;
-//	uint8_t pa;
-//	time_cnt = 0;
-//	index = 1;
-//	
-//	lcd_clear();
-//	for(pa = 0 ; pa<4 ; pa++){
-//		lcd_goto_pos(pa,0);
-//		showsettingitem(2,pa+page);
-//	}
-//	
-//	if(page == 0){
-//		index = 1;
-//		lcd_cursor_goto(1,0);
-//	}
-//	else{
-//		index = 4;
-//		lcd_cursor_goto(3,0);		
-//	}
-//	
-//	while(time_cnt<1000){
-//		time_cnt++;		
-//		hy_delay_ms(10);
-//		button = Button_Check();
-//		switch(button){
-//			case 1:
-//				lcd_cursor_close();
-//				return datasettingpage(index+7);
-//				break;
-//			case 2:
-//				index = (index>1?index-1:1);
-//				if(page == 1 && index == 1){
-//					lcd_cursor_close();
-//					return SettingPage31;//next page
-//				}
-//				break;
-//			case 3:
-//				index = (index<4?index+1:4);
-//				if(page == 0 && index == 4){
-//					lcd_cursor_close();
-//					return SettingPage32;//next page
-//				}
-//				break;
-//			case 4:
-//				lcd_cursor_close();
-//				return SettingMainPage1;
-//				break;
-//			default:
-//				break;
-//		}
-//		if(button != 0){
-//			time_cnt = 0;
-//			lcd_cursor_goto(index-page,0);
-//		}
-//	}
-//	lcd_cursor_close();
-//	return DisplayPage1;
-//}
 
 PAGE settingpage4(PAGE father_page){
 
@@ -1408,7 +1223,7 @@ PAGE settingpage4(PAGE father_page){
 
 	index = 0;
 	lcd_cursor_goto(0,0);
-	while(systime_elapse_ms(updatetime_ms) <= 30000){				
+	while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 		if(s_gui->button_flag == BUTTON_MSG)
 		{
 			s_gui->button_flag = NO_MSG;
@@ -1433,7 +1248,6 @@ PAGE settingpage4(PAGE father_page){
 							LOG_INFO_TAG(HY_LOG_TAG,"settingpage4 set communicationrate");
 						break;
 					}
-					/*todo if need set into flash*/
 					return datasettingpage(dataname,SettingPage4);
 				break;
 				case button_off://0x06
@@ -1465,126 +1279,130 @@ PAGE settingpage4(PAGE father_page){
 	return DisplayPage1;
 }
 
-//PAGE settingpage5(){
-//	uint16_t time_cnt;
-//	uint8_t button,index;
-//	uint8_t passport[6];	
-//	time_cnt = 0;
-//	index = 0;
-//	lcd_clear();
-//	lcd_goto_pos(0,1);
-//	lcd_display_chinese(hf);
-//	lcd_display_chinese(cc);
-//	lcd_display_chinese(cs);
-//	lcd_goto_pos(1,2);
-//	lcd_display_chinese(qsmm);
-//	lcd_goto_pos(2,1);	
-//	lcd_display_ascii(" ");
-//	while(time_cnt<1000){
-//		hy_delay_ms(10);
-//		time_cnt++;
-//		button = Button_Check();
-//		if(button != 0){
-//			time_cnt = 0;
-//			passport[index] = button;
-//			index++;
-//			lcd_display_ascii("*");
-//			lcd_display_ascii(" ");
-//		}
-//		if(index == 6){
-//			if( pass[0]==passport[0] && pass[1]==passport[1] &&
-//					pass[2]==passport[2] && pass[3]==passport[3] &&
-//					pass[4]==passport[4] && pass[5]==passport[5]){
-//						Config_EraseConfig();
-//						hy_delay_ms(50);
-//						Config_DataReading();
-//			}
-//			else{
-//				lcd_clear();
-//				lcd_display_chinese_at(2,1,mmcw);
-//				hy_delay_ms(2000);
-//			}
-//			return SettingMainPage2;
-//		}
-//	}
-//	return DisplayPage1;
-//}
+/*
+*出厂参数
+*/
+PAGE settingpage5(PAGE father_page){
+	int8_t index;
+	uint32_t updatetime_ms;
 
-//PAGE settingpage6(){
-//	uint16_t time_cnt;
-//	uint8_t button,data;
-//	time_cnt = 0;
-//	lcd_clear();
-//	lcd_goto_pos(0,0);
-//	lcd_display_chinese(dian);
-//	lcd_display_chinese(liu);
-//	lcd_display_chinese(ph);
-//	lcd_goto_pos(1,0);
-//	lcd_display_chinese(cs);
-//	lcd_display_colon();
-//	data = ConfigReadFromAddr(16);
-//	lcd_display_num2_big(data,unit[16]);
-//	lcd_goto_pos(2,0);
-//	lcd_display_chinese(yx);
-//	lcd_display_chinese(zt);
-//	lcd_display_colon();
-//	lcd_display_chinese(tj);
-//	while(time_cnt<1000){
-//		time_cnt++;		
-//		hy_delay_ms(10);
-//		button = Button_Check();
-//		if(button != 0){
-//			time_cnt = 0;
-//		}
-//		switch(button){
-//			case 1:
-//				return datasettingpage(16);
-//				break;
-//			case 4:
-//				return SettingMainPage2;
-//				break;
-//		}
-//	}
-//	return DisplayPage1;
-//}
+	index = 0;
+	updatetime_ms = hy_time_now_ms();
+	lcd_clear();
+	lcd_goto_pos(0,1);
+	lcd_display_chinese(cc);
+	lcd_display_chinese(cs);
+	lcd_display_chinese(sz);
 
-//PAGE settingpage7(){
-//	uint16_t time_cnt;
-//	uint8_t button;
-//	time_cnt = 0;
-//	lcd_clear();
-//	lcd_goto_pos(0,0);
-//	lcd_display_chinese(cp);
-//	lcd_display_chinese(xh);
-//	lcd_display_colon();
-//	lcd_display_ascii("BC2000");
-//	lcd_goto_pos(1,0);
-//	lcd_display_chinese(rj);
-//	lcd_display_chinese(bb);
-//	lcd_display_colon();
-//	lcd_display_ascii("V1.0.2");
-//	lcd_goto_pos(2,0);
-//	lcd_display_chinese(cj);
-//	lcd_display_colon();
-//	lcd_display_chinese(tianj);
-//	lcd_display_chinese(hy);
-//	lcd_goto_pos(3,0);
-//	lcd_display_chinese(dh);
-//	lcd_display_colon();
-//	lcd_display_ascii("15102299468");
-//	while(time_cnt<1000){
-//		time_cnt++;		
-//		hy_delay_ms(10);
-//		button = Button_Check();
-//		if(button != 0){
-//			time_cnt = 0;
-//			if(button == 1  || button == 4){
-//				return SettingMainPage2;
-//			}
-//		}
-//	}
-//	return DisplayPage1;
-//}
+	lcd_goto_pos(1,0);
+	lcd_display_index(1);
+	lcd_display_chinese(hf);
+	lcd_display_chinese(cc);
+	lcd_display_chinese(cs);
+
+	lcd_goto_pos(2,0);
+	lcd_display_index(2);
+	lcd_display_chinese(sz);
+	lcd_display_chinese(cc);
+	lcd_display_chinese(cs);
+
+	index = 1;
+	lcd_cursor_goto(index,0);
+
+	while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){	
+				
+		if(s_gui->button_flag == BUTTON_MSG)
+		{
+			s_gui->button_flag = NO_MSG;
+			updatetime_ms = hy_time_now_ms();
+			switch (s_gui->button_msg_queue[0].button_name){
+				case button_set://0x01
+					switch(index){
+						case 1:
+							hy_config_reset();
+							return DisplayPage1;
+							LOG_INFO_TAG(HY_LOG_TAG,"settingpage5 index setting original parameters");
+						break;
+						case 2:
+							s_gui->set_in_flash = true;
+							LOG_INFO_TAG(HY_LOG_TAG,"settingpage5 index reset parameters");
+							return SettingMainPage1;
+						break;
+						default:
+							LOG_ERROR_TAG(HY_LOG_TAG,"settingpage5 error index = [%d]!!",index);
+							return DisplayPage1;
+						break;
+					}
+				break;
+				case button_off://0x06
+				break;
+				case button_on://0x05
+				break;
+				case button_up://0x02
+					index--;
+					if (index <= 1){
+						index = 1;
+					}
+					lcd_cursor_goto(index,0);	
+				break;
+				case button_down://0x03
+					index++;
+					if (index >= 2){
+						index = 2;
+					}
+					lcd_cursor_goto(index,0);	
+				break;
+				case button_esc://0x04
+					return father_page;
+				break;
+			}
+		}		
+
+	}
+
+	lcd_cursor_close();
+	return DisplayPage1;
+}
+
+PAGE settingpage6(PAGE father_page){
+	data_name dataname = balancecurrent;
+	return datasettingpage(dataname,father_page);
+}
+
+PAGE settingpage7(PAGE father_page){
+	uint32_t updatetime_ms;
+
+	updatetime_ms = hy_time_now_ms();
+	lcd_clear();
+	lcd_goto_pos(0,0);
+	lcd_display_chinese(cp);
+	lcd_display_chinese(xh);
+	lcd_display_colon();
+	lcd_display_ascii("BC2000");
+	lcd_goto_pos(1,0);
+	lcd_display_chinese(rj);
+	lcd_display_chinese(bb);
+	lcd_display_colon();
+	lcd_display_ascii("V2.0.1");
+	lcd_goto_pos(2,0);
+	lcd_display_chinese(cj);
+	lcd_display_colon();
+	lcd_display_chinese(tianj);
+	lcd_display_chinese(hy);
+	lcd_goto_pos(3,0);
+	lcd_display_chinese(dh);
+	lcd_display_colon();
+	lcd_display_ascii("15102299468");
+
+	while(systime_elapse_ms(updatetime_ms) <= 10000){
+		if(s_gui->button_flag == BUTTON_MSG)
+		{
+			s_gui->button_flag = NO_MSG;
+			return father_page;
+		}	
+	}
+	return father_page;
+}
 
 PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
@@ -1606,9 +1424,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(1,0);
 			data = config_data->voltagerange*10;
-			lcd_display_num4_forset(data,'V');
-
-			if (data>=9999){
+			if (data >= 9999){
 				data = 9999;
 			}else if (data <= 0){
 				data = 0;
@@ -1618,9 +1434,18 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[2] = (data%100)/10;
 			num[4] = data%10;
 			num_index = 0;
+			lcd_display_num4_forset(data,'V');
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}
 
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -1629,8 +1454,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->voltagerange = data/10;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage set voltagerange  [%d]x0.1V ",data);
+							if (s_gui->set_in_flash){
+								hy_config_writevoltagerange(config_data->voltagerange);
+								Config_DataWriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -1685,8 +1513,6 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(1,0);
 			data = config_data->currentrange*10;
-			lcd_display_num4_forset(data,'A');
-
 			if (data>=9999){
 				data = 9999;
 			}else if (data <= 0){
@@ -1697,9 +1523,18 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[2] = (data%100)/10;
 			num[4] = data%10;
 			num_index = 0;
+			lcd_display_num4_forset(data,'A');
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}
 
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -1708,8 +1543,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->currentrange = data/10;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage set currentrange  [%d]x0.1A ",data);
+							if (s_gui->set_in_flash){
+								hy_config_writecurrentrange(config_data->currentrange);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -1763,8 +1601,6 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(1,0);
 			data = config_data->balancecurrent*10;
-			lcd_display_num4_forset(data,'A');
-
 			if (data>=9999){
 				data = 9999;
 			}else if (data <= 0){
@@ -1775,9 +1611,18 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[2] = (data%100)/10;
 			num[4] = data%10;
 			num_index = 0;
+			lcd_display_num4_forset(data,'A');
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}
 
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -1786,8 +1631,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->balancecurrent = data/10;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage set balancecurrent  [%d]x0.1A ",data);
+							if (s_gui->set_in_flash){
+								hy_config_writebalancecurrent(config_data->balancecurrent);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -1848,9 +1696,17 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			lcd_display_chinese(tx);
 			lcd_display_chinese(ms);
 
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(3,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}
+
 			index = 1;
 			lcd_cursor_goto(index,0);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -1863,6 +1719,10 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								config_data->controlstyle = 0;
 							}
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage controlstyle set [%d] 0 for can 1 for local",config_data->controlstyle);
+							if (s_gui->set_in_flash){
+								hy_config_writectrlstyle(config_data->controlstyle);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -1902,8 +1762,6 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(1,0);
 			data = config_data->chargecurrent_1*10;
-			lcd_display_num4_forset(data,'A');
-
 			if (data>=9999){
 				data = 9999;
 			}else if (data <= 0){
@@ -1914,9 +1772,18 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[2] = (data%100)/10;
 			num[4] = data%10;
 			num_index = 0;
+			lcd_display_num4_forset(data,'A');
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}
 
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -1925,8 +1792,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->chargecurrent_1 = data/10;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage set chargecurrent_1 [%d]x0.1A",data);
+							if (s_gui->set_in_flash){
+								hy_config_writechargecurrent_1(config_data->chargecurrent_1);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -1980,8 +1850,6 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(1,0);
 			data = config_data->limitvoltage_1*10;
-			lcd_display_num4_forset(data,'V');
-
 			if (data>=9999){
 				data = 9999;
 			}else if (data <= 0){
@@ -1992,9 +1860,18 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[2] = (data%100)/10;
 			num[4] = data%10;
 			num_index = 0;
+			lcd_display_num4_forset(data,'V');
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}
 
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -2003,8 +1880,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->limitvoltage_1 = data/10;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage limitvoltage_1 set [%d]x0.1V",data);
+							if (s_gui->set_in_flash){
+								hy_config_writelimitvoltage_1(config_data->limitvoltage_1);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -2059,7 +1939,6 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(1,0);
 			data = config_data->chargetimeout_1_min;
-			lcd_display_time4_forset(data);
 			if (data>=9999){
 				data = 9999;
 			}else if (data <= 0){
@@ -2070,9 +1949,18 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[2] = (data%100)/10;
 			num[3] = data%10;
 			num_index = 0;
+			lcd_display_time4_forset(data);
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}
 
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -2081,8 +1969,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[3];
 							config_data->chargetimeout_1_min = data;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage chargetimeout_1_min set [%d] min",data);
+							if (s_gui->set_in_flash){
+								hy_config_writechargetimeout_1(config_data->chargetimeout_1_min);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -2131,10 +2022,9 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 	    	lcd_display_chinese(ya);	    	
 			lcd_display_colon();
 
+
 			lcd_goto_pos(1,0);
 			data = config_data->switchvoltage_1*10;
-			lcd_display_num4_forset(data,'V');
-
 			if (data>=9999){
 				data = 9999;
 			}else if (data <= 0){
@@ -2145,9 +2035,18 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[2] = (data%100)/10;
 			num[4] = data%10;
 			num_index = 0;
+			lcd_display_num4_forset(data,'V');
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}
 
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -2156,8 +2055,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->switchvoltage_1 = data/10;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage switchvoltage_1 set [%d]x0.1V",data);
+							if (s_gui->set_in_flash){
+								hy_config_writeswitchvoltage_1(config_data->switchvoltage_1);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -2211,8 +2113,6 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(1,0);
 			data = config_data->chargecurrent_2*10;
-			lcd_display_num4_forset(data,'A');
-
 			if (data>=9999){
 				data = 9999;
 			}else if (data <= 0){
@@ -2223,9 +2123,19 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[2] = (data%100)/10;
 			num[4] = data%10;
 			num_index = 0;
+			lcd_display_num4_forset(data,'A');
+
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}		
 
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -2234,8 +2144,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->chargecurrent_2 = data/10;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage chargecurrent_2 set [%d]x0.1A",data);
+							if (s_gui->set_in_flash){
+								hy_config_writechargecurrent_2(config_data->chargecurrent_2);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -2289,8 +2202,6 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(1,0);
 			data = config_data->limitvoltage_2*10;
-			lcd_display_num4_forset(data,'V');
-
 			if (data>=9999){
 				data = 9999;
 			}else if (data <= 0){
@@ -2301,9 +2212,18 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[2] = (data%100)/10;
 			num[4] = data%10;
 			num_index = 0;
+			lcd_display_num4_forset(data,'V');
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}	
 
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -2312,8 +2232,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->limitvoltage_2 = data/10;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage limitvoltage_2 set [%d]x0.1V",data);
+							if (s_gui->set_in_flash){
+								hy_config_writelimitvoltage_2(config_data->limitvoltage_2);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -2368,7 +2291,6 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(1,0);
 			data = config_data->chargetimeout_2_min;
-			lcd_display_time4_forset(data);
 			if (data>=9999){
 				data = 9999;
 			}else if (data <= 0){
@@ -2379,9 +2301,18 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[2] = (data%100)/10;
 			num[3] = data%10;
 			num_index = 0;
+			lcd_display_time4_forset(data);
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}	
 
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -2390,8 +2321,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[3];
 							config_data->chargetimeout_2_min = data;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage chargetimeout_2_min set [%d] min",data);
+							if (s_gui->set_in_flash){
+								hy_config_writechargetimeout_2(config_data->chargetimeout_2_min);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -2441,8 +2375,6 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(1,0);
 			data = config_data->switchvoltage_2*10;
-			lcd_display_num4_forset(data,'V');
-
 			if (data>=9999){
 				data = 9999;
 			}else if (data <= 0){
@@ -2453,9 +2385,18 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[2] = (data%100)/10;
 			num[4] = data%10;
 			num_index = 0;
+			lcd_display_num4_forset(data,'V');
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}	
 
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -2464,8 +2405,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->switchvoltage_2 = data/10;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage switchvoltage_2 set [%d]x0.1V",data);
+							if (s_gui->set_in_flash){
+								hy_config_writeswitchvoltage_2(config_data->switchvoltage_2);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -2519,8 +2463,6 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(1,0);
 			data = config_data->chargevoltage_3*10;
-			lcd_display_num4_forset(data,'V');
-
 			if (data>=9999){
 				data = 9999;
 			}else if (data <= 0){
@@ -2531,9 +2473,18 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[2] = (data%100)/10;
 			num[4] = data%10;
 			num_index = 0;
+			lcd_display_num4_forset(data,'V');
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}	
 
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -2542,8 +2493,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->chargevoltage_3 = data/10;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage chargevoltage_3 set [%d]x0.1V",data);
+							if (s_gui->set_in_flash){
+								hy_config_writechargevoltage_3(config_data->chargevoltage_3);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -2596,8 +2550,6 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(1,0);
 			data = config_data->limitcurrent_3*10;
-			lcd_display_num4_forset(data,'A');
-
 			if (data>=9999){
 				data = 9999;
 			}else if (data <= 0){
@@ -2608,9 +2560,18 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[2] = (data%100)/10;
 			num[4] = data%10;
 			num_index = 0;
+			lcd_display_num4_forset(data,'A');
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}	
 
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -2619,8 +2580,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->limitcurrent_3 = data/10;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage limitcurrent_3 set [%d]x0.1A",data);
+							if (s_gui->set_in_flash){
+								hy_config_writelimitcurrent_3(config_data->limitcurrent_3);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -2687,8 +2651,16 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[3] = data%10;
 			num_index = 0;
 
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}	
+
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -2697,8 +2669,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[3];
 							config_data->chargetimeout_3_min = data;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage chargetimeout_3_min set [%d] min",data);
+							if (s_gui->set_in_flash){
+								hy_config_writechargetimeout_3(config_data->chargetimeout_3_min);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -2748,8 +2723,6 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(1,0);
 			data = config_data->switchcurrent_3*10;
-			lcd_display_num4_forset(data,'A');
-
 			if (data>=9999){
 				data = 9999;
 			}else if (data <= 0){
@@ -2760,9 +2733,18 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[2] = (data%100)/10;
 			num[4] = data%10;
 			num_index = 0;
+			lcd_display_num4_forset(data,'A');
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(2,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}	
 
 			lcd_cursor_goto(1,num_index);
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -2771,8 +2753,11 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->switchcurrent_3 = data/10;
-							/*todo if need set into flash*/
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage switchcurrent_3 set [%d]x0.1A",data);
+							if (s_gui->set_in_flash){
+								hy_config_writeswitchcurrent_3(config_data->switchcurrent_3);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -2818,6 +2803,8 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 		break;
 
 		case communicaterate:
+communicaterate_page1:	
+			lcd_clear();	
 	   		lcd_goto_pos(0,0);
 	   		lcd_display_chinese(tx);
 	    	lcd_display_chinese(botelv);	    	
@@ -2825,20 +2812,20 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(1,0);
 			lcd_display_index(1);
-			lcd_display_botelv4(125);
+			lcd_display_botelv4(50);
 
 			lcd_goto_pos(2,0);
 			lcd_display_index(2);
-			lcd_display_botelv4(250);
+			lcd_display_botelv4(125);
 
 			lcd_goto_pos(3,0);
 			lcd_display_index(3);
-			lcd_display_botelv4(500);
+			lcd_display_botelv4(250);
 
 			index = 1;
 			lcd_cursor_goto(1,0);
 
-			while(systime_elapse_ms(updatetime_ms) <= 30000){				
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
 				if(s_gui->button_flag == BUTTON_MSG)
 				{
 					s_gui->button_flag = NO_MSG;
@@ -2847,19 +2834,23 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						case button_set://0x01
 							switch(index){
 								case 1:
-								config_data->communicaterate = 125000;
+								config_data->communicaterate = 50000;
 								break;
 								case 2:
-								config_data->communicaterate = 250000;
+								config_data->communicaterate = 125000;
 								break;
 								case 3:
-								config_data->communicaterate = 500000;
+								config_data->communicaterate = 250000;
 								break;
 								default:
 								config_data->communicaterate = 250000;
 								break;
 							}
-							/*todo if need set into flash*/
+							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage communicaterate [%d]",config_data->communicaterate);
+							if (s_gui->set_in_flash){
+								hy_config_writecommunicaterate(config_data->communicaterate);
+								hy_config_datawriting();
+							}
 							return father_page;
 						break;
 						case button_off://0x06
@@ -2875,8 +2866,8 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_down://0x03
 							index++;
-							if (index >= 3){
-								index = 3;
+							if (index > 3){
+								goto communicaterate_page2;
 							}
 							lcd_cursor_goto(index,0);
 
@@ -2889,148 +2880,86 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			}
 			lcd_cursor_close();
 			return DisplayPage1;
-		break;
+communicaterate_page2:
+			lcd_clear();
+	   		lcd_goto_pos(0,0);
+	   		lcd_display_chinese(tx);
+	    	lcd_display_chinese(botelv);	    	
+			lcd_display_colon();
+
+			lcd_goto_pos(1,0);
+			lcd_display_index(4);
+			lcd_display_botelv4(500);
+
+			lcd_goto_pos(2,0);
+			lcd_display_index(5);
+			lcd_display_botelv4(800);
+
+			if(s_gui->set_in_flash){
+				lcd_goto_pos(3,0);
+				lcd_display_chinese(sz);
+				lcd_display_chinese(cc);
+				lcd_display_chinese(cs);
+				lcd_display_chinese(zhong);				
+			}	
+
+			index = 4;
+			lcd_cursor_goto(1,0);
+
+			while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){				
+				if(s_gui->button_flag == BUTTON_MSG)
+				{
+					s_gui->button_flag = NO_MSG;
+					updatetime_ms = hy_time_now_ms();
+					switch (s_gui->button_msg_queue[0].button_name){
+						case button_set://0x01
+							switch(index){
+								case 1:
+								config_data->communicaterate = 500000;
+								break;
+								case 2:
+								config_data->communicaterate = 800000;
+								break;
+								default:
+								config_data->communicaterate = 250000;
+								break;
+							}
+							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage communicaterate [%d]",config_data->communicaterate);
+							if (s_gui->set_in_flash){
+								hy_config_writecommunicaterate(config_data->communicaterate);
+								hy_config_datawriting();
+							}
+							return father_page;
+						break;
+						case button_off://0x06
+						break;
+						case button_on://0x05
+						break;
+						case button_up://0x02
+							index--;
+							if (index < 4){
+								goto communicaterate_page1;
+							}
+							lcd_cursor_goto(index,0);
+						break;
+						case button_down://0x03
+							index++;
+							if (index >= 5){
+								index = 5;
+							}
+							lcd_cursor_goto((index-3),0);
+						break;
+						case button_esc://0x04
+							return father_page;
+					}
+				}					
+			}
+			lcd_cursor_close();
+			return DisplayPage1;
 
 	}
 	lcd_cursor_close();
 	return DisplayPage1;
-	// uint16_t data,time_cnt;
-	// uint8_t button,index,databit[3];
-	// time_cnt = 0;
-	// index = 0;
-	// if(ID ==12){
-	// 	// return modesettingpage();
-	// }
-	// else if(ID == 15){
-	// 	// return communicationratesettingpage();
-	// }
-	// else if(ID ==16){
-	// 	// return balancesettingpage();
-	// }
-	// else{
-	// 	data = ConfigReadFromAddr(ID);
-	// 	databit[0] = data/100;
-	// 	databit[1] = data/10%10;
-	// 	databit[2] = data%10;
-		
-	// 	lcd_clear();
-	// 	lcd_goto_pos(1,3);
-	// 	lcd_display_chinese(sz);
-	// 	lcd_goto_pos(2,2);
-
-	// 	lcd_display_num3_big(data,unit[ID]);
-	// 	lcd_cursor_goto(2,2);
-	// 	while(time_cnt<1000 && index<3){
-	// 		hy_delay_ms(10);
-	// 		time_cnt++;
-	// 		button = 7;
-	// 		if(button != 0){
-	// 			time_cnt = 0;
-	// 		}
-	// 		switch(button){
-	// 			case 1:
-	// 				index++;
-	// 				lcd_cursor_goto(2,2+index);			
-	// 				break;
-	// 			case 3:
-	// 				lcd_cursor_goto(2,2);			
-	// 				databit[index] = (databit[index]+10-1)%10;
-	// 				data = databit[0]*100+databit[1]*10+databit[2];
-	// 				lcd_display_num3_big(data,unit[ID]);
-	// 				lcd_cursor_goto(2,2+index);			
-	// 				break;
-	// 			case 2:
-	// 				lcd_cursor_goto(2,2);			
-	// 				databit[index] = (databit[index]+1)%10;
-	// 				data = databit[0]*100+databit[1]*10+databit[2];
-	// 				lcd_display_num3_big(data,unit[ID]);
-	// 				lcd_cursor_goto(2,2+index);			
-	// 				break;
-	// 			case 4:
-	// 				lcd_cursor_close();
-	// 				switch(ID){
-	// 					case 0:
-	// 					case 1:
-	// 					case 2:
-	// 						return SettingPage11;//7
-	// 						break;
-	// 					case 3:
-	// 						return SettingPage12;//14
-	// 						break;
-	// 					case 4:
-	// 					case 5:
-	// 					case 6:
-	// 						return SettingPage21;//8
-	// 						break;
-	// 					case 7:
-	// 						return SettingPage22;//15
-	// 						break;
-	// 					case 8:
-	// 					case 9:
-	// 					case 10:
-	// 						return SettingPage31;//9
-	// 						break;
-	// 					case 11:
-	// 						return SettingPage32;//16
-	// 						break;
-	// 					case 12:
-	// 					case 13:
-	// 					case 14:
-	// 					case 15:
-	// 						return SettingPage4;//10
-	// 						break;
-	// 					case 16:
-	// 						return SettingPage6;//12
-	// 						break;
-	// 					default:
-	// 						return DisplayPage1;
-	// 						break;
-	// 				}
-	// 		}
-	// 	}	
-	// 	lcd_cursor_close();
-	// 	if(index == 3){
-	// 		if(data > max[ID])
-	// 			data = max[ID];
-	// 		if(data < min[ID])
-	// 			data = min[ID];
-	// 		ConfigWriteToAddr(ID,data);
-	// 		Config_DataWriting();
-	// 		switch(ID){
-	// 			case 0:
-	// 			case 1:
-	// 			case 2:
-	// 				return SettingPage11;//7
-	// 			case 3:
-	// 				return SettingPage12;//14
-	// 			case 4:
-	// 			case 5:
-	// 			case 6:
-	// 				return SettingPage21;//8
-	// 			case 7:
-	// 				return SettingPage22;//15
-	// 			case 8:
-	// 			case 9:
-	// 			case 10:
-	// 				return SettingPage31;//9
-	// 			case 11:
-	// 				return SettingPage32;//16
-	// 			case 12:
-	// 			case 13:
-	// 			case 14:
-	// 			case 15:
-	// 				return SettingPage4;//10
-	// 				break;
-	// 			case 16:
-	// 				return SettingPage6;//12
-	// 			default:
-	// 				return DisplayPage1;
-	// 		}
-	// 	}
-	// 	else{
-	// 		return DisplayPage1; 
-	// 	}
-	// }
 }
 
 
@@ -3274,7 +3203,7 @@ PAGE errorpage1(void)
     lcd_display_chinese(chongqi);
 
 	updatetime_ms = hy_time_now_ms();
-	while(systime_elapse_ms(updatetime_ms) <= 30000){
+	while(systime_elapse_ms(updatetime_ms) <= HY_SETTING_PAGE_TIMEOUT_MS){
 		if(s_gui->button_flag == BUTTON_MSG){
 			s_gui->button_flag = NO_MSG;
 			return DisplayPage1;

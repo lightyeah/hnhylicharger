@@ -67,7 +67,7 @@ void printf_logo()
 int hy_instance_get_config(hy_instance_t *hy_handle,void* arg)
 {
 	int ret = -1;
-	hy_config_init();
+	hy_config_init(hy_handle);
 	ret = hy_config_datareading();
 	if( ret != 0 ){
 		LOG_INFO_TAG(HY_LOG_TAG,"hy instance get config failed!! ret [%d]",ret);
