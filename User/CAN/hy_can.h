@@ -37,7 +37,7 @@
 #define  BMS_OBC_BCL_MODE_CUR                   0x02
 #define  BMS_OBC_BCL_INTERVAL                   50
 
-#define  BMS_OBC_BST_FRAME_ID                   0x181956F4 /*BMS stop charge BMS --> OBC*/
+#define  BMS_OBC_BST_FRAME_ID                  	0x101956F4 /*BMS stop charge BMS --> OBC*/
 #define  BMS_OBC_BST_REACH_SOC_GOAL_MASK        0x01 /*0 for normal 1 for higher 2 3for uncertainty */               
 #define  BMS_OBC_BST_REACH_TOTAL_VOL_MASK       ((0x01)<<2)/*0 for unreach 1 for reached 2 3for uncertainty*/
 #define  BMS_OBC_BST_REACH_SINGLE_VOL_MASK      ((0x01)<<4)/*0 for unreach 1 for reached 2 3for uncertainty*/
@@ -88,7 +88,7 @@
 #define  FRAME_ID(x)               x##_FRAME_ID 
 #define  INTERVAL(x)               x##_INTERVAL
 
-#define  HY_CAN_CONNECT_TIMEOUT                  5000/*unit ms*/
+#define  HY_CAN_CONNECT_TIMEOUT                  30000/*unit ms*/
 
 #define HY_CAN_BMS_STOP                          2/**/
 #define HY_CAN_OBC_STOP_CANTIMEOUT               3

@@ -17,9 +17,9 @@ typedef enum PAGE
 	*  状态： ********
 	*/
 	DisplayPage1,
-	DisplayPage1_1,//stop page  状态：停止充电
-	DisplayPage1_2,//start page 状态：开始充电
-	DisplayPage1_3,//end page 状态：充电完成
+	DisplayPage1_1,//stop page  停机中
+	DisplayPage1_2,//start page 开始充电
+	DisplayPage1_3,//设置完出厂参数请重启
 	DisplayPage1_4,//查询上一次充电成功 状态->时间
 	DisplayPage2,//3
 	PassportPage,//4

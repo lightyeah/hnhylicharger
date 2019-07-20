@@ -131,7 +131,7 @@ int hy_set_output(uint32_t value)
 		}
 	}
 	GPDMA_ChannelCmd(0, DISABLE);
-	
+
 	s_hy_output->output_dac_value=value;
 	//	s_hy_output->output_dac_value=1;
 //	LOG_INFO_TAG(HY_LOG_TAG,"set output voltage [%d]",value);

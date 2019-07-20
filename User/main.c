@@ -123,6 +123,7 @@ int hy_instance_get_config(hy_instance_t *hy_handle,void* arg)
 int main(void)
 {
 	int ret = 0;
+	
 	static hy_instance_t s_hy_instance;
 	#ifdef delay_power
 		long long int i = 50000000;
@@ -151,10 +152,8 @@ int main(void)
 		LOG_ERROR_TAG(HY_LOG_TAG,"***get config failed!!!");
 	}
 	/*can init if in can control mode*/
-	if(s_hy_instance.config.controlstyle == HY_CONTROLSTYLE_CAN &&
-			s_hy_instance.configed_flag){
-				hy_can_init(&s_hy_instance);
-	}
+	hy_can_init(&s_hy_instance);
+
 	
 	/*for test api*/
 //	s_hy_instance.config.controlstyle = HY_CONTROLSTYLE_LOCAL;
@@ -204,14 +203,25 @@ int main(void)
 	hy_input_init(&s_hy_instance);
 	/*output init*/
 	hy_output_init(&s_hy_instance);
+
 //		while(1){
-//		hy_set_output(100);
-//		hy_can_send();
-//		i=50000000;
+//		if(j == 0){
+//			k++;
+//			if(k >= 1023){
+//				j = 1;
+//			}
+//		}else if(j == 1){
+//			k--;
+//			if(k <= 0){
+//				j = 0;
+//			}
+//		}
+//		hy_set_output(0);
+//		i=10000000;
 //		while(i--);
 //		hy_get_voltagefb_x10V();
 //		hy_get_currentfb_x10A();
-//		LOG_PRINT("==================\r\n");
+//		LOG_PRINT("================== k[%d] \r\n",k);
 //	}
 	
 		hy_chargetask_init(&s_hy_instance);

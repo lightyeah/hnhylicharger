@@ -5,7 +5,7 @@
 #include "GUI.h"
 
 #define CHARGETASK_MONITOR_INTERVAL 3000/*unit ms*/
-#define CHARGETASK_CONTROL_INTERVAL 100/*unit ms*/
+#define CHARGETASK_CONTROL_INTERVAL 500/*unit ms*/
 
 #define CHARGETASK_CAN_STOP_CODE                1
 #define CHARGETASK_LOCAL_NORMAL_STOP_CODE       2
@@ -17,6 +17,13 @@
 #define CHARGETASK_CAN_START_CODE               1
 #define CHARGETASK_LOCAL_START_CODE             2
 #define CHARGETASK_BUTTON_START_CODE            3
+
+#define CHARGETASK_MAX_DAC_OUTPUT_VALUE             255
+#define CHARGETASK_DAC_TOVOLTAGEx10V_COEFFICIENT    2
+#define CHARGETASK_PID_P_FORDIVISION                2/* = x0.5*/
+#define CHARGETASK_STABLE_RANGE_CHANGE              40
+#define CHARGETASK_STABLE_CONTROL_INTERVAL          10000/*ms*/
+
 
 #define HY_BATTERY_CONNECT          1
 #define HY_BATTERY_DISCONNECT       0

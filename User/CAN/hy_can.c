@@ -113,8 +113,8 @@ int hy_can_getmsg()
 				break;
 			case BMS_OBC_BCL_FRAME_ID:/*req*/
 				s_cancom->state = HY_CANTASK_CHARGE;
-			  s_cancom->canmsg.frame_id = BMS_OBC_BCL_FRAME_ID;
-			  s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
+				s_cancom->canmsg.frame_id = BMS_OBC_BCL_FRAME_ID;
+				s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
 				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
 				s_cancom->canmsg.databyte[2] = RXMsg.dataA[2];
 				s_cancom->canmsg.databyte[3] = RXMsg.dataA[3];
@@ -138,10 +138,11 @@ int hy_can_getmsg()
 			case BMS_OBC_BST_FRAME_ID:/*stop*/
 				s_cancom->state = HY_CANTASK_BMS_STOP;
 				s_cancom->canmsg.frame_id = BMS_OBC_BST_FRAME_ID;
-			  s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
+				s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
 				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
 				s_cancom->canmsg.databyte[2] = RXMsg.dataA[2];
-				s_cancom->canmsg.databyte[3] = RXMsg.dataA[3];					
+				s_cancom->canmsg.databyte[3] = RXMsg.dataA[3];	
+
 				break;
 			default:
 				break;
@@ -204,10 +205,10 @@ void hy_can_task_main()
 			if(systime_elapse_ms(lastsendtime_ms)>=OBC_BMS_CML_INTERVAL){
 				msg.frame_id = OBC_BMS_CML_FRAME_ID;
 				memset(msg.databyte,0,8);
-				msg.databyte[0] = INT16TO8_1((hy_config_readvoltagerange()*10)&HY_MAX_VOLTAGE);
-				msg.databyte[1] = INT16TO8_2((hy_config_readvoltagerange()*10)&HY_MAX_VOLTAGE);
-				msg.databyte[4] = INT16TO8_1((hy_config_readcurrentrange()*10)&HY_MAX_CURRENT);
-				msg.databyte[5] = INT16TO8_2((hy_config_readcurrentrange()*10)&HY_MAX_CURRENT);
+				msg.databyte[0] = INT16TO8_2((hy_config_readvoltagerange()*10)&HY_MAX_VOLTAGE);
+				msg.databyte[1] = INT16TO8_1((hy_config_readvoltagerange()*10)&HY_MAX_VOLTAGE);
+				msg.databyte[4] = INT16TO8_2((hy_config_readcurrentrange()*10)&HY_MAX_CURRENT);
+				msg.databyte[5] = INT16TO8_1((hy_config_readcurrentrange()*10)&HY_MAX_CURRENT);
 				msg.resendcounts = HY_CAN_MSG_NO_RESEND;
 				hy_can_send(&msg);
 				lastsendtime_ms = hy_time_now_ms();
@@ -230,12 +231,12 @@ void hy_can_task_main()
 			if(systime_elapse_ms(lastsendtime_ms)>=OBC_BMS_CCS_INTERVAL){
 					msg.frame_id = OBC_BMS_CCS_FRAME_ID;
 				memset(msg.databyte,0,8);
-				msg.databyte[0] = INT16TO8_1(hy_chargetask_getoutputvol_x10V());
-				msg.databyte[1] = INT16TO8_2(hy_chargetask_getoutputvol_x10V());
-				msg.databyte[2] = INT16TO8_1(hy_chargetask_getoutputcur_x10A());
-				msg.databyte[3] = INT16TO8_2(hy_chargetask_getoutputcur_x10A());
-				msg.databyte[4] = INT16TO8_1(hy_chargetask_getchargetime_min());
-				msg.databyte[5] = INT16TO8_2(hy_chargetask_getchargetime_min());
+				msg.databyte[0] = INT16TO8_2(hy_chargetask_getoutputvol_x10V());
+				msg.databyte[1] = INT16TO8_1(hy_chargetask_getoutputvol_x10V());
+				msg.databyte[2] = INT16TO8_2(hy_chargetask_getoutputcur_x10A());
+				msg.databyte[3] = INT16TO8_1(hy_chargetask_getoutputcur_x10A());
+				msg.databyte[4] = INT16TO8_2(hy_chargetask_getchargetime_min());
+				msg.databyte[5] = INT16TO8_1(hy_chargetask_getchargetime_min());
 				msg.databyte[6] = OBC_BMS_CCS_ALWAYS_ON;
 				msg.resendcounts = HY_CAN_MSG_NO_RESEND;
 				hy_can_send(&msg);
@@ -262,10 +263,10 @@ void hy_can_task_main()
 			msg.frame_id = OBC_BMS_CST_FRAME_ID;
 			memset(msg.databyte,0,8);
 			s_cancom->obc_stop_code =  OBC_BMS_CST_REACH_GOAL(1);
-			msg.databyte[0] = INT32TO8_1(s_cancom->obc_stop_code);
-			msg.databyte[1] = INT32TO8_2(s_cancom->obc_stop_code);
-			msg.databyte[2] = INT32TO8_3(s_cancom->obc_stop_code);
-			msg.databyte[3] = INT32TO8_4(s_cancom->obc_stop_code);
+			msg.databyte[0] = INT32TO8_4(s_cancom->obc_stop_code);
+			msg.databyte[1] = INT32TO8_3(s_cancom->obc_stop_code);
+			msg.databyte[2] = INT32TO8_2(s_cancom->obc_stop_code);
+			msg.databyte[3] = INT32TO8_1(s_cancom->obc_stop_code);
 			msg.resendcounts = HY_CAN_MSG_RESEND(5);
 			hy_can_send(&msg);
 			break;
@@ -290,10 +291,10 @@ void hy_can_task_main()
 			}
 			msg.frame_id = OBC_BMS_CSD_FRAME_ID;
 			memset(msg.databyte,0,8);
-			msg.databyte[0] = INT16TO8_1(hy_chargetask_getchargetime_min());
-			msg.databyte[1] = INT16TO8_2(hy_chargetask_getchargetime_min());
-			msg.databyte[2] = INT16TO8_1(hy_chargetask_gettotalpower_x10kwh());
-			msg.databyte[3] = INT16TO8_2(hy_chargetask_gettotalpower_x10kwh());
+			msg.databyte[0] = INT16TO8_2(hy_chargetask_getchargetime_min());
+			msg.databyte[1] = INT16TO8_1(hy_chargetask_getchargetime_min());
+			msg.databyte[2] = INT16TO8_2(hy_chargetask_gettotalpower_x10kwh());
+			msg.databyte[3] = INT16TO8_1(hy_chargetask_gettotalpower_x10kwh());
 			msg.resendcounts = HY_CAN_MSG_RESEND(5);
 			hy_can_send(&msg);
 			break;

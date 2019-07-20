@@ -273,6 +273,10 @@ void MainProcess(void){
 				PageState = welcomepage();
 				break;
 			case DisplayPage1:
+				if (s_gui->set_in_flash){
+					PageState = DisplayPage1_3;
+					break;
+				}
 				if (s_gui->machine_stop_flag){
 					PageState = DisplayPage1_1;
 					break;
@@ -289,7 +293,7 @@ void MainProcess(void){
 
 				hy_gui_refresh();
 				break;
-			case DisplayPage1_1:
+			case DisplayPage1_1://停機中
 				if(s_gui->chargetask_flag == CHARGETASK_MSG){
 					guivoltagex10V = s_gui->charge2gui_msg.voltagex10V;
 					guicurrentx10A = s_gui->charge2gui_msg.currentx10A;
@@ -302,8 +306,11 @@ void MainProcess(void){
 
 				hy_gui_refresh();
 				break;
-			case DisplayPage1_2:
+			case DisplayPage1_2://開始充電
 				PageState = displaypage1_2(DisplayPage1);
+				break;
+			case DisplayPage1_3:
+				PageState = displaypage1_3(DisplayPage1);
 				break;
 			case PassportPage:
 				PageState = passportpage();

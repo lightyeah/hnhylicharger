@@ -133,8 +133,7 @@ uint8_t hy_get_resettrigger(void){
 /*ADC TODO use more effecient method !!!!*/
 uint16_t hy_get_voltagefb_x10V(void){
 	static uint16_t rawvdata = 0;
-	/*luoyang test */
-	return 4000;
+	
 	ADC_ChannelCmd(LPC_ADC,ADC_ADINTEN4,ENABLE);
     ADC_StartCmd(LPC_ADC,ADC_START_NOW);   
     while(!(ADC_ChannelGetStatus(LPC_ADC,ADC_CHANNEL_4,ADC_DATA_DONE)));
@@ -146,7 +145,7 @@ uint16_t hy_get_voltagefb_x10V(void){
 			rawvdata*HY_ADC_NEW_PERCENT*(hy_instance->config.voltagerange)/(4096);
   	hy_instance->inputsignal.voltagefb = hy_instance->inputsignal.voltagefb_x10V/HY_ADC_TOTAL_PERCENT;
 	hy_delay_ms(1);
-		//LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1 raw data [%d]",hy_instance->inputsignal.voltagefb_x10V,rawvdata);
+	// LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1 raw data [%d]",hy_instance->inputsignal.voltagefb_x10V,rawvdata);
     return hy_instance->inputsignal.voltagefb_x10V;
 }
 
@@ -164,7 +163,7 @@ uint16_t hy_get_currentfb_x10A(void){
 			(rawidata*HY_ADC_NEW_PERCENT*(hy_instance->config.currentrange))/4096;
 	hy_instance->inputsignal.currentfb = hy_instance->inputsignal.currentfb_x10A/HY_ADC_TOTAL_PERCENT;
 	hy_delay_ms(1);
-		//LOG_INFO_TAG(HY_LOG_TAG,"get current [%d]x0.1 raw data [%d]",hy_instance->inputsignal.currentfb_x10A,rawidata);
+	// LOG_INFO_TAG(HY_LOG_TAG,"get current [%d]x0.1 raw data [%d]",hy_instance->inputsignal.currentfb_x10A,rawidata);
     return hy_instance->inputsignal.currentfb_x10A;
 }
 
