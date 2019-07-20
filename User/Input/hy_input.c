@@ -55,8 +55,9 @@ int hy_input_init(void* hy_instance_handle)
     PINSEL_ConfigPin(&PinCfg);
 
      //Defined as input
-    GPIO_SetDir(0, (1<<17)|(1<<16)|(1<<6),0);
-		LOG_INFO_TAG(HY_LOG_TAG,"hy init gpio done!");
+    GPIO_SetDir(0, (1<<6),0);
+    GPIO_SetDir(1, (1<<17)|(1<<16),0);
+	LOG_INFO_TAG(HY_LOG_TAG,"hy init gpio done!");
 		/*ADC INIT*/
 		/*
      * Init ADC pin connect
@@ -90,15 +91,15 @@ int hy_input_init(void* hy_instance_handle)
 }
 
 
-uint8_t hy_get_heatwarn(void){
+uint8_t hy_get_heatwarn(void){// 1 for normal 0 for heat
 		
-	uint32_t ret = (GPIO_ReadValue(0)&(1<<16));
+	uint32_t ret = ((GPIO_ReadValue(1)&(1<<16))>>16);
 	hy_instance->inputsignal.heatwarn = ret;
-	LOG_INFO_TAG(HY_LOG_TAG,"hy get heatwarn [%d]",ret);
+	// LOG_INFO_TAG(HY_LOG_TAG,"hy get heatwarn [%d]",ret);
 	if(ret){	
-		return ret;
+		return 0;
 	}else{
-		return ret;
+		return 1;
 	}
 };
 
@@ -117,7 +118,7 @@ uint8_t hy_get_embtrigger(void){
 }
 
 uint8_t hy_get_resettrigger(void){
-	uint32_t ret = GPIO_ReadValue(0)&(1<<17);
+	uint32_t ret = GPIO_ReadValue(1)&(1<<17);
 	if(hy_instance==NULL){
 		LOG_ERROR_TAG(HY_LOG_TAG,"hy input not init!!");
 	}

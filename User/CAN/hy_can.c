@@ -16,20 +16,6 @@ uint32_t CANRxCount, CANTxCount = 0;
 
 hy_cancom_t *s_cancom = NULL;
 
-int hy_can_msg_stop_handle()
-{
-	int stop_code;
-	stop_code =INT8TO32(s_cancom->canmsg.databyte[0],
-											s_cancom->canmsg.databyte[1],
-											s_cancom->canmsg.databyte[2],
-											s_cancom->canmsg.databyte[3]);
-	LOG_INFO_TAG(HY_LOG_TAG,"*********************");
-	LOG_INFO_TAG(HY_LOG_TAG,"*********************");
-	LOG_INFO_TAG(HY_LOG_TAG,"bms stop code : [%d]",stop_code);
-	LOG_INFO_TAG(HY_LOG_TAG,"**********************");
-	return stop_code;
-}
-
 int hy_can_init(void* hy_instance_handle)
 {
 		int ret = HY_OK;
@@ -38,7 +24,7 @@ int hy_can_init(void* hy_instance_handle)
 		/*software init*/
 		hy_instance_t *hy_instance=(hy_instance_t*)hy_instance_handle;
 		s_cancom = &(hy_instance->cancom);
-	  memset(s_cancom,0,sizeof(hy_cancom_t));
+		memset(s_cancom,0,sizeof(hy_cancom_t));
 		s_cancom->state = HY_CANTASK_IDLE;
 		s_cancom->msgupdate_flag = HY_FALSE;
 		s_cancom->bms_stop_code = 0;
@@ -67,10 +53,27 @@ int hy_can_init(void* hy_instance_handle)
 		return ret;
 }
 
+int hy_can_msg_stop_handle()
+{
+	int stop_code;
+	stop_code =INT8TO32(s_cancom->canmsg.databyte[0],
+											s_cancom->canmsg.databyte[1],
+											s_cancom->canmsg.databyte[2],
+											s_cancom->canmsg.databyte[3]);
+	LOG_INFO_TAG(HY_LOG_TAG,"*********************");
+	LOG_INFO_TAG(HY_LOG_TAG,"*********************");
+	LOG_INFO_TAG(HY_LOG_TAG,"bms stop code : [%d]",stop_code);
+	LOG_INFO_TAG(HY_LOG_TAG,"**********************");
+	return stop_code;
+}
+
 int hy_can_send(hy_canmsg* msg)
 {
 		if(msg->resendcounts > HY_CAN_MSG_NEED_RESEND){
 			msg->resendcounts--;
+			if (msg->resendcounts <= HY_CAN_MSG_RESEND_DONE){
+				msg->resendcounts = HY_CAN_MSG_RESEND_DONE;
+			}
 		}
 	
     TXMsg.format = HY_ID_FORMAT;
@@ -86,7 +89,7 @@ int hy_can_send(hy_canmsg* msg)
     *((uint8_t *) &TXMsg.dataB[2])= msg->databyte[6];
     *((uint8_t *) &TXMsg.dataB[3])= msg->databyte[7];
 
-		CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
 		
     return 0;
 }
@@ -105,8 +108,8 @@ int hy_can_getmsg()
 		switch(RXMsg.id){
 			case BMS_OBC_BHM_FRAME_ID:/*handshake*/
 				s_cancom->state = HY_CANTASK_HANDSHAKE;
-			  s_cancom->canmsg.frame_id = BMS_OBC_BHM_FRAME_ID;
-			  s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
+				s_cancom->canmsg.frame_id = BMS_OBC_BHM_FRAME_ID;
+				s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
 				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
 				hy_chargetask_setmaxvoltage_x10V(INT8TO16(s_cancom->canmsg.databyte[0],
 																							s_cancom->canmsg.databyte[1])&BMS_OBC_BHM_MAX_VOL_MASK);	
@@ -145,6 +148,8 @@ int hy_can_getmsg()
 
 				break;
 			default:
+				s_cancom->state = HY_CANTASK_IDLE;
+				LOG_ERROR_TAG(HY_LOG_TAG,"get can wrong msg!!!");
 				break;
 		}
 	}else{/*receive timeout!!!*/
@@ -273,6 +278,26 @@ void hy_can_task_main()
 			
 			
 		case HY_CANTASK_OBC_STOP:
+			if(msg.resendcounts <= HY_CAN_MSG_RESEND_DONE){
+				msg.resendcounts = HY_CAN_MSG_NO_RESEND;
+				s_cancom->state = HY_CANTASK_END;
+				break;
+			}else if(msg.resendcounts > HY_CAN_MSG_NEED_RESEND){
+				if(systime_elapse_ms(lastsendtime_ms) >= OBC_BMS_CST_INTERVAL){
+					hy_can_send(&msg);
+					LOG_INFO_TAG(HY_LOG_TAG,"can resend [cantask end] counts = [%d]",msg.resendcounts);
+					lastsendtime_ms = hy_time_now_ms();
+				}	
+				break;
+			}
+			msg.frame_id = OBC_BMS_CST_FRAME_ID;
+			memset(msg.databyte,0,8);
+			msg.databyte[0] = INT32TO8_4(s_cancom->obc_stop_code);
+			msg.databyte[1] = INT32TO8_3(s_cancom->obc_stop_code);
+			msg.databyte[2] = INT32TO8_2(s_cancom->obc_stop_code);
+			msg.databyte[3] = INT32TO8_1(s_cancom->obc_stop_code);
+			msg.resendcounts = HY_CAN_MSG_RESEND(5);
+			hy_can_send(&msg);
 			break;
 		
 		
@@ -295,7 +320,7 @@ void hy_can_task_main()
 			msg.databyte[1] = INT16TO8_1(hy_chargetask_getchargetime_min());
 			msg.databyte[2] = INT16TO8_2(hy_chargetask_gettotalpower_x10kwh());
 			msg.databyte[3] = INT16TO8_1(hy_chargetask_gettotalpower_x10kwh());
-			msg.resendcounts = HY_CAN_MSG_RESEND(5);
+			msg.resendcounts = HY_CAN_MSG_RESEND(600*1000/OBC_BMS_CSD_INTERVAL);//重复10分钟
 			hy_can_send(&msg);
 			break;
 			
@@ -331,7 +356,15 @@ int hy_can_connected(void)
 	return s_cancom->canconnected;
 }
 
-int hy_can_get_taskstate(void)
+int hy_can_restart(int start_code, void* ctx)
 {
-	return s_cancom->state;
+	s_cancom->state = HY_CANTASK_IDLE;
+	return HY_OK;
+}
+
+int hy_can_stop(int stop_code, void* ctx)
+{
+	s_cancom->state = HY_CANTASK_OBC_STOP;
+	s_cancom->obc_stop_code = stop_code;
+	return HY_OK;
 }

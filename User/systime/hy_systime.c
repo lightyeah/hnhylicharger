@@ -86,6 +86,8 @@ static void timecounting(void){
 
 void SysTick_Handler(void)
 {
+	static int ctx;
+	static uint32_t overheat_time_ms;
 	//Clear System Tick counter flag
 	SYSTICK_ClearCounterFlag();
 	
@@ -94,16 +96,34 @@ void SysTick_Handler(void)
 	if(!(hy_instance->initdone)){/*not initdone*/
 		return;
 	}
-	
+
 	/*main task*/
+	/*sensor task*/
+	// LOG_INFO_TAG(HY_LOG_TAG,"hy_get_heatwarn [%d]",hy_get_heatwarn());
+	if (hy_get_heatwarn() && !hy_chargetask_getoverheat()){
+		LOG_ERROR_TAG(HY_LOG_TAG,"machine is over heat!!!");
+		ctx = OBC_BMS_CST_HEAT_ERR(1); 
+		hy_chargetask_stop(CHARGETASK_ERR_STOP_CODE,&ctx);
+		hy_chargetask_setoverheat();
+		overheat_time_ms = hy_time_now_ms();
+	}else if(!hy_get_heatwarn() && hy_chargetask_getoverheat()){
+		if(systime_elapse_ms(overheat_time_ms) >= HY_CHARGETASK_COLDTIME){//cold for 1 min
+			hy_chargetask_clearoverheat();
+			ctx = CHARGETASK_COLDDONW_START_CODE;
+			hy_chargetask_start(0,&ctx);
+		}
+	}
+
 	/*GUI button task*/
 	hy_button_task();
+
 	/*can task*/
 	if(hy_instance->config.controlstyle == HY_CONTROLSTYLE_CAN){
 		hy_can_getmsg();
 		hy_can_task_main();
 	}
 	
+	/*chargetask*/
 	hy_chargetask_main();
 
 }
@@ -119,7 +139,5 @@ void hy_delay_ms (unsigned long tick)
 	}else{
 		while(systickcnt--);
 	}
-	
-	
 
 }

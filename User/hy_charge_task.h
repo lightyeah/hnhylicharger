@@ -4,6 +4,9 @@
 #include "stdint.h"
 #include "GUI.h"
 
+#define HY_BATTERY_CONNECT          1
+#define HY_BATTERY_DISCONNECT       0
+
 #define CHARGETASK_MONITOR_INTERVAL 3000/*unit ms*/
 #define CHARGETASK_CONTROL_INTERVAL 500/*unit ms*/
 
@@ -17,16 +20,17 @@
 #define CHARGETASK_CAN_START_CODE               1
 #define CHARGETASK_LOCAL_START_CODE             2
 #define CHARGETASK_BUTTON_START_CODE            3
+#define CHARGETASK_COLDDONW_START_CODE          4
 
 #define CHARGETASK_MAX_DAC_OUTPUT_VALUE             255
 #define CHARGETASK_DAC_TOVOLTAGEx10V_COEFFICIENT    2
 #define CHARGETASK_PID_P_FORDIVISION                2/* = x0.5*/
-#define CHARGETASK_STABLE_RANGE_CHANGE              40
+#define CHARGETASK_STABLE_RANGE_CHANGE              20
 #define CHARGETASK_STABLE_CONTROL_INTERVAL          10000/*ms*/
 
+#define HY_CHARGETASK_COLDTIME                      60*5*1000/*ms*/
 
-#define HY_BATTERY_CONNECT          1
-#define HY_BATTERY_DISCONNECT       0
+
 typedef enum Hy_Chargetask_State{
 	CHARGETASK_IDLE = 0,
 	CHARGETASK_LOCAL_ONE,
@@ -104,6 +108,10 @@ uint32_t hy_chargetask_gettotalpower_x10kwh(void);
 void hy_chargetask_local_turntostate(hy_chargetask_state state);
 
 void hy_chargetask_main(void);
+
+void hy_chargetask_setoverheat(void);
+void hy_chargetask_clearoverheat(void);
+int hy_chargetask_getoverheat(void);
 #endif
 
 

@@ -141,8 +141,6 @@ int main(void)
 	LOG_INFO_TAG(HY_LOG_TAG,"HY system start\r\n");
 	printf_logo();
 	
-
-	
 	/*rom config init*/
 	ret = hy_instance_get_config(&s_hy_instance,NULL);
 	if(ret == 0){
@@ -229,7 +227,6 @@ int main(void)
 		hy_gui_init(&s_hy_instance);
 		delay_ms(1000);
 	
-		
 		s_hy_instance.initdone = HY_INSTANCE_INITDONE;
 
 		MainProcess();

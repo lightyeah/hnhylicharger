@@ -38,6 +38,7 @@ typedef enum PAGE
 	SettingPage32,//16
 	ErrorPage,//17
 	ErrorPage1,
+	ErrorPage2,//没有进行配置
 } PAGE;
 
 
@@ -78,6 +79,7 @@ PAGE displaypage1_1(uint32_t state,
 	uint32_t cur,
 	uint32_t time);
 PAGE displaypage1_2(PAGE father_page);
+PAGE displaypage1_3(PAGE father_page);
 
 PAGE displaypage2(uint8_t mode,uint16_t no,uint16_t vol,uint8_t status,uint8_t * flag);
 	
@@ -109,6 +111,8 @@ PAGE balancesettingpage(void);
 
 PAGE errorpage(uint8_t err);
 PAGE errorpage1(void);
+PAGE errorpage2(void);
+PAGE errorpage3(PAGE father_page);
 
 PAGE finishpage(uint32_t vol,uint32_t time);
 PAGE finishpage2(uint32_t vol,uint32_t time,uint8_t * flag);

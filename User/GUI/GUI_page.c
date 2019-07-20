@@ -100,6 +100,10 @@ uint8_t juhao[3] = {0xa1,0xa3,0x00};//句号“。”
 uint8_t fanhui[5] = {0xb7,0xb5,0xbb,0xd8,0x00};//返回
 uint8_t jiemian[5] = {0xbd,0xe7,0xc3,0xe6,0x00};//界面
 uint8_t an[3] = {0xb0,0xb4,0x00};//按
+uint8_t duqu[5] = {0xb6,0xc1,0xc8,0xa1,0x00};//读取
+uint8_t lianxi[5] = {0xc1,0xaa,0xcf,0xb5,0x00};//联系
+uint8_t zai_2[3] = {0xd4,0xda,0x00};//在
+
 
 uint8_t pass[6] ={2,2,2,3,3,3};
 uint8_t unit[17] = {'A','V','M','V','A','V','M','V','V','A','M','A',' ','V','A','K','%'};
@@ -338,8 +342,11 @@ PAGE displaypage1(uint32_t state,
 				lcd_display_chinese(wancheng);
 				lcd_display_space();
 		}else{/*err*/
-			if (s_gui->controlstyle == HY_CONTROLSTYLE_CAN)
-			{
+			if (state & HY_GUI_ERR_OVERHEAT_MASK){//overheat
+				lcd_display_chinese(gw);
+				lcd_display_chinese(bh);
+				lcd_display_ascii("!");
+			}else if (s_gui->controlstyle == HY_CONTROLSTYLE_CAN){
 				if(!(state&HY_GUI_CAN_ON_MASK))
 				{
 					lcd_display_chinese(tx);
@@ -368,13 +375,13 @@ PAGE displaypage1(uint32_t state,
 					}else{
 						return PassportPage;
 					}
-				break;
+
 				case button_off:/*stop charge*///0x06
 					LOG_INFO_TAG(HY_LOG_TAG,"machine stopped by button");
 					hy_chargetask_stop(CHARGETASK_BUTTON_STOP_CODE,NULL);
 					s_gui->machine_stop_flag = HY_TRUE;
 					return DisplayPage1_1;
-				break;
+
 				case button_on://0x05
 
 				break;
@@ -419,7 +426,6 @@ PAGE displaypage1_1(uint32_t state,
 	uint32_t cur,
 	uint32_t time)
 {
-	uint32_t updatetime_ms = 0;
 	uint32_t flag = 0;
 	lcd_clear();
 
@@ -444,7 +450,6 @@ PAGE displaypage1_1(uint32_t state,
 	lcd_display_chinese(tj);
 	lcd_display_chinese(zhong);
 
-	updatetime_ms = hy_time_now_ms();
 	while(1){
 		if(s_gui->button_flag == BUTTON_MSG)
 		{
@@ -456,7 +461,7 @@ PAGE displaypage1_1(uint32_t state,
 					}else{
 						return PassportPage;
 					}
-				break;
+
 				case button_off:/*stop charge*///0x06
 				break;
 				case button_on://0x05
@@ -465,7 +470,7 @@ PAGE displaypage1_1(uint32_t state,
 					s_gui->machine_stop_flag = HY_FALSE;
 					hy_chargetask_start(0,&flag);
 					return DisplayPage1_2;
-				break;
+
 				case button_up://0x02
 				/*todo record of charge*/
 				break;
@@ -477,7 +482,7 @@ PAGE displaypage1_1(uint32_t state,
 		}			
 
 	}
-	return DisplayPage1;	
+
 
 }
 
@@ -505,7 +510,7 @@ PAGE displaypage1_2(PAGE father_page)
 
 PAGE displaypage1_3(PAGE father_page)
 {
-	uint32_t updatetime_ms = 0;
+	
 	lcd_clear();
 
 	lcd_display_chinese_at(0,0,ru);
@@ -535,7 +540,6 @@ PAGE displaypage1_3(PAGE father_page)
 	lcd_display_ascii("C");
 
 
-	updatetime_ms = hy_time_now_ms();
 	while(1){
 		if(s_gui->button_flag == BUTTON_MSG)
 		{
@@ -554,12 +558,10 @@ PAGE displaypage1_3(PAGE father_page)
 				break;
 				case button_esc://0x04
 					return SettingMainPage1;
-				break;
+
 			}
 		}		
 	}
-	
-	return DisplayPage1;
 
 }
 
@@ -600,7 +602,7 @@ PAGE passportpage(void)
 					lcd_display_chinese_at(2,2,mmcw);
 					hy_delay_ms(1500);
 					return DisplayPage1;
-				break;
+			
 				case button_up://0x02
 
 					passport[index-1] = 2;
@@ -668,7 +670,7 @@ PAGE passportpage1(void)
 PAGE settingmainpage(uint8_t page,uint8_t cursor)
 {//0,1;0,1,2,3
 	
-	uint8_t button,index;
+	uint8_t index;
 	uint8_t pa;
 	uint32_t updatetime_ms;
 
@@ -693,12 +695,12 @@ PAGE settingmainpage(uint8_t page,uint8_t cursor)
 			updatetime_ms = hy_time_now_ms();
 			switch (s_gui->button_msg_queue[0].button_name){
 				case button_set://0x01
-					if(index > 7 || index < 0){
+					if(index > 7){
 						break;
 					}
 					lcd_cursor_close();
 					return (PAGE)(index+SettingPage11);					
-				break;
+				
 				case button_off://0x06
 				break;
 				case button_on://0x05
@@ -726,7 +728,7 @@ PAGE settingmainpage(uint8_t page,uint8_t cursor)
 				case button_esc://0x04
 					lcd_cursor_close();
 					return DisplayPage1;	
-				break;
+			
 			}
 		}		
 		lcd_cursor_goto(index-page*4,0);		
@@ -838,10 +840,10 @@ PAGE settingpage11(PAGE father_page)
 						default:
 							LOG_ERROR_TAG(HY_LOG_TAG,"gui settingpage11 index error");
 							return DisplayPage1;
-						break;
+						
 					}
 					return datasettingpage(dataname,SettingPage11);
-				break;
+		
 				case button_off://0x06
 				break;
 				case button_on://0x05
@@ -863,7 +865,7 @@ PAGE settingpage11(PAGE father_page)
 				break;
 				case button_esc://0x04
 					return father_page;
-				break;
+		
 			}
 		}		
 
@@ -880,6 +882,7 @@ PAGE settingpage12(PAGE father_page)
 
 	updatetime_ms = hy_time_now_ms();
 	index = 1;
+	index = index;
 	
 	lcd_clear();
 
@@ -912,19 +915,19 @@ PAGE settingpage12(PAGE father_page)
 					dataname = chargetimeout_1_min;
 					LOG_INFO_TAG(HY_LOG_TAG,"gui settingpage12 index chargetimeout_1_min");
 					return datasettingpage(dataname,SettingPage12);
-				break;
+			
 				case button_off://0x06
 				break;
 				case button_on://0x05
 				break;
 				case button_up://0x02
 					return SettingPage11;
-				break;
+			
 				case button_down://0x03
 				break;
 				case button_esc://0x04
 					return father_page;
-				break;
+			
 			}
 		}		
 	}
@@ -1001,10 +1004,10 @@ PAGE settingpage21(PAGE father_page)
 						default:
 							LOG_ERROR_TAG(HY_LOG_TAG,"gui settingpage21 index error");
 							return DisplayPage1;
-						break;
+					
 					}
 					return datasettingpage(dataname,SettingPage21);
-				break;
+		
 				case button_off://0x06
 				break;
 				case button_on://0x05
@@ -1025,7 +1028,7 @@ PAGE settingpage21(PAGE father_page)
 				break;
 				case button_esc://0x04
 					return father_page;
-				break;
+			
 			}
 		}		
 
@@ -1042,6 +1045,7 @@ PAGE settingpage22(PAGE father_page)
 
 	updatetime_ms = hy_time_now_ms();
 	index = 1;
+	index = index;
 	
 	lcd_clear();
 
@@ -1074,19 +1078,19 @@ PAGE settingpage22(PAGE father_page)
 					dataname = chargetimeout_2_min;
 					LOG_INFO_TAG(HY_LOG_TAG,"gui settingpage22 index chargetimeout_2_min");
 					return datasettingpage(dataname,SettingPage22);
-				break;
+		
 				case button_off://0x06
 				break;
 				case button_on://0x05
 				break;
 				case button_up://0x02
 					return SettingPage21;
-				break;
+			
 				case button_down://0x03
 				break;
 				case button_esc://0x04
 					return father_page;
-				break;
+
 			}
 		}	
 	}	
@@ -1161,10 +1165,10 @@ PAGE settingpage31(PAGE father_page)
 						default:
 							LOG_ERROR_TAG(HY_LOG_TAG,"gui settingpage31 index error");
 							return DisplayPage1;
-						break;
+					
 					}
 					return datasettingpage(dataname,SettingPage31);
-				break;
+		
 				case button_off://0x06
 				break;
 				case button_on://0x05
@@ -1185,7 +1189,7 @@ PAGE settingpage31(PAGE father_page)
 				break;
 				case button_esc://0x04
 					return father_page;
-				break;
+			
 			}
 		}		
 
@@ -1202,6 +1206,7 @@ PAGE settingpage32(PAGE father_page)
 
 	updatetime_ms = hy_time_now_ms();
 	index = 1;
+	index = index;
 	
 	lcd_clear();
 
@@ -1234,19 +1239,19 @@ PAGE settingpage32(PAGE father_page)
 					dataname = chargetimeout_3_min;
 					LOG_INFO_TAG(HY_LOG_TAG,"gui settingpage32 index chargetimeout_3_min");
 					return datasettingpage(dataname,SettingPage32);
-				break;
+		
 				case button_off://0x06
 				break;
 				case button_on://0x05
 				break;
 				case button_up://0x02
 					return SettingPage31;
-				break;
+		
 				case button_down://0x03
 				break;
 				case button_esc://0x04
 					return father_page;
-				break;
+		
 			}
 		}
 	}	
@@ -1278,28 +1283,24 @@ PAGE settingpage4(PAGE father_page){
 	lcd_display_colon();		
 	lcd_display_num4(config_data->currentrange*10,'A');
 
-	if (s_gui->set_in_flash)
-	{
-		lcd_goto_pos(2,0);
-		lcd_display_chinese(kz);
-		lcd_display_chinese(fs);//控制方式
-		lcd_display_colon();
-		if(config_data->controlstyle == HY_CONTROLSTYLE_CAN){
-			lcd_display_chinese(tx);
-		}else{
-			lcd_display_chinese(bd);
-		}
-
-		lcd_goto_pos(3,0);
+	lcd_goto_pos(2,0);
+	lcd_display_chinese(kz);
+	lcd_display_chinese(fs);//控制方式
+	lcd_display_colon();
+	if(config_data->controlstyle == HY_CONTROLSTYLE_CAN){
 		lcd_display_chinese(tx);
-		lcd_display_chinese(sl);//通信速率
-		lcd_display_colon();
-		lcd_display_botelv4(config_data->communicaterate/1000);
-
-		indexmax = 3;
 	}else{
-		indexmax = 1;
+		lcd_display_chinese(bd);
 	}
+
+	lcd_goto_pos(3,0);
+	lcd_display_chinese(tx);
+	lcd_display_chinese(sl);//通信速率
+	lcd_display_colon();
+	lcd_display_botelv4(config_data->communicaterate/1000);
+
+	indexmax = 3;
+
 
 
 	index = 0;
@@ -1313,23 +1314,31 @@ PAGE settingpage4(PAGE father_page){
 				case button_set://0x01
 					switch(index){
 						case 2:
-							dataname = controlstyle;
-							LOG_INFO_TAG(HY_LOG_TAG,"settingpage4 set controlstyle");
-						break;
+							if (s_gui->set_in_flash){
+								dataname = controlstyle;
+								LOG_INFO_TAG(HY_LOG_TAG,"settingpage4 set controlstyle");
+								return datasettingpage(dataname,SettingPage4);
+							}else{
+								return errorpage3(SettingPage4);
+							}
+
 						case 0:
 							dataname = voltagerange;
-							LOG_INFO_TAG(HY_LOG_TAG,"settingpage4 set controlstyle");
-						break;
+							LOG_INFO_TAG(HY_LOG_TAG,"settingpage4 set voltagerange");
+							return datasettingpage(dataname,SettingPage4);
 						case 1:
 							dataname = currentrange;
-							LOG_INFO_TAG(HY_LOG_TAG,"settingpage4 set controlstyle");
-						break;
+							LOG_INFO_TAG(HY_LOG_TAG,"settingpage4 set currentrange");
+							return datasettingpage(dataname,SettingPage4);
 						case 3:
-							dataname = communicaterate;
-							LOG_INFO_TAG(HY_LOG_TAG,"settingpage4 set communicationrate");
-						break;
+							if (s_gui->set_in_flash){
+								dataname = communicaterate;
+								LOG_INFO_TAG(HY_LOG_TAG,"settingpage4 set communicationrate");
+								return datasettingpage(dataname,SettingPage4);
+							}else{
+								return errorpage3(SettingPage4);
+							}
 					}
-					return datasettingpage(dataname,SettingPage4);
 				break;
 				case button_off://0x06
 				break;
@@ -1351,7 +1360,7 @@ PAGE settingpage4(PAGE father_page){
 				break;
 				case button_esc://0x04
 					return father_page;
-				break;
+			
 			}
 		}					
 	}
@@ -1401,20 +1410,20 @@ PAGE settingpage5(PAGE father_page){
 					switch(index){
 						case 1:
 							hy_config_reset();
-							return DisplayPage1;
 							LOG_INFO_TAG(HY_LOG_TAG,"settingpage5 index setting original parameters");
-						break;
+							return DisplayPage1;
+				
 						case 2:
 							s_gui->set_in_flash = true;
 							LOG_INFO_TAG(HY_LOG_TAG,"settingpage5 index reset parameters");
 							return SettingMainPage1;
-						break;
+					
 						default:
 							LOG_ERROR_TAG(HY_LOG_TAG,"settingpage5 error index = [%d]!!",index);
 							return DisplayPage1;
-						break;
+					
 					}
-				break;
+			
 				case button_off://0x06
 				break;
 				case button_on://0x05
@@ -1435,7 +1444,7 @@ PAGE settingpage5(PAGE father_page){
 				break;
 				case button_esc://0x04
 					return father_page;
-				break;
+			
 			}
 		}		
 
@@ -1541,7 +1550,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								Config_DataWriting();
 							}
 							return father_page;
-						break;
+						
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 4)
@@ -1576,14 +1585,14 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+						
 					}
 				}					
 			}
 			lcd_cursor_close();
 			return DisplayPage1;
 
-    	break;
+    
 
 		case currentrange:
 	   		lcd_goto_pos(0,0);
@@ -1630,7 +1639,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+						
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 4)
@@ -1665,13 +1674,13 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+					
 					}
 				}					
 			}
 			lcd_cursor_close();
 			return DisplayPage1;
-		break;
+	
 
 		case balancecurrent:
 	   		lcd_goto_pos(0,0);
@@ -1718,7 +1727,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+				
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 4)
@@ -1753,13 +1762,13 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+				
 					}
 				}					
 			}
 			lcd_cursor_close();
 			return DisplayPage1;
-		break;
+		
 
 		case controlstyle:
 			lcd_goto_pos(0,0);
@@ -1810,7 +1819,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+					
 						case button_off://0x06
 						break;
 						case button_on://0x05
@@ -1831,13 +1840,13 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+					
 					}
 				}					
 			}
 			lcd_cursor_close();
 			return DisplayPage1;
-		break;
+		
 
 		case chargecurrent_1:
 	   		lcd_goto_pos(0,0);
@@ -1884,7 +1893,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+					
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 4)
@@ -1919,13 +1928,13 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+
 					}
 				}					
 			}
 			lcd_cursor_close();
 			return DisplayPage1;
-		break;
+	
 
 		case limitvoltage_1:
 	   		lcd_goto_pos(0,0);
@@ -1972,7 +1981,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+				
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 4)
@@ -2007,13 +2016,13 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+				
 					}
 				}					
 			}
 			lcd_cursor_close();
 			return DisplayPage1;
-		break;
+
 
 		case chargetimeout_1_min:
 			lcd_display_chinese_at(0,0,bz);
@@ -2061,7 +2070,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+		
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 3)
@@ -2092,14 +2101,14 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+			
 					}
 				}					
 			}	
 			lcd_cursor_close();
 			return DisplayPage1;	
 
-		break;
+	
 
 		case switchvoltage_1:
 	   		lcd_goto_pos(0,0);
@@ -2147,7 +2156,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+					
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 4)
@@ -2182,13 +2191,13 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+		
 					}
 				}					
 			}	
 			lcd_cursor_close();
 			return DisplayPage1;	
-		break;
+		
 
 		case chargecurrent_2:
 	   		lcd_goto_pos(0,0);
@@ -2236,7 +2245,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+				
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 4)
@@ -2271,13 +2280,13 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+	
 					}
 				}					
 			}
 			lcd_cursor_close();
 			return DisplayPage1;
-		break;
+
 
 		case limitvoltage_2:
 	   		lcd_goto_pos(0,0);
@@ -2324,7 +2333,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+		
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 4)
@@ -2359,13 +2368,13 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+	
 					}
 				}					
 			}
 			lcd_cursor_close();
 			return DisplayPage1;
-		break;
+
 
 		case chargetimeout_2_min:
 			lcd_display_chinese_at(0,0,bz);
@@ -2413,7 +2422,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+			
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 3)
@@ -2444,13 +2453,13 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+		
 					}
 				}					
 			}	
 			lcd_cursor_close();
 			return DisplayPage1;	
-		break;
+		
 
 		case switchvoltage_2:
 	   		lcd_goto_pos(0,0);
@@ -2497,7 +2506,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+			
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 4)
@@ -2532,13 +2541,13 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+				
 					}
 				}					
 			}
 			lcd_cursor_close();
 			return DisplayPage1;
-		break;
+
 
 		case chargevoltage_3:
 	   		lcd_goto_pos(0,0);
@@ -2585,7 +2594,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+			
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 4)
@@ -2620,12 +2629,12 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+				
 					}
 				}					
 			}
 			return DisplayPage1;
-		break;
+		
 
 		case limitcurrent_3:
 	   		lcd_goto_pos(0,0);
@@ -2672,7 +2681,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+						
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 4)
@@ -2707,13 +2716,13 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+					
 					}
 				}					
 			}
 			lcd_cursor_close();
 			return DisplayPage1;
-		break;
+
 
 		case chargetimeout_3_min:
 			lcd_display_chinese_at(0,0,bz);
@@ -2761,7 +2770,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 3)
@@ -2792,13 +2801,13 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+
 					}
 				}					
 			}	
 			lcd_cursor_close();
 			return DisplayPage1;	
-		break;
+
 
 		case switchcurrent_3:
 	   		lcd_goto_pos(0,0);
@@ -2845,7 +2854,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+
 						case button_off://0x06
 							num_index ++;
 							if(num_index >= 4)
@@ -2880,13 +2889,13 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+
 					}
 				}					
 			}
 			lcd_cursor_close();
 			return DisplayPage1;
-		break;
+
 
 		case communicaterate:
 communicaterate_page1:	
@@ -2951,7 +2960,7 @@ communicaterate_page1:
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+
 						case button_off://0x06
 						break;
 						case button_on://0x05
@@ -2973,7 +2982,7 @@ communicaterate_page1:
 						break;
 						case button_esc://0x04
 							return father_page;
-						break;
+
 					}
 				}					
 			}
@@ -3029,7 +3038,7 @@ communicaterate_page2:
 								hy_config_datawriting();
 							}
 							return father_page;
-						break;
+
 						case button_off://0x06
 						break;
 						case button_on://0x05
@@ -3062,233 +3071,6 @@ communicaterate_page2:
 }
 
 
-//PAGE modesettingpage(void){
-//	uint16_t data,time_cnt;
-//	uint8_t button,index;
-//	time_cnt = 0;
-//	data = ConfigReadFromAddr(12);	
-//	index = data;
-//	lcd_clear();
-//	lcd_goto_pos(0,3);
-//	lcd_display_chinese(sz);
-//	lcd_goto_pos(2,2);
-//	lcd_display_ascii("1 . ");
-//	lcd_display_chinese(tx);
-//	lcd_goto_pos(3,2);
-//	lcd_display_ascii("2 . ");
-//	lcd_display_chinese(bd);
-//	if(data ==0)
-//		lcd_cursor_goto(2,2);
-//	else
-//		lcd_cursor_goto(3,2);
-
-//	while(time_cnt<1000){
-//		hy_delay_ms(10);
-//		time_cnt++;
-//		button = Button_Check();
-//		if(button != 0){
-//			time_cnt = 0;
-//		}
-//		switch(button){
-//			case 1:
-//				ConfigWriteToAddr(12,index);
-//				Config_DataWriting();
-//				return SettingPage4;//12
-//				break;
-//			case 3:
-//			case 2:
-//				index = (index+1)%2;
-//				lcd_cursor_goto(2+index,2);			
-//				break;
-//			case 4:
-//				lcd_cursor_close();
-//				return SettingPage4;//12
-//		}
-//	}
-//	lcd_cursor_close();
-//	return DisplayPage1; 
-//}	
-
-
-//PAGE communicationratesettingpage(void){
-//	uint16_t data,time_cnt;
-//	uint8_t button,index;
-//	uint8_t no[1];
-//	
-//	time_cnt = 0;
-//	data = ConfigReadFromAddr(15);	
-//	lcd_clear();
-//	lcd_goto_pos(0,3);
-//	lcd_display_chinese(sz);
-//	for(index = 0 ;index<5;index++){
-//		lcd_goto_pos(index/2+1,4*(index%2));
-//		no[0]=0x31+index;
-//		lcd_display_ascii(no);
-//		lcd_display_ascii(".");
-//		lcd_display_num3(communicationrate[index],'K');
-//	}
-//	index = data;
-//	lcd_cursor_goto(index/2+1,4*(index%2));
-
-//	while(time_cnt<1000){
-//		hy_delay_ms(10);
-//		time_cnt++;
-//		button = Button_Check();
-//		if(button != 0){
-//			time_cnt = 0;
-//		}
-//		switch(button){
-//			case 1:
-//				ConfigWriteToAddr(15,index);
-//				Config_DataWriting();
-//				return SettingPage4;//12
-
-//			case 3:
-//				index = (index+1)%5;
-//				lcd_cursor_goto(index/2+1,4*(index%2));
-//				break;
-//			case 2:
-//				index = (index-1)%5;
-//				lcd_cursor_goto(index/2+1,4*(index%2));
-//				break;
-//			case 4:
-//				lcd_cursor_close();
-//				return SettingPage4;//12
-//		}
-//	}
-//	lcd_cursor_close();
-//	return DisplayPage1; 
-//}	
-
-
-//PAGE balancesettingpage(void){
-//	uint16_t data,time_cnt;
-//	uint8_t button;
-//	time_cnt = 0;
-//	data = ConfigReadFromAddr(16);	
-//	lcd_clear();
-//	lcd_goto_pos(1,3);
-//	lcd_display_chinese(sz);
-//	lcd_goto_pos(2,2);
-//	lcd_display_num2_big(data,'%');
-
-//	while(time_cnt<1000){
-//		hy_delay_ms(10);
-//		time_cnt++;
-//		button = Button_Check();
-//		switch(button){
-//			case 1:
-//				ConfigWriteToAddr(16,data);
-//				Config_DataWriting();
-//				return SettingPage6;//12
-//				break;
-//			case 3:
-//				if(data>0)
-//					data--;
-//				break;
-//			case 2:
-//				if(data<60)
-//					data++;
-//				break;
-//			case 4:
-//				return SettingPage6;//12
-//		}
-//		if(button != 0){
-//			time_cnt = 0;
-//			lcd_goto_pos(2,2);
-//			lcd_display_num2_big(data,'%');
-//		}
-//	}
-//	lcd_cursor_close();
-//	return DisplayPage1; 
-//}	
-
-//PAGE errorpage(uint8_t err){
-//	
-//// #define  ERR_TIMEOUT                        1
-//// #define  ERR_LACKPHASE                      2
-//// #define  ERR_OVERHEAT                       3
-
-//	uint8_t button;
-//	lcd_clear();
-//	lcd_goto_pos(1,2);
-//	if(err == 1){
-//		lcd_display_chinese(tx);
-//	}
-//	else if(err == 2){
-//		lcd_display_chinese(qx);
-//	}
-//	else if(err == 3){
-//		lcd_display_chinese(gw);
-//	}
-//	lcd_display_chinese(gz);
-//	while(1){
-//		button = Button_Check();
-//		hy_delay_ms(20);
-//		if(button == 4){
-//			return DisplayPage2; 
-//		}
-//	}
-//}
-
-
-//PAGE finishpage(uint32_t vol,uint32_t time){
-//	uint8_t button;
-//	lcd_clear();
-//	lcd_goto_pos(1,2);
-//	lcd_display_chinese(chong);
-//	lcd_display_chinese(dian);
-//	lcd_display_chinese(js);
-//	lcd_goto_pos(2,1);
-//	lcd_display_chinese(dian);
-//	lcd_display_chinese(ya);
-//	lcd_display_colon();
-//	lcd_display_num3(vol/10,'V');
-//	lcd_goto_pos(3,1);
-//	lcd_display_chinese(sj);
-//	lcd_display_colon();
-//	lcd_display_num3(time,'M');	
-//	while(1){
-//		button = Button_Check();
-//		hy_delay_ms(20);
-//		if(button == 4){
-//			return DisplayPage1; 
-//		}
-//	}
-//}
-//PAGE finishpage2(uint32_t vol,uint32_t time,uint8_t * flag){
-//	uint16_t time_cnt;
-//	uint8_t button;
-//	time_cnt =0;
-//	lcd_clear();
-//	lcd_goto_pos(1,2);
-//	lcd_display_chinese(chong);
-//	lcd_display_chinese(dian);
-//	lcd_display_chinese(js);
-//	lcd_goto_pos(2,1);
-//	lcd_display_chinese(dian);
-//	lcd_display_chinese(ya);
-//	lcd_display_colon();
-//	lcd_display_num3(vol/10,'V');
-//	lcd_goto_pos(3,1);
-//	lcd_display_chinese(sj);
-//	lcd_display_colon();
-//	lcd_display_num3(time,'M');	
-//	chargehandler();
-//	while(time_cnt<100){
-//		time_cnt++;
-//		button = Button_Check();
-//		hy_delay_ms(10);
-//		if(button == 6){
-//			*flag = 0;
-//			return DisplayPage1; 
-//		}
-//	}
-//	return DisplayPage1;
-//	
-//}
-
-
 PAGE errorpage1(void)
 {
 	uint32_t updatetime_ms;
@@ -3311,4 +3093,36 @@ PAGE errorpage1(void)
 	return DisplayPage1;
 }
 
+/**/
+PAGE errorpage2(void)
+{
 
+	lcd_clear();
+
+    lcd_display_chinese_at(0,0,duqu);
+    lcd_display_chinese(sz);
+    lcd_display_chinese(cw);
+    lcd_display_chinese(douhao);
+
+    lcd_display_chinese_at(0,1,qing);
+    lcd_display_chinese(lianxi);
+    lcd_display_chinese(cj);
+    lcd_display_chinese(juhao);
+
+	while(1);
+}
+
+/**/
+PAGE errorpage3(PAGE father_page)
+{
+	lcd_clear();
+
+    lcd_display_chinese_at(0,0,qing);
+    lcd_display_chinese(zai_2);
+    lcd_display_chinese(cc);
+    lcd_display_chinese(ms);
+    lcd_display_chinese(sz);
+
+	hy_gui_delay_ms(1500);
+	return father_page;
+}

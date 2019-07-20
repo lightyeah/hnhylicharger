@@ -262,10 +262,15 @@ void MainProcess(void){
   
 	static uint32_t guivoltagex10V = 0;
 	static uint32_t guicurrentx10A = 0;
-  static uint32_t guichargetime_min = 0;
+  	static uint32_t guichargetime_min = 0;
 	static uint32_t guichargetask_state = 0;
 	
-	PageState = WelcomePage;
+	
+	if (hy_instance->configed_flag){
+		PageState = WelcomePage;
+	}else{
+		PageState = ErrorPage2;
+	}
 	while(1){
 // 		chargehandler();
 		switch(PageState){
@@ -375,6 +380,10 @@ void MainProcess(void){
 				PageState = errorpage1();
 				break;
 
+			case ErrorPage2:
+				PageState = errorpage2();
+				break;
+				
 			default:
 				PageState = errorpage1();
 				break;

@@ -67,7 +67,7 @@
 #define  OBC_BMS_CCS_ALWAYS_ON                   0x01
 #define  OBC_BMS_CCS_INTERVAL                    50
 
-#define  OBC_BMS_CST_FRAME_ID                    0x181AF456/*OBC stop charge OBC-->BMS*/
+#define  OBC_BMS_CST_FRAME_ID                    0x101AF456/*OBC stop charge OBC-->BMS*/
 #define  OBC_BMS_CST_REACH_GOAL(x)               ((x)&0x01) /*0 for normal 1 for higher 2 3for uncertainty */               
 #define  OBC_BMS_CST_MANUAL_STOP(x)              (((x)&0x01)<<2)/*0 for unreach 1 for reached 2 3for uncertainty*/
 #define  OBC_BMS_CST_ERR_STOP(x)                 (((x)&0x01)<<4)/*0 for unreach 1 for reached 2 3for uncertainty*/
@@ -135,7 +135,6 @@ typedef struct CanComStrcut{
 	hy_cantask_state state;
 }hy_cancom_t;
 
-int hy_can_stop(uint32_t msg);
 int hy_can_send(hy_canmsg* msg);
 int hy_can_init(void* hy_instance);
 int hy_can_getmsg(void);
@@ -143,4 +142,7 @@ void hy_can_task_main(void);
 
 int hy_can_connected(void);
 int hy_can_get_taskstate(void);
+
+int hy_can_restart(int start_code, void* ctx);
+int hy_can_stop(int stop_code, void* ctx);
 #endif

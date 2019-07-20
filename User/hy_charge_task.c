@@ -36,14 +36,25 @@ int hy_chargetask_start(int controltype, void* ctx)
 		if (*(uint32_t*)ctx == CHARGETASK_BUTTON_START_CODE){
 			s_chargetask->machine_start_flag = HY_TRUE;
 			controltype = hy_instance->config.controlstyle;
+		}else if (*(uint32_t*)ctx == CHARGETASK_COLDDONW_START_CODE){
+			controltype = hy_instance->config.controlstyle;
 		}
 	}
 
 	if (s_chargetask->machine_start_flag != HY_TRUE){
-		LOG_WARN_TAG(HY_LOG_TAG,"chargetask machine is not ready");
+		LOG_WARN_TAG(HY_LOG_TAG,"not ready");
 		return HY_ERROR;
 	}
-	
+
+	if (s_chargetask->gui_msg.state & HY_GUI_ERR_OVERHEAT_MASK){
+		LOG_WARN_TAG(HY_LOG_TAG,"overheat!!");
+		return HY_ERROR;
+	}
+
+	if (s_chargetask->gui_msg.state & HY_GUI_CHARGETASK_END_MASK){
+		return HY_OK;
+	}
+
 	if(s_chargetask->start_flag == HY_TRUE){
 		return HY_OK;
 	}
@@ -61,6 +72,7 @@ int hy_chargetask_start(int controltype, void* ctx)
 			s_chargetask->max_chargetimeout_ms = 600*60*1000;/*10 hours*/
 			s_chargetask->statestarttime_ms = hy_time_now_ms();
 			s_chargetask->controltype = HY_CONTROLSTYLE_CAN;
+			s_chargetask->gui_msg.state |= HY_GUI_CAN_ON_MASK;
 			break;
 		case HY_CONTROLSTYLE_LOCAL:
 			s_chargetask->state = CHARGETASK_LOCAL_ONE;
@@ -112,24 +124,27 @@ int hy_chargetask_start(int controltype, void* ctx)
 int hy_chargetask_stop(int stop_code,void* ctx)
 {
 	
-	if(s_chargetask->end_flag  == HY_TRUE){
+	if (s_chargetask->end_flag == HY_TRUE){
 		return HY_OK;
 	}
+
 	LOG_INFO_TAG(HY_LOG_TAG,"**********************");
-	LOG_INFO_TAG(HY_LOG_TAG,"chargetask stop.......");
+	LOG_INFO_TAG(HY_LOG_TAG,"chargetask stop...[%d]",stop_code);
 	LOG_INFO_TAG(HY_LOG_TAG,"**********************");
 
 	switch (stop_code){
 		case CHARGETASK_CAN_STOP_CODE:
-			if (*(int*)ctx == HY_CAN_OBC_STOP_CANTIMEOUT){
-				s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
-				s_chargetask->gui_msg.state &= ~HY_GUI_CAN_ON_MASK;
-			}else if(*(int*)ctx == HY_CAN_BMS_STOP){
-				/*todo ???*/
-				s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
-				s_chargetask->gui_msg.state |= HY_GUI_CAN_ON_MASK;
-				s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_END_MASK;
-			}/*todo can timeout 600min*/
+			if (ctx != NULL){
+				if (*(int*)ctx == HY_CAN_OBC_STOP_CANTIMEOUT){
+					s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
+					s_chargetask->gui_msg.state &= ~HY_GUI_CAN_ON_MASK;
+				}else if(*(int*)ctx == HY_CAN_BMS_STOP){
+					/*todo ???*/
+					s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
+					s_chargetask->gui_msg.state |= HY_GUI_CAN_ON_MASK;
+					s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_END_MASK;
+				}/*todo can timeout 600min*/
+			}
 		break;
 		case CHARGETASK_LOCAL_NORMAL_STOP_CODE:
 			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
@@ -139,10 +154,22 @@ int hy_chargetask_stop(int stop_code,void* ctx)
 			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
 		break;
 		case CHARGETASK_ERR_STOP_CODE:
+			if (ctx != NULL){
+				if (*(int*)ctx == OBC_BMS_CST_HEAT_ERR(1)){//overheat error
+					if (s_chargetask->controltype == HY_GUI_CAN_ON_MASK){
+						hy_can_stop(OBC_BMS_CST_HEAT_ERR(1),NULL);
+					}	
+					s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
+					s_chargetask->gui_msg.state |= HY_GUI_ERR_OVERHEAT_MASK;
+				}
+			}
 		break;
 		case CHARGETASK_BUTTON_STOP_CODE:
 			s_chargetask->machine_start_flag = HY_FALSE;
 			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
+			if (s_chargetask->controltype == HY_GUI_CAN_ON_MASK){
+				hy_can_stop(OBC_BMS_CST_MANUAL_STOP(1),NULL);
+			}
 		break;
 		default:
 		break;
@@ -331,24 +358,20 @@ void hy_chargetask_set_output(uint32_t currentfb_x10A,uint32_t voltagefb_x10V,ui
 		diffvalue = aimvalue - fbvalue;
 		if (diffvalue >= CHARGETASK_STABLE_RANGE_CHANGE){
 			s_chargetask->output_dac_value++;
-			LOG_WARN_TAG(HY_LOG_TAG,"123 [%d]",diffvalue);
 		}else if(diffvalue < CHARGETASK_STABLE_RANGE_CHANGE){
 			if (systime_elapse_ms(stablecontroltime_ms) >= CHARGETASK_STABLE_CONTROL_INTERVAL){
 				stablecontroltime_ms = hy_time_now_ms();
 				s_chargetask->output_dac_value++;
-				LOG_WARN_TAG(HY_LOG_TAG,"345[%d]",diffvalue);
 			}
 		}
 	}else if(aimvalue < fbvalue){
 		diffvalue = fbvalue - aimvalue;
 		if (diffvalue >= CHARGETASK_STABLE_RANGE_CHANGE){
 			s_chargetask->output_dac_value--;
-			LOG_WARN_TAG(HY_LOG_TAG,"567[%d]",diffvalue);
 		}else if(diffvalue < CHARGETASK_STABLE_RANGE_CHANGE){
 			if (systime_elapse_ms(stablecontroltime_ms) >= CHARGETASK_STABLE_CONTROL_INTERVAL){
 				stablecontroltime_ms = hy_time_now_ms();
 				s_chargetask->output_dac_value--;
-				LOG_WARN_TAG(HY_LOG_TAG,"678[%d]",diffvalue);
 			}
 		}
 	}
@@ -426,11 +449,13 @@ void hy_chargetask_main()
 	s_chargetask->output_current_x10A = currentfb_x10A;
 	s_chargetask->output_voltage_x10V = voltagefb_x10V;
 	
-	if(voltagefb_x10V>=50){/*通过电池电压判断电池是否接入*/
+	if(voltagefb_x10V >= 50){/*通过电池电压判断电池是否接入*/
 		s_chargetask->gui_msg.state |= HY_GUI_BATTERY_ON_MASK;
 		if(s_chargetask->battery_flag == HY_BATTERY_DISCONNECT){
 			if(hy_instance->config.controlstyle == HY_CONTROLSTYLE_LOCAL){
 				hy_chargetask_start(HY_CONTROLSTYLE_LOCAL,NULL);
+			}else if(hy_instance->config.controlstyle == HY_CONTROLSTYLE_CAN){
+				hy_can_restart(0,NULL);
 			}
 		}
 		s_chargetask->battery_flag = HY_BATTERY_CONNECT;
@@ -456,12 +481,14 @@ void hy_chargetask_main()
 	switch (s_chargetask->state){
 		case 	CHARGETASK_IDLE:
 			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
+
 			if(s_chargetask->output_dac_value != 0){
 				s_chargetask->output_dac_value--;
 				if(s_chargetask->output_dac_value<=0)
 					s_chargetask->output_dac_value = 0;
 				hy_set_output(s_chargetask->output_dac_value);
 			}
+
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
 				LOG_INFO_TAG(HY_LOG_TAG,
 				"***chargetask idle state... \r\n******get voltage [%d]x0.1V current [%d]x0.1A",
@@ -469,11 +496,14 @@ void hy_chargetask_main()
 				if(s_chargetask->controltype == HY_CONTROLSTYLE_CAN){
 					if (!hy_can_connected()){/*can disconnected*/
 						s_chargetask->gui_msg.state &= ~HY_GUI_CAN_ON_MASK;
+					}else{
+						s_chargetask->gui_msg.state |= HY_GUI_CAN_ON_MASK;
 					}
 					LOG_INFO_TAG(HY_LOG_TAG,"can connected status = [%d]",hy_can_connected());
 				}
 				monitortime_ms = hy_time_now_ms();
 			}
+
 			break;
 
 	  case CHARGETASK_LOCAL_ONE:
@@ -532,14 +562,9 @@ void hy_chargetask_main()
 			break;
 
 		case CHARGETASK_CAN:
-			if (!hy_can_connected()){/*can disconnected*/
-				s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
-				s_chargetask->gui_msg.state &= ~HY_GUI_CAN_ON_MASK;
-				s_chargetask->state = CHARGETASK_IDLE;
-			}else{
-				s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
-				s_chargetask->gui_msg.state |= HY_GUI_CAN_ON_MASK;
-			}
+
+			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
+			s_chargetask->gui_msg.state |= HY_GUI_CAN_ON_MASK;
 
 			hy_chargetask_set_output(currentfb_x10A,voltagefb_x10V,aimtype);
 
@@ -585,4 +610,22 @@ void hy_chargetask_main()
 	
 }
 
+void hy_chargetask_setoverheat(void)
+{
+	s_chargetask->gui_msg.state |= HY_GUI_ERR_OVERHEAT_MASK;
+}
+
+void hy_chargetask_clearoverheat(void)
+{
+	s_chargetask->gui_msg.state &= ~HY_GUI_ERR_OVERHEAT_MASK;
+}
+
+int hy_chargetask_getoverheat(void)
+{
+	if (s_chargetask->gui_msg.state & HY_GUI_ERR_OVERHEAT_MASK){
+		return 1;
+	}else{
+		return 0;
+	}
+}
 
