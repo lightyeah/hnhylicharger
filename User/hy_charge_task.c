@@ -362,6 +362,8 @@ void hy_chargetask_set_output(uint32_t currentfb_x10A,uint32_t voltagefb_x10V,ui
 			if (systime_elapse_ms(stablecontroltime_ms) >= CHARGETASK_STABLE_CONTROL_INTERVAL){
 				stablecontroltime_ms = hy_time_now_ms();
 				s_chargetask->output_dac_value++;
+				if(s_chargetask->output_dac_value>=CHARGETASK_MAX_DAC_OUTPUT_VALUE)
+					s_chargetask->output_dac_value = CHARGETASK_MAX_DAC_OUTPUT_VALUE;
 			}
 		}
 	}else if(aimvalue < fbvalue){
@@ -372,6 +374,8 @@ void hy_chargetask_set_output(uint32_t currentfb_x10A,uint32_t voltagefb_x10V,ui
 			if (systime_elapse_ms(stablecontroltime_ms) >= CHARGETASK_STABLE_CONTROL_INTERVAL){
 				stablecontroltime_ms = hy_time_now_ms();
 				s_chargetask->output_dac_value--;
+				if(s_chargetask->output_dac_value <= 0)
+					s_chargetask->output_dac_value = 0;
 			}
 		}
 	}

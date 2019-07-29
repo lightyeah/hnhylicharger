@@ -122,6 +122,14 @@ int hy_set_output(uint32_t value)
 		LOG_ERROR_TAG(HY_LOG_TAG,"***output not init!!");
 		return HY_ERROR;
 	}
+	if(value <= 0){
+		value = 0;
+	}
+	if (value >= CHARGETASK_MAX_DAC_OUTPUT_VALUE)
+	{
+		value = CHARGETASK_MAX_DAC_OUTPUT_VALUE;
+	}
+	
 	GPDMA_ChannelCmd(0, ENABLE);	
 	while(Channel0_TC == 0){
 		timeout--;
