@@ -118,7 +118,7 @@ typedef enum HY_CANTASK_STATE{
 typedef struct HY_CANMSG{
 	uint32_t frame_id;
 	uint8_t databyte[8];
-	uint8_t resendcounts;
+	uint32_t resendcounts;
 }hy_canmsg;
 
 typedef struct CanComStrcut{

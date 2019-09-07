@@ -65,6 +65,8 @@ int hy_chargetask_start(int controltype, void* ctx)
 	
 	s_chargetask->start_time_ms = hy_time_now_ms();
 	s_chargetask->lastcontrol_time_ms = hy_time_now_ms();
+
+	hy_output_set_charge_relay(HY_OUTPUT_RELAY_ON);
 	
 	switch(controltype){
 		case HY_CONTROLSTYLE_CAN:
@@ -183,6 +185,7 @@ int hy_chargetask_stop(int stop_code,void* ctx)
 	s_chargetask->total_charge_time_ms = 
 		systime_elapse_ms(s_chargetask->start_time_ms);
 	
+	hy_output_set_charge_relay(HY_OUTPUT_RELAY_OFF);
 	
 	return HY_OK;
 }
@@ -225,7 +228,7 @@ int hy_chargetask_setaim(uint8_t type, uint32_t value)
 	switch (type){
 		case BMS_OBC_BCL_MODE_VOL:
 			s_chargetask->aim_type = type;
-		  if(value > hy_instance->config.voltagerange){
+		  if(value > (hy_instance->config.voltagerange*10)){
 				s_chargetask->aim_voltage_x10V = (hy_instance->config.voltagerange*10);
 			}else{
 				s_chargetask->aim_voltage_x10V = value;
@@ -233,7 +236,7 @@ int hy_chargetask_setaim(uint8_t type, uint32_t value)
 			break;
 		case BMS_OBC_BCL_MODE_CUR:
 			s_chargetask->aim_type = type;
-			if(value > hy_instance->config.currentrange){
+			if(value > (hy_instance->config.currentrange*10)){
 				s_chargetask->aim_current_x10A = (hy_instance->config.currentrange*10);
 			}else{
 				s_chargetask->aim_current_x10A = value;
@@ -245,7 +248,7 @@ int hy_chargetask_setaim(uint8_t type, uint32_t value)
 		    s_chargetask->aim_voltage_x10V = 0;
 			break;
 	}
-	
+	LOG_INFO_TAG(HY_LOG_TAG,"chargettask set aim type [%d] set value [%d] [%d]",type,s_chargetask->aim_voltage_x10V,s_chargetask->aim_current_x10A);
 	return HY_OK;
 }
 
@@ -292,7 +295,10 @@ void hy_chargetask_set_output(uint32_t currentfb_x10A,uint32_t voltagefb_x10V,ui
 	LOG_INFO_TAG(HY_LOG_TAG,"fbvol[%d] fbcur[%d]",voltagefb_x10V,currentfb_x10A);
 	LOG_INFO_TAG(HY_LOG_TAG,"aimtype [%d]  aimcur [%d] aimvol [%d] outputvalue [%d]",aimtype,
 		s_chargetask->aim_current_x10A,s_chargetask->aim_voltage_x10V,s_chargetask->output_dac_value);
-
+	if (s_chargetask->output_dac_value >= CHARGETASK_MAX_DAC_OUTPUT_VALUE)
+	{
+		s_chargetask->output_dac_value = CHARGETASK_MAX_DAC_OUTPUT_VALUE;
+	}
 	if(s_chargetask->max_voltage_x10V == 0){
 		s_chargetask->max_voltage_x10V = hy_instance->config.voltagerange;
 	}
@@ -408,10 +414,6 @@ void hy_chargetask_local_turntostate(hy_chargetask_state state)
 			s_chargetask->max_current_x10A = (hy_instance->config.currentrange*10);
 			s_chargetask->max_chargetimeout_ms = (hy_instance->config.chargetimeout_1_min*60*1000);
 			s_chargetask->statestarttime_ms = hy_time_now_ms();
-		  LOG_INFO_TAG(HY_LOG_TAG,"set max voltage [%d] x0.1V",s_chargetask->max_voltage_x10V);
-			LOG_INFO_TAG(HY_LOG_TAG,"set max current [%d]");
-			LOG_INFO_TAG(HY_LOG_TAG,"");
-			LOG_INFO_TAG(HY_LOG_TAG,"");
 		break;
 		case CHARGETASK_LOCAL_TWO:
 			hy_chargetask_setaim(BMS_OBC_BCL_MODE_CUR,hy_instance->config.chargecurrent_2*10);
@@ -487,12 +489,12 @@ void hy_chargetask_main()
 			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
 
 			if(s_chargetask->output_dac_value != 0){
-				s_chargetask->output_dac_value--;
-				if(s_chargetask->output_dac_value<=0)
-					s_chargetask->output_dac_value = 0;
-				hy_set_output(s_chargetask->output_dac_value);
+				s_chargetask->output_dac_value = s_chargetask->output_dac_value - 20;
+				if(s_chargetask->output_dac_value <= 0 )
+					s_chargetask->output_dac_value = 0;		
 			}
-
+			LOG_ERROR_TAG(HY_LOG_TAG,"idletest [%d]",s_chargetask->output_dac_value);
+			hy_set_output(s_chargetask->output_dac_value);
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
 				LOG_INFO_TAG(HY_LOG_TAG,
 				"***chargetask idle state... \r\n******get voltage [%d]x0.1V current [%d]x0.1A",
@@ -632,4 +634,20 @@ int hy_chargetask_getoverheat(void)
 		return 0;
 	}
 }
+
+void hy_test_key_up(void)
+{
+	s_chargetask->output_dac_value += 10;
+	hy_set_output(s_chargetask->output_dac_value);
+	LOG_WARN_TAG(HY_LOG_TAG,"hy_test_key_up test s_chargetask->output_dac_value[%d]",s_chargetask->output_dac_value);
+}
+
+
+void hy_test_key_down(void)
+{
+	s_chargetask->output_dac_value -= 10;
+	hy_set_output(s_chargetask->output_dac_value);
+	LOG_WARN_TAG(HY_LOG_TAG,"hy_test_key_up test s_chargetask->output_dac_value[%d]",s_chargetask->output_dac_value);
+}
+
 

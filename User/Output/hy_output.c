@@ -3,6 +3,7 @@
 #include "lpc17xx_dac.h"
 #include "lpc17xx_libcfg.h"
 #include "lpc17xx_pinsel.h"
+#include "lpc17xx_gpio.h"
 #include "lpc17xx_gpdma.h"
 #include "debug_frmwrk.h"
 #include "config.h"
@@ -62,11 +63,32 @@ int hy_output_init(void* hy_instance_handle)
 	Channel0_TC = 0;
 	memset(s_hy_output,0,sizeof(hy_output_t));
 	s_hy_output->output_dac_value = 0;
+	
 	/*hardware init*/  
-  //Init the input control message 
+	/*
+	demand:
+1. relay 1 - 57_rd1_P0[21]  default down, work in up
+2. relay 2 - 56_td1_p0[22]  default down, work in up
+	*/
+	PinCfg.Funcnum = 0;
+  PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  PinCfg.Pinmode = PINSEL_PINMODE_PULLDOWN;
+
+  PinCfg.Portnum = 0;
+  PinCfg.Pinnum = 21;
+  PINSEL_ConfigPin(&PinCfg);
+	PinCfg.Portnum = 0;
+  PinCfg.Pinnum = 22;
+  PINSEL_ConfigPin(&PinCfg);
+	
+	GPIO_SetDir(0,(1<<21)|(1<<22),1);
+	hy_output_set_charge_relay(HY_OUTPUT_RELAY_OFF);
+	hy_output_set_error_relay(HY_OUTPUT_RELAY_OFF);
+	
+  /*dac gpio init*/
   PinCfg.Funcnum = 2;
   PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-  PinCfg.Pinmode = PINSEL_PINMODE_PULLUP;
+  PinCfg.Pinmode = PINSEL_PINMODE_PULLDOWN;
   //No.6 P0[26] DAC AOUT
   PinCfg.Portnum = 0;
   PinCfg.Pinnum = 26;
@@ -150,3 +172,37 @@ int hy_set_output(uint32_t value)
 
 	return ret;
 }
+
+/****add for relay 20190831 start*****/
+/**
+demand:
+1. relay 1 - 57_rd1_P0[21]  for charge,default down, work in up
+2. relay 2 - 56_td1_p0[22]  for error,default down, work in up
+
+init in <hy_output_init>
+
+*/
+
+int hy_output_set_charge_relay(int state)
+{
+	if(state == HY_OUTPUT_RELAY_ON){
+		GPIO_SetValue(0,(1<<21));
+	}else if(state == HY_OUTPUT_RELAY_OFF){
+		GPIO_ClearValue(0,(1<<21));
+	}
+	return 0;
+}
+
+int hy_output_set_error_relay(int state)
+{
+	if(state == HY_OUTPUT_RELAY_ON){
+		GPIO_SetValue(0,(1<<22));
+	}else if(state == HY_OUTPUT_RELAY_OFF){
+		GPIO_ClearValue(0,(1<<22));
+	}
+	return 0;
+}
+
+/****add for relay 20190831 end*****/
+
+

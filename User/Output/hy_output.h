@@ -6,6 +6,9 @@
 #define HY_OUTPUT_TYPE_CURRENT   0
 #define HY_OUTPUT_TYPE_VOLTAGE   1
 
+#define HY_OUTPUT_RELAY_OFF      0
+#define HY_OUTPUT_RELAY_ON       1
+
 typedef struct HYOutputSignalStruct
 {
     uint32_t output_time_ms;
@@ -26,5 +29,8 @@ typedef struct HYOutputSignalStruct
 
 int hy_output_init(void* hy_instance_handle);
 int hy_set_output(uint32_t value);
+
+int hy_output_set_charge_relay(int state);
+int hy_output_set_error_relay(int state);
 
 #endif

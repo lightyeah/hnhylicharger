@@ -50,13 +50,13 @@ typedef struct HY_ChargeTask_T{
 	uint32_t end_time_ms;
 	uint32_t total_charge_time_ms;
 	
-	uint32_t controltype;
-	uint32_t aim_type;
-	uint32_t aim_voltage_x10V;
-	uint32_t aim_current_x10A;
-	uint32_t output_voltage_x10V;
-	uint32_t output_current_x10A;
-	uint32_t output_dac_value;
+	int32_t controltype;
+	int32_t aim_type;
+	int32_t aim_voltage_x10V;
+	int32_t aim_current_x10A;
+	int32_t output_voltage_x10V;
+	int32_t output_current_x10A;
+	int32_t output_dac_value;
 	uint32_t statestarttime_ms;
 
 	uint32_t max_voltage_x10V;
@@ -112,6 +112,10 @@ void hy_chargetask_main(void);
 void hy_chargetask_setoverheat(void);
 void hy_chargetask_clearoverheat(void);
 int hy_chargetask_getoverheat(void);
+
+
+void hy_test_key_up(void);
+void hy_test_key_down(void);
 #endif
 
 
