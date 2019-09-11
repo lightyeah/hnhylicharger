@@ -81,6 +81,7 @@ void hy_button_task(void)
 				LOG_INFO_TAG(HY_LOG_TAG,"gui button [esc] pressed!");
 				
 			}else if(hy_button_check(button_down)){
+				hy_test_key_down();
 				s_gui->button.state = down_pressed;
 				s_gui->button.pressed_time_ms = hy_time_now_ms();
 				s_gui->button.work_state = HY_BUTTON_NOWORK;
@@ -88,6 +89,7 @@ void hy_button_task(void)
 				LOG_INFO_TAG(HY_LOG_TAG,"gui button [down] pressed!");
 				
 			}else if(hy_button_check(button_up)){
+				hy_test_key_up();
 				s_gui->button.state = up_pressed;
 				s_gui->button.pressed_time_ms = hy_time_now_ms();
 				s_gui->button.work_state = HY_BUTTON_NOWORK;

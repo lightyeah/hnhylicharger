@@ -124,6 +124,7 @@ void SysTick_Handler(void)
 	}
 	
 	/*chargetask*/
+	
 	hy_chargetask_main();
 
 }

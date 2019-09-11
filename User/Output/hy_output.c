@@ -99,79 +99,88 @@ int hy_output_init(void* hy_instance_handle)
 	NVIC_SetPriority(DMA_IRQn, ((0x01<<3)|0x01));
 	
 	DAC_ConverterConfigStruct.CNT_ENA =SET;
-	DAC_ConverterConfigStruct.DMA_ENA = SET;
+	DAC_ConverterConfigStruct.DMA_ENA = RESET;
 	DAC_Init(LPC_DAC);
 	/* set time out for DAC*/
 	DAC_SetDMATimeOut(LPC_DAC,0x00);
 	DAC_ConfigDAConverterControl(LPC_DAC, &DAC_ConverterConfigStruct);
-	/* Initialize GPDMA controller */
-	GPDMA_Init();
-	// Setup GPDMA channel --------------------------------
-	// channel 0
-	GPDMACfg.ChannelNum = 0;
-	// Source memory
-	GPDMACfg.SrcMemAddr = (uint32_t)(&(s_hy_output->output_dac_value));
-	// Destination memory - unused
-	GPDMACfg.DstMemAddr = 0;
-	// Transfer size
-	GPDMACfg.TransferSize = DMA_SIZE;
-	// Transfer width - unused
-	GPDMACfg.TransferWidth = 0;
-	// Transfer type
-	GPDMACfg.TransferType = GPDMA_TRANSFERTYPE_M2P;
-	// Source connection - unused
-	GPDMACfg.SrcConn = 0;
-	// Destination connection
-	GPDMACfg.DstConn = GPDMA_CONN_DAC;
-	// Linker List Item - unused
-	GPDMACfg.DMALLI = 0;
-	// Setup channel with given parameter
-	GPDMA_Setup(&GPDMACfg);
-	
-	/* Enable GPDMA interrupt */
-	NVIC_EnableIRQ(DMA_IRQn);
+//	/* Initialize GPDMA controller */
+//	GPDMA_Init();
+//	// Setup GPDMA channel --------------------------------
+//	// channel 0
+//	GPDMACfg.ChannelNum = 0;
+//	// Source memory
+//	GPDMACfg.SrcMemAddr = (uint32_t)(&(s_hy_output->output_dac_value));
+//	// Destination memory - unused
+//	GPDMACfg.DstMemAddr = 0;
+//	// Transfer size
+//	GPDMACfg.TransferSize = DMA_SIZE;
+//	// Transfer width - unused
+//	GPDMACfg.TransferWidth = 0;
+//	// Transfer type
+//	GPDMACfg.TransferType = GPDMA_TRANSFERTYPE_M2P;
+//	// Source connection - unused
+//	GPDMACfg.SrcConn = 0;
+//	// Destination connection
+//	GPDMACfg.DstConn = GPDMA_CONN_DAC;
+//	// Linker List Item - unused
+//	GPDMACfg.DMALLI = 0;
+//	// Setup channel with given parameter
+//	GPDMA_Setup(&GPDMACfg);
+//	
+//	/* Enable GPDMA interrupt */
+//	NVIC_EnableIRQ(DMA_IRQn);
 	LOG_INFO_TAG(HY_LOG_TAG,"hy init dac done!");
 	
 	return ret;
 }
 
-
 int hy_set_output(uint32_t value)
 {
 	int ret = HY_OK;
-	int timeout = 505000;
-	if(s_hy_output == NULL){
-		LOG_ERROR_TAG(HY_LOG_TAG,"***output not init!!");
-		return HY_ERROR;
-	}
-	if(value <= 0){
-		value = 0;
-	}
-	if (value >= CHARGETASK_MAX_DAC_OUTPUT_VALUE)
-	{
-		value = CHARGETASK_MAX_DAC_OUTPUT_VALUE;
-	}
 	
-	GPDMA_ChannelCmd(0, ENABLE);	
-	while(Channel0_TC == 0){
-		timeout--;
-		if(timeout==0){
-//			LOG_ERROR_TAG(HY_LOG_TAG,"***set dac dma blocked!!!");
-			break;
-		}
-	}
-	GPDMA_ChannelCmd(0, DISABLE);
-
-	s_hy_output->output_dac_value=value;
-	//	s_hy_output->output_dac_value=1;
-//	LOG_INFO_TAG(HY_LOG_TAG,"set output voltage [%d]",value);
-
-	Channel0_TC = 0;
-	GPDMA_Setup(&GPDMACfg);
-//	LOG_INFO_TAG(HY_LOG_TAG,"set output voltage [%d] value [%d]",s_hy_output->output_dac_value,value);
-
+	DAC_UpdateValue(LPC_DAC,value);
+	
 	return ret;
 }
+
+
+//int hy_set_output(uint32_t value)
+//{
+//	int ret = HY_OK;
+//	int timeout = 505000;
+//	if(s_hy_output == NULL){
+//		LOG_ERROR_TAG(HY_LOG_TAG,"***output not init!!");
+//		return HY_ERROR;
+//	}
+//	if(value <= 0){
+//		value = 0;
+//	}
+//	if (value >= CHARGETASK_MAX_DAC_OUTPUT_VALUE)
+//	{
+//		value = CHARGETASK_MAX_DAC_OUTPUT_VALUE;
+//	}
+//	
+//	GPDMA_ChannelCmd(0, ENABLE);	
+//	while(Channel0_TC == 0){
+//		timeout--;
+//		if(timeout==0){
+////			LOG_ERROR_TAG(HY_LOG_TAG,"***set dac dma blocked!!!");
+//			break;
+//		}
+//	}
+//	GPDMA_ChannelCmd(0, DISABLE);
+
+//	s_hy_output->output_dac_value=value;
+//	//	s_hy_output->output_dac_value=1;
+////	LOG_INFO_TAG(HY_LOG_TAG,"set output voltage [%d]",value);
+
+//	Channel0_TC = 0;
+//	GPDMA_Setup(&GPDMACfg);
+////	LOG_INFO_TAG(HY_LOG_TAG,"set output voltage [%d] value [%d]",s_hy_output->output_dac_value,value);
+
+//	return ret;
+//}
 
 /****add for relay 20190831 start*****/
 /**

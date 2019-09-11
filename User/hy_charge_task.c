@@ -637,17 +637,17 @@ int hy_chargetask_getoverheat(void)
 
 void hy_test_key_up(void)
 {
-	s_chargetask->output_dac_value += 10;
-	hy_set_output(s_chargetask->output_dac_value);
-	LOG_WARN_TAG(HY_LOG_TAG,"hy_test_key_up test s_chargetask->output_dac_value[%d]",s_chargetask->output_dac_value);
+//	s_chargetask->output_dac_value += 10;
+//	hy_set_output(s_chargetask->output_dac_value);
+//	LOG_WARN_TAG(HY_LOG_TAG,"hy_test_key_up test s_chargetask->output_dac_value[%d]",s_chargetask->output_dac_value);
 }
 
 
 void hy_test_key_down(void)
 {
-	s_chargetask->output_dac_value -= 10;
-	hy_set_output(s_chargetask->output_dac_value);
-	LOG_WARN_TAG(HY_LOG_TAG,"hy_test_key_up test s_chargetask->output_dac_value[%d]",s_chargetask->output_dac_value);
+//	s_chargetask->output_dac_value -= 10;
+//	hy_set_output(s_chargetask->output_dac_value);
+//	LOG_WARN_TAG(HY_LOG_TAG,"hy_test_key_up test s_chargetask->output_dac_value[%d]",s_chargetask->output_dac_value);
 }
 
 
