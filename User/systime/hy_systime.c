@@ -58,6 +58,7 @@ static void timecounting(void){
 			return;			
 		}
     if(systime_elapse_ms(s_systime->lastcount_ms) >= 1000){
+			hy_can_send_test();
 			  s_systime->lastcount_ms = s_systime->now_ms;
         s_systime->second_60 += 1;
         if(s_systime->second_60 >= 60){
@@ -118,10 +119,10 @@ void SysTick_Handler(void)
 	hy_button_task();
 
 	/*can task*/
-	if(hy_instance->config.controlstyle == HY_CONTROLSTYLE_CAN){
-		hy_can_getmsg();
-		hy_can_task_main();
-	}
+// 	if(hy_instance->config.controlstyle == HY_CONTROLSTYLE_CAN){
+// 		hy_can_getmsg();
+// 		hy_can_task_main();
+// 	}
 	
 	/*chargetask*/
 	

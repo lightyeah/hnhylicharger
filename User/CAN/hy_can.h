@@ -95,7 +95,19 @@
 /*************************************/
 /********************协议********/
 /*************************************/
+#define HY_CHARGE_ID_FORMAT					 STD_ID_FORMAT
 
+#define HY_CHARGE_CONTROL_FRAME_ID   0x200
+#define HY_CHARGE_MSG_100MS_FRAME_ID     0x201//100ms间隔上报帧
+#define HY_CHARGE_MSG_500MS_FRAME_ID     0x301//500ms间隔上报帧
+
+
+/*start*********增加充电器控制协议*********/
+/********************/
+
+
+
+/*end*********增加充电器控制协议*******/
 #define HY_CAN_TASK_MONITOR_INTERVAL  2000/*unit ms*/
 typedef enum HY_BMS_STOP_MSG{
 	hy_bms_no_stop = 0,
@@ -136,6 +148,7 @@ typedef struct CanComStrcut{
 }hy_cancom_t;
 
 int hy_can_send(hy_canmsg* msg);
+int hy_can_send_test(void);
 int hy_can_init(void* hy_instance);
 int hy_can_getmsg(void);
 void hy_can_task_main(void);

@@ -94,6 +94,29 @@ int hy_can_send(hy_canmsg* msg)
     return 0;
 }
 
+/*测试接口*/
+int hy_can_send_test(void)
+{
+
+	
+    TXMsg.format = HY_CHARGE_ID_FORMAT;
+    TXMsg.len = 8;
+    TXMsg.id = HY_CHARGE_CONTROL_FRAME_ID;
+	
+    *((uint8_t *) &TXMsg.dataA[0])= 0xff;
+    *((uint8_t *) &TXMsg.dataA[1])= 0x03;
+    *((uint8_t *) &TXMsg.dataA[2])= 0x01;
+    *((uint8_t *) &TXMsg.dataA[3])= 0xf4;
+    *((uint8_t *) &TXMsg.dataB[0])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[1])= 0x10;
+    *((uint8_t *) &TXMsg.dataB[2])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[3])= 0x00;
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+		
+    return 0;
+}
+
 int hy_can_getmsg()
 {
 	int ret = HY_OK;
