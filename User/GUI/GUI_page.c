@@ -468,7 +468,7 @@ PAGE displaypage1_1(uint32_t state,
 					flag = CHARGETASK_BUTTON_START_CODE;
 					LOG_INFO_TAG(HY_LOG_TAG,"machine startted by button");
 					s_gui->machine_stop_flag = HY_FALSE;
-					hy_chargetask_start(0,&flag);
+					hy_chargetask_start(HY_CONTROLSTYLE_LOCAL,&flag);
 					return DisplayPage1_2;
 
 				case button_up://0x02

@@ -123,6 +123,7 @@ int hy_chargetask_start(int controltype, void* ctx)
 	return ret=HY_ERROR;
 }
 
+//停止充电
 int hy_chargetask_stop(int stop_code,void* ctx)
 {
 	
@@ -190,7 +191,7 @@ int hy_chargetask_stop(int stop_code,void* ctx)
 	return HY_OK;
 }
 
-
+//紧急停止充电
 int hy_chargetask_emergencystop()
 {
 	LOG_ERROR_TAG(HY_LOG_TAG,"!!!!!!!!!!!!!!!!!!");
@@ -359,6 +360,8 @@ void hy_chargetask_local_turntostate(hy_chargetask_state state)
 	LOG_INFO_TAG(HY_LOG_TAG,"set max chargetimeout [%d] ms",s_chargetask->max_chargetimeout_ms);
 	LOG_INFO_TAG(HY_LOG_TAG,"set state start time [%d] ms",s_chargetask->statestarttime_ms);
 }
+
+//充电控制主循环
 void hy_chargetask_main()
 {
 	static uint32_t monitortime_ms;
@@ -408,7 +411,7 @@ void hy_chargetask_main()
 	
 	
 	switch (s_chargetask->state){
-		case 	CHARGETASK_IDLE:
+		case 	CHARGETASK_IDLE://空闲状态
 			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
 
 			if(s_chargetask->output_dac_value != 0){
@@ -418,6 +421,7 @@ void hy_chargetask_main()
 			}
 			LOG_ERROR_TAG(HY_LOG_TAG,"idletest [%d]",s_chargetask->output_dac_value);
 			hy_set_output(s_chargetask->output_dac_value);
+			
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
 				LOG_INFO_TAG(HY_LOG_TAG,
 				"***chargetask idle state... \r\n******get voltage [%d]x0.1V current [%d]x0.1A",
@@ -435,7 +439,7 @@ void hy_chargetask_main()
 
 			break;
 
-	  case CHARGETASK_LOCAL_ONE:
+	  case CHARGETASK_LOCAL_ONE://第一阶段
 			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
 			hy_chargetask_set_output(currentfb_x10A,voltagefb_x10V,aimtype);
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
@@ -453,7 +457,7 @@ void hy_chargetask_main()
 			}
 			break;
 
-	  case CHARGETASK_LOCAL_TWO:
+	  case CHARGETASK_LOCAL_TWO://第二阶段
 			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
 	  		hy_chargetask_set_output(currentfb_x10A,voltagefb_x10V,aimtype);
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
@@ -470,7 +474,7 @@ void hy_chargetask_main()
 			}
 			break;
 
-		case CHARGETASK_LOCAL_THREE:
+		case CHARGETASK_LOCAL_THREE://第三阶段
 			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
 			hy_chargetask_set_output(currentfb_x10A,voltagefb_x10V,aimtype);
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
@@ -490,7 +494,7 @@ void hy_chargetask_main()
 			}
 			break;
 
-		case CHARGETASK_CAN:
+		case CHARGETASK_CAN://通讯控制模式
 
 			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
 			s_chargetask->gui_msg.state |= HY_GUI_CAN_ON_MASK;

@@ -111,7 +111,7 @@ void SysTick_Handler(void)
 		if(systime_elapse_ms(overheat_time_ms) >= HY_CHARGETASK_COLDTIME){//cold for 1 min
 			hy_chargetask_clearoverheat();
 			ctx = CHARGETASK_COLDDONW_START_CODE;
-			hy_chargetask_start(0,&ctx);
+			hy_chargetask_start(HY_CONTROLSTYLE_LOCAL,&ctx);
 		}
 	}
 

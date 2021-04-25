@@ -139,7 +139,9 @@ int hy_set_output(uint32_t value)
 {
 	int ret = HY_OK;
 	
-	DAC_UpdateValue(LPC_DAC,value);
+	if(value==0){//Í£Ö¹Êä³ö
+		
+	}
 	
 	return ret;
 }
