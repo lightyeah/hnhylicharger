@@ -117,6 +117,26 @@ int hy_can_send_test(void)
     return 0;
 }
 
+//报文控制充电机输出, 
+int hy_can_control_GWcharger(uint16_t vol_x10v, uint16_t cur_x10a){
+    TXMsg.format = HY_CHARGE_ID_FORMAT;
+    TXMsg.len = 8;
+    TXMsg.id = HY_CHARGE_CONTROL_FRAME_ID;
+	
+    *((uint8_t *) &TXMsg.dataA[0])= 0xff;//广播地址
+    *((uint8_t *) &TXMsg.dataA[1])= 0x03;//充电机正常工作，充电继电器打开
+    *((uint8_t *) &TXMsg.dataA[2])= INT16TO8_2((vol_x10v)&HY_MAX_VOLTAGE);
+    *((uint8_t *) &TXMsg.dataA[3])= INT16TO8_1((vol_x10v)&HY_MAX_VOLTAGE);
+    *((uint8_t *) &TXMsg.dataB[0])= INT16TO8_2((cur_x10a)&HY_MAX_CURRENT);
+    *((uint8_t *) &TXMsg.dataB[1])= INT16TO8_1((cur_x10a)&HY_MAX_CURRENT);
+    *((uint8_t *) &TXMsg.dataB[2])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[3])= 0x00;
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+		
+    return 0;	
+}
+
 int hy_can_getmsg()
 {
 	int ret = HY_OK;

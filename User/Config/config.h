@@ -4,8 +4,8 @@
 #include "stdint.h"
 #include "hy_dbg.h"
 
-#define HY_MAX_VOLTAGE                  7500/*unit 0.1 V*/
-#define HY_MAX_CURRENT                  4500/*unit 0.1 A*/
+#define HY_MAX_VOLTAGE                  960/*unit 0.1 V*/
+#define HY_MAX_CURRENT                  400/*unit 0.1 A*/
 
 #define hy_config_init                  Config_Init
 #define hy_config_eraseconfig           Config_EraseConfig

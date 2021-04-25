@@ -282,6 +282,7 @@ uint32_t hy_chargetask_gettotalpower_x10kwh()
 		return s_chargetask->total_chargepower_x10kwh;
 }
 
+//设置输出电压电流
 void hy_chargetask_set_output(uint32_t currentfb_x10A,uint32_t voltagefb_x10V,uint32_t aimtype)
 {
 
@@ -295,115 +296,37 @@ void hy_chargetask_set_output(uint32_t currentfb_x10A,uint32_t voltagefb_x10V,ui
 	LOG_INFO_TAG(HY_LOG_TAG,"fbvol[%d] fbcur[%d]",voltagefb_x10V,currentfb_x10A);
 	LOG_INFO_TAG(HY_LOG_TAG,"aimtype [%d]  aimcur [%d] aimvol [%d] outputvalue [%d]",aimtype,
 		s_chargetask->aim_current_x10A,s_chargetask->aim_voltage_x10V,s_chargetask->output_dac_value);
-	if (s_chargetask->output_dac_value >= CHARGETASK_MAX_DAC_OUTPUT_VALUE)
-	{
-		s_chargetask->output_dac_value = CHARGETASK_MAX_DAC_OUTPUT_VALUE;
-	}
-	if(s_chargetask->max_voltage_x10V == 0){
-		s_chargetask->max_voltage_x10V = hy_instance->config.voltagerange;
-	}
-	if(voltagefb_x10V >= s_chargetask->max_voltage_x10V){
-		LOG_WARN_TAG(HY_LOG_TAG,"output voltaga reach max [%d]x0.1V !!!",s_chargetask->max_voltage_x10V);
-		s_chargetask->output_dac_value--;
-		if(s_chargetask->output_dac_value <= 0)
-			s_chargetask->output_dac_value = 0;
-		hy_set_output(s_chargetask->output_dac_value);
-		return;
-	}
-
-	if(s_chargetask->max_current_x10A == 0){
-		s_chargetask->max_current_x10A = hy_instance->config.currentrange;
-	}
-	if(currentfb_x10A >= s_chargetask->max_current_x10A){
-		LOG_WARN_TAG(HY_LOG_TAG,"output current reach max [%d]x0.1A !!!",s_chargetask->max_current_x10A);
-		s_chargetask->output_dac_value--;
-		if(s_chargetask->output_dac_value <= 0)
-			s_chargetask->output_dac_value = 0;
-		hy_set_output(s_chargetask->output_dac_value);
-		return;
-	}
 	
-	if (outputvalue*CHARGETASK_DAC_TOVOLTAGEx10V_COEFFICIENT*2 < voltagefb_x10V){
-		outputvalue_increment = (voltagefb_x10V - outputvalue*CHARGETASK_DAC_TOVOLTAGEx10V_COEFFICIENT)*5/10 ;
-		outputvalue = outputvalue + outputvalue_increment;
-		s_chargetask->output_dac_value = outputvalue;
-		hy_set_output(s_chargetask->output_dac_value);
-		return;
+	switch (s_chargetask->state){
+		case CHARGETASK_LOCAL_ONE:
+			hy_can_control_GWcharger(hy_instance->config.limitvoltage_1*10, hy_instance->config.chargecurrent_1*10);
+// 			hy_chargetask_setaim(BMS_OBC_BCL_MODE_CUR,hy_instance->config.chargecurrent_1*10);
+// 			s_chargetask->max_voltage_x10V = (hy_instance->config.limitvoltage_1*10);
+// 			s_chargetask->max_current_x10A = (hy_instance->config.currentrange*10);
+// 			s_chargetask->max_chargetimeout_ms = (hy_instance->config.chargetimeout_1_min*60*1000);
+// 			s_chargetask->statestarttime_ms = hy_time_now_ms();
+		break;
+		case CHARGETASK_LOCAL_TWO:
+			hy_can_control_GWcharger(hy_instance->config.limitvoltage_2*10, hy_instance->config.chargecurrent_2*10);
+// 			hy_chargetask_setaim(BMS_OBC_BCL_MODE_CUR,hy_instance->config.chargecurrent_2*10);
+// 			s_chargetask->max_voltage_x10V = (hy_instance->config.limitvoltage_2*10);
+// 			s_chargetask->max_current_x10A = (hy_instance->config.currentrange*10);
+// 			s_chargetask->max_chargetimeout_ms = (hy_instance->config.chargetimeout_2_min*60*1000);
+// 			s_chargetask->statestarttime_ms = hy_time_now_ms();
+		break;
+		case CHARGETASK_LOCAL_THREE:
+			hy_can_control_GWcharger(hy_instance->config.chargevoltage_3*10, hy_instance->config.limitcurrent_3*10);
+// 			hy_chargetask_setaim(BMS_OBC_BCL_MODE_VOL,hy_instance->config.chargevoltage_3*10);
+// 			s_chargetask->max_voltage_x10V = (hy_instance->config.limitcurrent_3*10);
+// 			s_chargetask->max_current_x10A = (hy_instance->config.voltagerange*10);
+// 			s_chargetask->max_chargetimeout_ms = (hy_instance->config.chargetimeout_3_min*60*1000);
+// 			s_chargetask->statestarttime_ms = hy_time_now_ms();
+		default:
+		break;
 	}
 
-	switch(aimtype){
-		case BMS_OBC_BCL_MODE_VOL:
-			aimvalue = s_chargetask->aim_voltage_x10V;
-			fbvalue = voltagefb_x10V;
-			// if(voltagefb_x10V > s_chargetask->aim_voltage_x10V){
-			// 	s_chargetask->output_dac_value--;
-			// 	if(s_chargetask->output_dac_value<=0)
-			// 		s_chargetask->output_dac_value = 0;
-			// }else{
-			// 	s_chargetask->output_dac_value++;
-			// 	if(s_chargetask->output_dac_value>=CHARGETASK_MAX_DAC_OUTPUT_VALUE)
-			// 		s_chargetask->output_dac_value = CHARGETASK_MAX_DAC_OUTPUT_VALUE;
-			// }
-			break;
-		case BMS_OBC_BCL_MODE_CUR:
-			aimvalue = s_chargetask->aim_current_x10A;
-			fbvalue = currentfb_x10A;
-			// if(currentfb_x10A > s_chargetask->aim_current_x10A){
-			// 	s_chargetask->output_dac_value--;
-			// 	if(s_chargetask->output_dac_value <= 0)
-			// 		s_chargetask->output_dac_value = 0;
-			// }else{
-			// 	s_chargetask->output_dac_value++;
-			// 	if(s_chargetask->output_dac_value>=CHARGETASK_MAX_DAC_OUTPUT_VALUE)
-			// 		s_chargetask->output_dac_value = CHARGETASK_MAX_DAC_OUTPUT_VALUE;
-			// }
-			break;
-	}
-
-	if (aimvalue > fbvalue){
-		diffvalue = aimvalue - fbvalue;
-		if (diffvalue >= CHARGETASK_STABLE_RANGE_CHANGE){
-			s_chargetask->output_dac_value++;
-		}else if(diffvalue < CHARGETASK_STABLE_RANGE_CHANGE){
-			if (systime_elapse_ms(stablecontroltime_ms) >= CHARGETASK_STABLE_CONTROL_INTERVAL){
-				stablecontroltime_ms = hy_time_now_ms();
-				s_chargetask->output_dac_value++;
-				if(s_chargetask->output_dac_value>=CHARGETASK_MAX_DAC_OUTPUT_VALUE)
-					s_chargetask->output_dac_value = CHARGETASK_MAX_DAC_OUTPUT_VALUE;
-			}
-		}
-	}else if(aimvalue < fbvalue){
-		diffvalue = fbvalue - aimvalue;
-		if (diffvalue >= CHARGETASK_STABLE_RANGE_CHANGE){
-			s_chargetask->output_dac_value--;
-		}else if(diffvalue < CHARGETASK_STABLE_RANGE_CHANGE){
-			if (systime_elapse_ms(stablecontroltime_ms) >= CHARGETASK_STABLE_CONTROL_INTERVAL){
-				stablecontroltime_ms = hy_time_now_ms();
-				s_chargetask->output_dac_value--;
-				if(s_chargetask->output_dac_value <= 0)
-					s_chargetask->output_dac_value = 0;
-			}
-		}
-	}
-	// if (aimvalue > fbvalue){
-	// 	diffvalue = aimvalue - fbvalue;
-	// 	outputvalue_increment = diffvalue/(CHARGETASK_PID_P_FORDIVISION*CHARGETASK_DAC_TOVOLTAGEx10V_COEFFICIENT);
-	// 	if (outputvalue_increment <= 1){
-	// 		outputvalue_increment = 1;
-	// 	}
-	// 	s_chargetask->output_dac_value = s_chargetask->output_dac_value + outputvalue_increment;
-
-	// }else if(aimvalue < fbvalue){
-	// 	diffvalue = fbvalue - aimvalue;
-	// 	outputvalue_increment = diffvalue/(CHARGETASK_PID_P_FORDIVISION*CHARGETASK_DAC_TOVOLTAGEx10V_COEFFICIENT);
-	// 	if (outputvalue_increment <= 1){
-	// 		outputvalue_increment = 1;
-	// 	}
-	// 	s_chargetask->output_dac_value = s_chargetask->output_dac_value - outputvalue_increment;
-	// }
-
-	hy_set_output(s_chargetask->output_dac_value);
 }
+
 
 void hy_chargetask_local_turntostate(hy_chargetask_state state)
 {
@@ -521,7 +444,7 @@ void hy_chargetask_main()
 				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
 				monitortime_ms = hy_time_now_ms();
 			}
-			if(voltagefb_x10V >= (hy_instance->config.switchvoltage_1 *10)
+			if(voltagefb_x10V >= (hy_instance->config.switchvoltage_1 *10)//跳转电压
 				|| systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){
 				/*change to local [two]*/
 				LOG_INFO_TAG(HY_LOG_TAG,"switch to local state [two]");
@@ -539,7 +462,7 @@ void hy_chargetask_main()
 				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
 				monitortime_ms = hy_time_now_ms();
 			}
-			if(voltagefb_x10V >= (hy_instance->config.switchvoltage_2 *10)
+			if(voltagefb_x10V >= (hy_instance->config.switchvoltage_2 *10)//跳转电压
 				|| systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){/*change to local [two]*/
 				LOG_INFO_TAG(HY_LOG_TAG,"switch to local state [three]");
 				s_chargetask->state = CHARGETASK_LOCAL_THREE;
@@ -559,7 +482,7 @@ void hy_chargetask_main()
 			/*attention !!! 
 			* local_state_three switch condition is smaller!!!
 			*/
-			if(currentfb_x10A <= (hy_instance->config.switchcurrent_3 *10)
+			if(currentfb_x10A <= (hy_instance->config.switchcurrent_3 *10)//跳转电流
 				|| systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){/*change to local [two]*/
 				LOG_INFO_TAG(HY_LOG_TAG,"[three is end ,change to idle]");
 				hy_chargetask_stop(CHARGETASK_LOCAL_NORMAL_STOP_CODE,NULL);

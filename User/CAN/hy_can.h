@@ -155,6 +155,7 @@ typedef struct CanComStrcut{
 
 int hy_can_send(hy_canmsg* msg);
 int hy_can_send_test(void);
+int hy_can_control_GWcharger(uint16_t vol_x10v, uint16_t cur_x10a);
 int hy_can_init(void* hy_instance);
 int hy_can_getmsg(void);
 void hy_can_task_main(void);

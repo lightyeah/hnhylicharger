@@ -20,7 +20,7 @@
 #define INT8TO32(a,b,c,d)         (uint32_t)(d|(((c)<<8)&0xff00)|(((b)<<16)&0xff0000)|(((a)<<24)&0xff000000))  
 #define INT8TO16(a,b)             INT8TO32(0,0,a,b)
 #define INT32TO8_1(a)             (uint8_t)((a)&0xff)
-#define INT32TO8_2(a)	 		  (uint8_t)(((a)&0xff00)>>8)
+#define INT32TO8_2(a)	 		        (uint8_t)(((a)&0xff00)>>8)
 #define INT32TO8_3(a)             (uint8_t)(((a)&0xff0000)>>16)
 #define INT32TO8_4(a)             (uint8_t)(((a)&0xff000000)>>24)
 #define INT16TO8_1(a)             INT32TO8_1(a)
