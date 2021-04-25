@@ -170,8 +170,30 @@ int hy_can_getmsg()
 				s_cancom->canmsg.databyte[3] = RXMsg.dataA[3];	
 
 				break;
+			case HY_CHARGE_MSG_100MS_FRAME_ID://100ms 充电器上报数据处理
+				s_cancom->state = HY_CANTASK_CHARGE_MSG_100MS;
+				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_100MS_FRAME_ID;
+// 				s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
+// 				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
+// 				s_cancom->canmsg.databyte[2] = RXMsg.dataA[2];
+// 				s_cancom->canmsg.databyte[3] = RXMsg.dataA[3];	
+// 			  s_cancom->canmsg.databyte[4] = RXMsg.dataB[0];	
+// 			  s_cancom->canmsg.databyte[5] = RXMsg.dataB[1];	
+// 				s_cancom->canmsg.databyte[6] = RXMsg.dataB[2];	
+// 				s_cancom->canmsg.databyte[7] = RXMsg.dataB[3];	
+			 hy_set_voltagefb_x10V(INT8TO16(s_cancom->canmsg.databyte[4],s_cancom->canmsg.databyte[5]));
+			 hy_set_currentfb_x10A(INT8TO16(s_cancom->canmsg.databyte[6],s_cancom->canmsg.databyte[7]));
+				break;
+			case HY_CHARGE_MSG_500MS_FRAME_ID://500ms 充电器上报数据处理
+				s_cancom->state = HY_CANTASK_CHARGE_MSG_500MS;
+				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_500MS_FRAME_ID;
+// 				s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
+// 				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
+// 				s_cancom->canmsg.databyte[2] = RXMsg.dataA[2];
+// 				s_cancom->canmsg.databyte[3] = RXMsg.dataA[3];
+				break;
 			default:
-				s_cancom->state = HY_CANTASK_IDLE;
+				//s_cancom->state = HY_CANTASK_IDLE;
 				LOG_ERROR_TAG(HY_LOG_TAG,"get can wrong msg!!!");
 				break;
 		}
@@ -348,6 +370,13 @@ void hy_can_task_main()
 			break;
 			
 			
+		case HY_CANTASK_CHARGE_MSG_100MS://100ms 充电器上报状态处理
+			
+			break;
+		case HY_CANTASK_CHARGE_MSG_500MS://500ms 充电器上报状态处理
+			
+			break;
+		
 		case HY_CANTASK_ERR:
 			break;
 		default:

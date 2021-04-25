@@ -124,8 +124,14 @@ typedef enum HY_CANTASK_STATE{
 	HY_CANTASK_BMS_STOP,
 	HY_CANTASK_OBC_STOP,
 	HY_CANTASK_END,
+	
+	HY_CANTASK_CHARGE_MSG_100MS,//充电器上报状态报文 100ms间隔
+	HY_CANTASK_CHARGE_MSG_500MS,//充电器上报状态报文 500ms间隔
+	
 	HY_CANTASK_ERR
 }hy_cantask_state;
+
+
 
 typedef struct HY_CANMSG{
 	uint32_t frame_id;

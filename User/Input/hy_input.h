@@ -35,6 +35,8 @@ uint8_t hy_get_heatwarn(void);
 uint8_t hy_get_resettrigger(void);
 uint8_t hy_get_embtrigger(void);
 
+void hy_set_voltagefb_x10V(uint16_t value);
+void hy_set_currentfb_x10A(uint16_t value);
 uint16_t hy_get_voltagefb_x10V(void);
 uint16_t hy_get_currentfb_x10A(void);
 
