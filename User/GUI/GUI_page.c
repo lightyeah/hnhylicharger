@@ -3112,7 +3112,7 @@ PAGE errorpage2(void)
 	while(1);
 }
 
-/**/
+/*请在出厂模式下设置*/
 PAGE errorpage3(PAGE father_page)
 {
 	lcd_clear();
@@ -3124,5 +3124,60 @@ PAGE errorpage3(PAGE father_page)
     lcd_display_chinese(sz);
 
 	hy_gui_delay_ms(1500);
+	return father_page;
+}
+
+int page4updatetime_ms=0;
+PAGE errorpage4(PAGE father_page)//高温警告
+{
+	if(systime_elapse_ms(page4updatetime_ms)<10000){
+		return father_page;
+	}
+	page4updatetime_ms = hy_time_now_ms();
+	lcd_clear();
+
+    lcd_display_chinese_at(0,0,gw);
+    lcd_display_chinese(zt);
+
+	hy_gui_delay_ms(3000);
+	return father_page;
+}
+
+int page5updatetime_ms=0;
+PAGE errorpage5(PAGE father_page)//电流错误
+{
+
+	if(systime_elapse_ms(page5updatetime_ms)<10000){
+		return father_page;
+	}
+	page5updatetime_ms = hy_time_now_ms();
+	lcd_clear();
+
+    
+    lcd_display_chinese_at(0,0,dian);
+	lcd_display_chinese(liu);//电流
+    lcd_display_chinese(gz);
+
+	hy_gui_delay_ms(3000);
+	return father_page;
+}
+
+
+int page6updatetime_ms=0;
+PAGE errorpage6(PAGE father_page)//电压错误
+{
+
+	if(systime_elapse_ms(page6updatetime_ms)<10000){
+		return father_page;
+	}
+	page6updatetime_ms = hy_time_now_ms();
+	lcd_clear();
+
+    
+    lcd_display_chinese_at(0,0,dian);
+		lcd_display_chinese(ya);//电流
+    lcd_display_chinese(gz);
+
+	hy_gui_delay_ms(3000);
 	return father_page;
 }

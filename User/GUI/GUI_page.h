@@ -37,8 +37,12 @@ typedef enum PAGE
 	SettingPage22,//15
 	SettingPage32,//16
 	ErrorPage,//17
-	ErrorPage1,
+	ErrorPage1,//未知错误
 	ErrorPage2,//没有进行配置
+	ErrorPage3,//请在出厂模式下设置
+	ErrorPage4,//温度过高
+	ErrorPage5,//电流错误
+	ErrorPage6,//电压错误
 } PAGE;
 
 
@@ -113,6 +117,9 @@ PAGE errorpage(uint8_t err);
 PAGE errorpage1(void);
 PAGE errorpage2(void);
 PAGE errorpage3(PAGE father_page);
+PAGE errorpage4(PAGE father_page);
+PAGE errorpage5(PAGE father_page);
+PAGE errorpage6(PAGE father_page);
 
 PAGE finishpage(uint32_t vol,uint32_t time);
 PAGE finishpage2(uint32_t vol,uint32_t time,uint8_t * flag);
