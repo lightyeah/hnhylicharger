@@ -132,7 +132,7 @@ uint8_t hy_get_resettrigger(void){
 }
 
 void hy_set_voltagefb_x10V(uint16_t value){
-	// LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1 raw data [%d]",hy_instance->inputsignal.voltagefb_x10V,rawvdata);
+	   LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1",value);
     hy_instance->inputsignal.voltagefb_x10V = value;
 }
 
@@ -142,7 +142,7 @@ void hy_set_currentfb_x10A(uint16_t value){
 }
 /*ADC TODO use more effecient method !!!!*/
 uint16_t hy_get_voltagefb_x10V(void){
-	// LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1 raw data [%d]",hy_instance->inputsignal.voltagefb_x10V,rawvdata);
+	  //LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1 ",hy_instance->inputsignal.voltagefb_x10V);
     return hy_instance->inputsignal.voltagefb_x10V;
 }
 

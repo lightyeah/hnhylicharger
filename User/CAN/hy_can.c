@@ -132,7 +132,7 @@ int hy_can_control_GWcharger(uint16_t vol_x10v, uint16_t cur_x10a){
     *((uint8_t *) &TXMsg.dataB[2])= 0x00;
     *((uint8_t *) &TXMsg.dataB[3])= 0x00;
 
-	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+	//CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
 		
     return 0;	
 }
@@ -162,7 +162,7 @@ int hy_can_getmsg()
 	int ret = HY_OK;
 
 	if(s_cancom->msgupdate_flag){
-		LOG_DEBUG_TAG(HY_LOG_TAG, "can update new msg");
+		// LOG_DEBUG_TAG(HY_LOG_TAG, "can update new msg ");
 		s_cancom->msgupdate_flag = HY_FALSE;/*clear flag*/
 
 		s_cancom->canconnected = HY_TRUE;
@@ -211,7 +211,6 @@ int hy_can_getmsg()
 
 				break;
 			case HY_CHARGE_MSG_100MS_FRAME_ID://100ms 充电器上报数据处理
-			LOG_DEBUG_TAG(HY_LOG_TAG,"get 100 can msg");
     
 				s_cancom->state = HY_CANTASK_CHARGE_MSG_100MS;
 				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_100MS_FRAME_ID;
@@ -219,15 +218,14 @@ int hy_can_getmsg()
 // 				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
 // 				s_cancom->canmsg.databyte[2] = RXMsg.dataA[2];
 // 				s_cancom->canmsg.databyte[3] = RXMsg.dataA[3];	
-// 			  s_cancom->canmsg.databyte[4] = RXMsg.dataB[0];	
-// 			  s_cancom->canmsg.databyte[5] = RXMsg.dataB[1];	
-// 				s_cancom->canmsg.databyte[6] = RXMsg.dataB[2];	
-// 				s_cancom->canmsg.databyte[7] = RXMsg.dataB[3];	
+			  s_cancom->canmsg.databyte[4] = RXMsg.dataB[0];	
+			  s_cancom->canmsg.databyte[5] = RXMsg.dataB[1];	
+				s_cancom->canmsg.databyte[6] = RXMsg.dataB[2];	
+				s_cancom->canmsg.databyte[7] = RXMsg.dataB[3];	
 			 hy_set_voltagefb_x10V(INT8TO16(s_cancom->canmsg.databyte[4],s_cancom->canmsg.databyte[5]));
 			 hy_set_currentfb_x10A(INT8TO16(s_cancom->canmsg.databyte[6],s_cancom->canmsg.databyte[7]));
 				break;
 			case HY_CHARGE_MSG_500MS_FRAME_ID://500ms 充电器上报数据处理
-			LOG_DEBUG_TAG(HY_LOG_TAG,"get 500 can msg");
 				s_cancom->state = HY_CANTASK_CHARGE_MSG_500MS;
 				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_500MS_FRAME_ID;
 // 				s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
