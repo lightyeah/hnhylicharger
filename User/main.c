@@ -158,9 +158,9 @@ int main(void)
 	
 	//第一阶段
 	s_hy_instance.config.chargecurrent_1 = 10;//充电电流
-	s_hy_instance.config.limitvoltage_1 = 50;//限制电压
+	s_hy_instance.config.limitvoltage_1 = 60;//限制电压
 	s_hy_instance.config.chargetimeout_1_min = 15;//充电时间
-	s_hy_instance.config.switchvoltage_1 = 50;//跳转电压
+	s_hy_instance.config.switchvoltage_1 = 60;//跳转电压
 	//第二阶段
 	s_hy_instance.config.chargecurrent_2 = 40;//充电电流
 	s_hy_instance.config.limitvoltage_2 = 82;//限制电压

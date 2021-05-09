@@ -16,6 +16,8 @@ uint32_t CANRxCount, CANTxCount = 0;
 
 hy_cancom_t *s_cancom = NULL;
 
+char ghy_can_GWcharger_batteryoff_flag=1;
+
 int hy_can_init(void* hy_instance_handle)
 {
 		int ret = HY_OK;
@@ -122,7 +124,7 @@ int hy_can_control_GWcharger(uint16_t vol_x10v, uint16_t cur_x10a){
     TXMsg.format = HY_CHARGE_ID_FORMAT;
     TXMsg.len = 8;
     TXMsg.id = HY_CHARGE_CONTROL_FRAME_ID;
-	   LOG_DEBUG_TAG(HY_LOG_TAG, "====control [%d]v [%d]a",vol_x10v,cur_x10a);
+// 	   LOG_DEBUG_TAG(HY_LOG_TAG, "====control [%d]v [%d]a",vol_x10v,cur_x10a);
     *((uint8_t *) &TXMsg.dataA[0])= 0xff;//广播地址
     *((uint8_t *) &TXMsg.dataA[1])= 0x03;//充电机正常工作，充电继电器打开
     *((uint8_t *) &TXMsg.dataA[2])= INT16TO8_2((vol_x10v));
@@ -135,6 +137,10 @@ int hy_can_control_GWcharger(uint16_t vol_x10v, uint16_t cur_x10a){
 	  CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
 		
     return 0;	
+}
+
+int hy_can_GWcharger_batteryoff(void){
+	return ghy_can_GWcharger_batteryoff_flag;
 }
 
 //报文控制关闭充电机输出, 
@@ -214,7 +220,9 @@ int hy_can_getmsg()
     
 				s_cancom->state = HY_CANTASK_CHARGE_MSG_100MS;
 				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_100MS_FRAME_ID;
-// 				s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
+				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
+			  ghy_can_GWcharger_batteryoff_flag=s_cancom->canmsg.databyte[1]&0x01;//电池未连接
+				   LOG_DEBUG_TAG(HY_LOG_TAG, "====batteryoff [%d]",ghy_can_GWcharger_batteryoff_flag);
 // 				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
 // 				s_cancom->canmsg.databyte[2] = RXMsg.dataA[2];
 // 				s_cancom->canmsg.databyte[3] = RXMsg.dataA[3];	

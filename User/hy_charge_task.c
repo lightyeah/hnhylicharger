@@ -148,14 +148,14 @@ int hy_chargetask_stop(int stop_code,void* ctx)
 					s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_END_MASK;
 				}/*todo can timeout 600min*/
 			}
-		break;
+			break;
 		case CHARGETASK_LOCAL_NORMAL_STOP_CODE:
 			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
 			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_END_MASK;		
-		break;
+			break;
 		case CHARGETASK_BATTERY_DISCONNECT_STOP_CODE:
 			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
-		break;
+			break;
 		case CHARGETASK_ERR_STOP_CODE:
 			if (ctx != NULL){
 				if (*(int*)ctx == OBC_BMS_CST_HEAT_ERR(1)){//overheat error
@@ -166,16 +166,16 @@ int hy_chargetask_stop(int stop_code,void* ctx)
 					s_chargetask->gui_msg.state |= HY_GUI_ERR_OVERHEAT_MASK;
 				}
 			}
-		break;
+			break;
 		case CHARGETASK_BUTTON_STOP_CODE:
 			s_chargetask->machine_start_flag = HY_FALSE;
 			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
 			if (s_chargetask->controltype == HY_GUI_CAN_ON_MASK){
 				hy_can_stop(OBC_BMS_CST_MANUAL_STOP(1),NULL);
 			}
-		break;
+			break;
 		default:
-		break;
+			break;
 	}
 
 	s_chargetask->start_flag = HY_FALSE;
@@ -300,7 +300,11 @@ void hy_chargetask_set_output(uint32_t currentfb_x10A,uint32_t voltagefb_x10V,ui
 	
 	switch (s_chargetask->state){
 		case CHARGETASK_LOCAL_ONE:
-			hy_can_control_GWcharger(hy_instance->config.limitvoltage_1*10, hy_instance->config.chargecurrent_1*10);
+			if((voltagefb_x10V+100)<480){
+				hy_can_control_GWcharger(480, hy_instance->config.chargecurrent_1*10);
+			}else{
+				hy_can_control_GWcharger(voltagefb_x10V+100, hy_instance->config.chargecurrent_1*10);
+			}
 // 			hy_chargetask_setaim(BMS_OBC_BCL_MODE_CUR,hy_instance->config.chargecurrent_1*10);
 // 			s_chargetask->max_voltage_x10V = (hy_instance->config.limitvoltage_1*10);
 // 			s_chargetask->max_current_x10A = (hy_instance->config.currentrange*10);
@@ -381,7 +385,7 @@ void hy_chargetask_main()
 	s_chargetask->output_current_x10A = currentfb_x10A;
 	s_chargetask->output_voltage_x10V = voltagefb_x10V;
 	
-	if(voltagefb_x10V >= 50){/*通过电池电压判断电池是否接入*/
+	if(!hy_can_GWcharger_batteryoff()){/*通过电池电压判断电池是否接入*/
 		s_chargetask->gui_msg.state |= HY_GUI_BATTERY_ON_MASK;
 		if(s_chargetask->battery_flag == HY_BATTERY_DISCONNECT){
 			if(hy_instance->config.controlstyle == HY_CONTROLSTYLE_LOCAL){

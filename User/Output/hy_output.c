@@ -140,7 +140,7 @@ int hy_set_output(uint32_t value)
 	int ret = HY_OK;
 	
 	if(value==0){//Í£Ö¹Êä³ö
-		
+		hy_can_stop_GWcharger();
 	}
 	
 	return ret;

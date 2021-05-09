@@ -159,6 +159,7 @@ int hy_can_send_test(void);
 //充电器控制
 int hy_can_control_GWcharger(uint16_t vol_x10v, uint16_t cur_x10a);
 int hy_can_stop_GWcharger(void);
+int hy_can_GWcharger_batteryoff(void);
 
 int hy_can_init(void* hy_instance);
 int hy_can_getmsg(void);
