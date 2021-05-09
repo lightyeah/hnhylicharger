@@ -341,10 +341,20 @@ PAGE displaypage1(uint32_t state,
 				lcd_display_chinese(dian);
 				lcd_display_chinese(wancheng);
 				lcd_display_space();
-		}else{/*err*/
+		}else if(state & HY_GUI_ERR_CURRENT_MASK){
+				lcd_display_chinese(dian);
+				lcd_display_chinese(liu);
+				lcd_display_chinese(gz);
+				lcd_display_ascii("!");
+			}else if(state & HY_GUI_ERR_VOLTAGE_MASK){
+				lcd_display_chinese(dian);
+				lcd_display_chinese(ya);
+				lcd_display_chinese(gz);
+				lcd_display_ascii("!");
+			}else{/*err*/
 			if (state & HY_GUI_ERR_OVERHEAT_MASK){//overheat
 				lcd_display_chinese(gw);
-				lcd_display_chinese(bh);
+				lcd_display_chinese(zt);
 				lcd_display_ascii("!");
 			}else if (s_gui->controlstyle == HY_CONTROLSTYLE_CAN){
 				if(!(state&HY_GUI_CAN_ON_MASK))

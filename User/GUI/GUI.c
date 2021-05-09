@@ -275,7 +275,6 @@ void MainProcess(void){
 	}
 	while(1){
 // 		chargehandler();
-		PageState = ErrorPage6;
 		switch(PageState){
 			case WelcomePage:
 				PageState = welcomepage();
@@ -386,8 +385,8 @@ void MainProcess(void){
 			case ErrorPage2://参数配置错误
 				PageState = errorpage2();
 				break;
-			case ErrorPage4://高温错误
-				errorpage4(ErrorPage4);
+			case ErrorPage4://高温状态
+				errorpage4(DisplayPage1);
 				break;
 			case ErrorPage5://电流错误
 				errorpage5(ErrorPage5);

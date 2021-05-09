@@ -543,6 +543,15 @@ void hy_chargetask_main()
 	s_chargetask->gui_msg.chargetime_min = hy_chargetask_getchargetime_min();
 	s_chargetask->gui_msg.currentx10A = hy_chargetask_getoutputcur_x10A();
 	s_chargetask->gui_msg.voltagex10V = hy_chargetask_getoutputvol_x10V();
+	if(hy_can_GWcharger_overheatstate()){
+		s_chargetask->gui_msg.state |= HY_GUI_ERR_OVERHEAT_MASK;
+	}
+	if(hy_can_GWcharger_currenterror()){
+		s_chargetask->gui_msg.state |= HY_GUI_ERR_CURRENT_MASK;
+	}
+	if(hy_can_GWcharger_voltageerror()){
+		s_chargetask->gui_msg.state |= HY_GUI_ERR_VOLTAGE_MASK;
+	}
 	hy_emit_gui_msg(CHARGETASK_MSG,&s_chargetask->gui_msg);
 	
 }

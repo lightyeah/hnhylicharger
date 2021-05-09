@@ -21,6 +21,8 @@
 
 // #define HY_GUI_ERR_MASK                 (1<<(12))
 #define HY_GUI_ERR_OVERHEAT_MASK        (1<<(13))
+#define HY_GUI_ERR_CURRENT_MASK         (1<<(14))
+#define HY_GUI_ERR_VOLTAGE_MASK         (1<<(15))
 
 typedef enum Hy_Gui_Msg_Type{
 	NO_MSG = 0,

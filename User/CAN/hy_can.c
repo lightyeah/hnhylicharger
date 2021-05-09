@@ -17,6 +17,9 @@ uint32_t CANRxCount, CANTxCount = 0;
 hy_cancom_t *s_cancom = NULL;
 
 char ghy_can_GWcharger_batteryoff_flag=1;
+char ghy_can_GWcharger_overheat_flag = 0;
+char ghy_can_GWcharger_voltageerror_flag = 0;
+char ghy_can_GWcharger_currenterror_flag = 0;
 
 int hy_can_init(void* hy_instance_handle)
 {
@@ -143,6 +146,17 @@ int hy_can_GWcharger_batteryoff(void){
 	return ghy_can_GWcharger_batteryoff_flag;
 }
 
+int hy_can_GWcharger_overheatstate(void){
+	return ghy_can_GWcharger_overheat_flag;
+}
+
+int hy_can_GWcharger_currenterror(void){
+	return ghy_can_GWcharger_currenterror_flag;
+}
+
+int hy_can_GWcharger_voltageerror(void){
+	return ghy_can_GWcharger_voltageerror_flag;
+}
 //报文控制关闭充电机输出, 
 int hy_can_stop_GWcharger(void){
     TXMsg.format = HY_CHARGE_ID_FORMAT;
@@ -220,9 +234,26 @@ int hy_can_getmsg()
     
 				s_cancom->state = HY_CANTASK_CHARGE_MSG_100MS;
 				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_100MS_FRAME_ID;
+			  s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
 				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
+				if(((s_cancom->canmsg.databyte[0]&64)||(s_cancom->canmsg.databyte[1]&28))){
+					ghy_can_GWcharger_overheat_flag = 1;//高温状态
+				}else{
+					ghy_can_GWcharger_overheat_flag = 0;
+				}
+				if((s_cancom->canmsg.databyte[0])&48){
+					ghy_can_GWcharger_currenterror_flag = 1;//电流故障
+				}else{
+					ghy_can_GWcharger_currenterror_flag = 0;
+				}
+				if((s_cancom->canmsg.databyte[0]&15)||(s_cancom->canmsg.databyte[1]&2)){
+					ghy_can_GWcharger_voltageerror_flag = 1;//电压故障
+				}else{
+					ghy_can_GWcharger_voltageerror_flag = 0;
+				}
+
 			  ghy_can_GWcharger_batteryoff_flag=s_cancom->canmsg.databyte[1]&0x01;//电池未连接
-				   LOG_DEBUG_TAG(HY_LOG_TAG, "====batteryoff [%d]",ghy_can_GWcharger_batteryoff_flag);
+			
 // 				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
 // 				s_cancom->canmsg.databyte[2] = RXMsg.dataA[2];
 // 				s_cancom->canmsg.databyte[3] = RXMsg.dataA[3];	
