@@ -211,6 +211,8 @@ int hy_can_getmsg()
 
 				break;
 			case HY_CHARGE_MSG_100MS_FRAME_ID://100ms 充电器上报数据处理
+			LOG_DEBUG_TAG(HY_LOG_TAG,"get 100 can msg");
+    
 				s_cancom->state = HY_CANTASK_CHARGE_MSG_100MS;
 				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_100MS_FRAME_ID;
 // 				s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
@@ -225,6 +227,7 @@ int hy_can_getmsg()
 			 hy_set_currentfb_x10A(INT8TO16(s_cancom->canmsg.databyte[6],s_cancom->canmsg.databyte[7]));
 				break;
 			case HY_CHARGE_MSG_500MS_FRAME_ID://500ms 充电器上报数据处理
+			LOG_DEBUG_TAG(HY_LOG_TAG,"get 500 can msg");
 				s_cancom->state = HY_CANTASK_CHARGE_MSG_500MS;
 				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_500MS_FRAME_ID;
 // 				s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
@@ -439,7 +442,7 @@ void CAN_IRQHandler()
     {
 			CAN_ReceiveMsg(BMS_CAN_TUNNEL_X,&RXMsg);
 			s_cancom->msgupdate_flag = HY_TRUE;
-			LOG_DEBUG_TAG(HY_LOG_TAG,"get can msg");
+			// LOG_DEBUG_TAG(HY_LOG_TAG,"get can msg");
     }
 }
 

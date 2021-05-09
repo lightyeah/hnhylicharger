@@ -119,10 +119,10 @@ void SysTick_Handler(void)
 	hy_button_task();
 
 	/*can task*/
-// 	if(hy_instance->config.controlstyle == HY_CONTROLSTYLE_CAN){
-// 		hy_can_getmsg();
-// 		hy_can_task_main();
-// 	}
+	// if(hy_instance->config.controlstyle == HY_CONTROLSTYLE_CAN){
+		hy_can_getmsg();
+		hy_can_task_main();
+	// }
 	
 	/*chargetask*/
 	
