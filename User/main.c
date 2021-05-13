@@ -156,21 +156,21 @@ int main(void)
 	/*for test api*/
 	s_hy_instance.config.controlstyle = HY_CONTROLSTYLE_LOCAL;
 	
-	//第一阶段
-	s_hy_instance.config.chargecurrent_1 = 10;//充电电流
-	s_hy_instance.config.limitvoltage_1 = 60;//限制电压
-	s_hy_instance.config.chargetimeout_1_min = 15;//充电时间
-	s_hy_instance.config.switchvoltage_1 = 60;//跳转电压
-	//第二阶段
-	s_hy_instance.config.chargecurrent_2 = 40;//充电电流
-	s_hy_instance.config.limitvoltage_2 = 82;//限制电压
-	s_hy_instance.config.chargetimeout_2_min = 15;//充电时间
-	s_hy_instance.config.switchvoltage_2 = 82;//跳转电压
-	//第三阶段
-	s_hy_instance.config.chargevoltage_3 = 84;//充电电压
-	s_hy_instance.config.limitcurrent_3 = 15;//限制电流
-	s_hy_instance.config.chargetimeout_3_min = 15; //充电时间
-	s_hy_instance.config.switchcurrent_3 = 10;//跳转电流
+// 	//第一阶段
+// 	s_hy_instance.config.chargecurrent_1 = 10;//充电电流
+// 	s_hy_instance.config.limitvoltage_1 = 60;//限制电压
+// 	s_hy_instance.config.chargetimeout_1_min = 15;//充电时间
+// 	s_hy_instance.config.switchvoltage_1 = 60;//跳转电压
+// 	//第二阶段
+// 	s_hy_instance.config.chargecurrent_2 = 40;//充电电流
+// 	s_hy_instance.config.limitvoltage_2 = 82;//限制电压
+// 	s_hy_instance.config.chargetimeout_2_min = 15;//充电时间
+// 	s_hy_instance.config.switchvoltage_2 = 82;//跳转电压
+// 	//第三阶段
+// 	s_hy_instance.config.chargevoltage_3 = 84;//充电电压
+// 	s_hy_instance.config.limitcurrent_3 = 15;//限制电流
+// 	s_hy_instance.config.chargetimeout_3_min = 15; //充电时间
+// 	s_hy_instance.config.switchcurrent_3 = 10;//跳转电流
 	
 	s_hy_instance.config.voltagerange = 96;
 	s_hy_instance.config.currentrange = 40;
