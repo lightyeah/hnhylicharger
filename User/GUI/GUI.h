@@ -52,6 +52,14 @@ typedef enum Hy_Button_Name
 	button_set
 }hy_button_name;
 
+typedef enum HY_LED_NAME
+{
+	led_running = 0,
+	led_fullcharge,
+	led_err,
+	led_offall
+}hy_led_name;
+
 typedef struct Hy_Button_Struct{
 	hy_pressed_state state;
 	hy_button_name name;

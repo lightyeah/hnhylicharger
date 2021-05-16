@@ -25,6 +25,7 @@ int hy_gui_init(void* hy_instance_handle)
 	s_gui = &(hy_instance->gui);
 	
 	hy_button_init(s_gui);
+	hy_led_init(s_gui);
 	
 	s_gui->chargetask_flag = NO_MSG;
 	s_gui->button_flag = NO_MSG;

@@ -317,12 +317,14 @@ PAGE displaypage1(uint32_t state,
 		lcd_display_colon();
 
 		if (!(state&HY_GUI_BATTERY_ON_MASK))/*no battery*/{
+			hy_led_control(led_offall);
 			lcd_display_chinese(dian);
 			lcd_display_chinese(chi);
 			lcd_display_chinese(wei);
 			lcd_display_chinese(lianjie);
 		}else if((state & HY_GUI_BATTERY_ON_MASK)
 					&&(state & HY_GUI_CHARGETASK_ON_MASK)){/*normal charge*/
+			hy_led_control(led_running);
 			if (s_gui->controlstyle == HY_CONTROLSTYLE_CAN)
 			{
 				lcd_display_chinese(tx);
@@ -337,11 +339,13 @@ PAGE displaypage1(uint32_t state,
 			}
 		}else if((state & HY_GUI_BATTERY_ON_MASK) 
 					&& (state & HY_GUI_CHARGETASK_END_MASK)){/*charge normal end*/
+				hy_led_control(led_fullcharge);
 				lcd_display_chinese(chong);
 				lcd_display_chinese(dian);
 				lcd_display_chinese(wancheng);
 				lcd_display_space();
 		}else{/*err*/
+			hy_led_control(led_err);
 			if (state & HY_GUI_ERR_OVERHEAT_MASK){//overheat
 				lcd_display_chinese(gw);
 				lcd_display_chinese(bh);

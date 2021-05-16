@@ -87,6 +87,47 @@ void LCD_Configuration(void)
    
 }
 
+/*
+LED 对应引脚
+35 P1.21 LED2
+36 P1.22 LED3
+37 P1.23
+
+参考文档 Open1768-Schematic 引脚对应图
+
+COM  
+RUN
+FULL
+ERR
+*/
+void hy_led_init(void* gui_handle){
+	PINSEL_CFG_Type PinCfg;
+		//led
+    PinCfg.Funcnum = 0;
+    PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  	PinCfg.Pinmode = PINSEL_PINMODE_PULLDOWN;
+
+    PinCfg.Pinnum = 21;
+    PinCfg.Portnum = 1;
+    PINSEL_ConfigPin(&PinCfg);
+
+    PinCfg.Pinnum = 22;
+    PinCfg.Portnum = 1;
+    PINSEL_ConfigPin(&PinCfg);
+
+    PinCfg.Pinnum = 23;
+    PinCfg.Portnum = 1;
+    PINSEL_ConfigPin(&PinCfg);
+
+    // PinCfg.Pinnum = 25;
+    // PinCfg.Portnum = 1;
+    // PINSEL_ConfigPin(&PinCfg);
+
+
+    GPIO_SetDir(1, (1<<21)|(1<<22)|(1<<23),1);	
+
+    GPIO_ClearValue(1,(1<<21)|(1<<22)|(1<<23));
+}
 void hy_button_init(void* gui_handle){
 	
 	PINSEL_CFG_Type PinCfg;
@@ -125,6 +166,28 @@ void hy_button_init(void* gui_handle){
 		LOG_INFO_TAG(HY_LOG_TAG,"hy gui button init done!!");
 }
 
+int hy_led_control(hy_led_name led){
+	switch(led){
+		case led_running:
+			GPIO_ClearValue(1,(1<<22)|(1<<23));
+			GPIO_SetValue(1,(1<<21));
+		break;
+		case led_fullcharge:
+			GPIO_ClearValue(1,(1<<21)|(1<<23));
+			GPIO_SetValue(1,(1<<22));
+		break;
+		case led_err:
+			GPIO_ClearValue(1,(1<<21)|(1<<22));
+			GPIO_SetValue(1,(1<<23));
+		break;
+		case led_offall:
+			GPIO_ClearValue(1,(1<<21)|(1<<22)|(1<<23));
+		break;
+		default:
+		break;
+	}
+
+}
 
 int hy_button_check(hy_button_name name){
 	switch (name){
