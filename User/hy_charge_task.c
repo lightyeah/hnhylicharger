@@ -544,6 +544,9 @@ void hy_chargetask_main()
 	s_chargetask->gui_msg.chargetime_min = hy_chargetask_getchargetime_min();
 	s_chargetask->gui_msg.currentx10A = hy_chargetask_getoutputcur_x10A();
 	s_chargetask->gui_msg.voltagex10V = hy_chargetask_getoutputvol_x10V();
+	s_chargetask->gui_msg.gwcharger_statu1 = hy_can_GWcharger_status1();
+	s_chargetask->gui_msg.gwcharger_statu2 = hy_can_GWcharger_status2();
+	
 	hy_emit_gui_msg(CHARGETASK_MSG,&s_chargetask->gui_msg);
 
 	

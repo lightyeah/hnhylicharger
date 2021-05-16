@@ -239,6 +239,10 @@ int hy_emit_gui_msg(hy_gui_msg_type type, void* msg)
 						((chargetask_gui_msg*)msg)->chargetime_min;
 			s_gui->charge2gui_msg.state = 
 		        ((chargetask_gui_msg*)msg)->state;
+		    s_gui->charge2gui_msg.gwcharger_statu1 = 
+		        ((chargetask_gui_msg*)msg)->gwcharger_statu1;
+		    s_gui->charge2gui_msg.gwcharger_statu2 = 
+		        ((chargetask_gui_msg*)msg)->gwcharger_statu2;
 			break;
 		case BUTTON_MSG:
 			s_gui->button_flag = BUTTON_MSG;
@@ -293,6 +297,8 @@ void MainProcess(void){
 					guivoltagex10V = s_gui->charge2gui_msg.voltagex10V;
 					guicurrentx10A = s_gui->charge2gui_msg.currentx10A;
 					guichargetime_min = s_gui->charge2gui_msg.chargetime_min;
+					set_gwcharger_status(s_gui->charge2gui_msg.gwcharger_statu1,
+										 s_gui->charge2gui_msg.gwcharger_statu2);
 					guichargetask_state = s_gui->charge2gui_msg.state;
 					s_gui->chargetask_flag = NO_MSG;
 				}
@@ -379,14 +385,22 @@ void MainProcess(void){
 				PageState = settingpage32(SettingMainPage1);
 				break;
 			
-			case ErrorPage1:
+			case ErrorPage1://未知错误
 				PageState = errorpage1();
 				break;
 
-			case ErrorPage2:
+			case ErrorPage2://参数配置错误
 				PageState = errorpage2();
 				break;
-				
+			case ErrorPage4://高温状态
+				errorpage4(DisplayPage1);
+				break;
+			case ErrorPage5://电流错误
+				errorpage5(ErrorPage5);
+				break;
+			case ErrorPage6://电压错误
+				errorpage6(ErrorPage6);
+				break;
 			default:
 				PageState = errorpage1();
 				break;

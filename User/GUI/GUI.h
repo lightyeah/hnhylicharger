@@ -19,8 +19,10 @@
 #define HY_GUI_CHARGETASK_ON_MASK       (1<<(3))
 #define HY_GUI_CHARGETASK_END_MASK      (1<<(4)) 
 
-// #define HY_GUI_ERR_MASK                 (1<<(12))
+#define HY_GUI_ERR_MASK                 (1<<(12))
 #define HY_GUI_ERR_OVERHEAT_MASK        (1<<(13))
+#define HY_GUI_ERR_CURRENT_MASK         (1<<(14))
+#define HY_GUI_ERR_VOLTAGE_MASK         (1<<(15))
 
 typedef enum Hy_Gui_Msg_Type{
 	NO_MSG = 0,
@@ -73,6 +75,8 @@ typedef struct Chargetask_Gui_Msg{
 	uint32_t currentx10A;
 	uint32_t chargetime_min;
 	uint32_t state;
+	uint8_t gwcharger_statu1;
+	uint8_t gwcharger_statu2;
 }chargetask_gui_msg;
 
 typedef struct Button_Gui_Msg

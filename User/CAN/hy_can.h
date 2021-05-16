@@ -160,6 +160,12 @@ int hy_can_send_test(void);
 int hy_can_control_GWcharger(uint16_t vol_x10v, uint16_t cur_x10a);
 int hy_can_stop_GWcharger(void);
 int hy_can_GWcharger_batteryoff(void);
+int hy_can_GWcharger_overheatstate(void);
+int hy_can_GWcharger_currenterror(void);
+int hy_can_GWcharger_voltageerror(void);
+
+int hy_can_GWcharger_status1(void);
+int hy_can_GWcharger_status2(void);
 
 int hy_can_init(void* hy_instance);
 int hy_can_getmsg(void);

@@ -17,6 +17,26 @@ uint32_t CANRxCount, CANTxCount = 0;
 hy_cancom_t *s_cancom = NULL;
 
 char ghy_can_GWcharger_batteryoff_flag=1;
+char ghy_can_GWcharger_overheat_flag = 0;
+char ghy_can_GWcharger_voltageerror_flag = 0;
+char ghy_can_GWcharger_currenterror_flag = 0;
+
+char ghy_can_GWcharger_status1 = 0;
+char ghy_can_GWcharger_status2 = 0;
+
+// char ghy_can_gwcharger_jiaoliuqianya=0;
+// char ghy_can_gwcharger_jiaoliuguoya=0;
+// char ghy_can_gwcharger_shuchuqianya=0;
+// char ghy_can_gwcharger_shuchuguoya=0;
+// char ghy_can_gwcharger_shuchuguoliu=0;
+// char ghy_can_gwcharger_shuchuduanlu=0;
+// char ghy_can_gwcharger_guowenguanji=0;
+// char ghy_can_gwcharger_yingjianguzhang=0;
+
+// char ghy_can_gwcharger_shuchufanjie=0;
+// char ghy_can_gwcharger_guowenjiange=0;
+// char ghy_can_gwcharger_fengshanguzhang=0;
+// char ghy_can_gwcharger_guowenguzhang=0;
 
 int hy_can_init(void* hy_instance_handle)
 {
@@ -143,6 +163,25 @@ int hy_can_GWcharger_batteryoff(void){
 	return ghy_can_GWcharger_batteryoff_flag;
 }
 
+int hy_can_GWcharger_overheatstate(void){
+	return ghy_can_GWcharger_overheat_flag;
+}
+
+int hy_can_GWcharger_currenterror(void){
+	return ghy_can_GWcharger_currenterror_flag;
+}
+
+int hy_can_GWcharger_voltageerror(void){
+	return ghy_can_GWcharger_voltageerror_flag;
+}
+
+int hy_can_GWcharger_status1(void){
+	return ghy_can_GWcharger_status1;
+}
+
+int hy_can_GWcharger_status2(void){
+	return ghy_can_GWcharger_status2;
+}
 //报文控制关闭充电机输出, 
 int hy_can_stop_GWcharger(void){
     TXMsg.format = HY_CHARGE_ID_FORMAT;
@@ -220,9 +259,11 @@ int hy_can_getmsg()
     
 				s_cancom->state = HY_CANTASK_CHARGE_MSG_100MS;
 				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_100MS_FRAME_ID;
-				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
-			  ghy_can_GWcharger_batteryoff_flag=s_cancom->canmsg.databyte[1]&0x01;//电池未连接
-				   // LOG_DEBUG_TAG(HY_LOG_TAG, "====batteryoff [%d]",ghy_can_GWcharger_batteryoff_flag);
+			  	ghy_can_GWcharger_status1 = RXMsg.dataA[0];
+				ghy_can_GWcharger_status2 = RXMsg.dataA[1];
+
+			    ghy_can_GWcharger_batteryoff_flag=ghy_can_GWcharger_status2&0x01;//电池未连接
+			    LOG_DEBUG_TAG(HY_LOG_TAG,"======batteryoff [%d]",ghy_can_GWcharger_batteryoff_flag);
 // 				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
 // 				s_cancom->canmsg.databyte[2] = RXMsg.dataA[2];
 // 				s_cancom->canmsg.databyte[3] = RXMsg.dataA[3];	
@@ -288,7 +329,7 @@ void hy_can_task_main()
 				msg.databyte[1] = OBC_BMS_PROTOCOL_VERSION_BYTE2;
 				msg.databyte[2] = OBC_BMS_PROTOCOL_VERSION_BYTE3;
 				msg.resendcounts = HY_CAN_MSG_NO_RESEND;
-				hy_can_send(&msg);
+				// hy_can_send(&msg);
 				lastsendtime_ms = hy_time_now_ms();
 			}
 			break;
