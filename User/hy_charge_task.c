@@ -170,9 +170,6 @@ int hy_chargetask_stop(int stop_code,void* ctx)
 		case CHARGETASK_BUTTON_STOP_CODE:
 			s_chargetask->machine_start_flag = HY_FALSE;
 			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
-			s_chargetask->gui_msg.currentx10A = hy_chargetask_getoutputcur_x10A();
-			s_chargetask->gui_msg.voltagex10V = hy_chargetask_getoutputvol_x10V();
-			hy_emit_gui_msg(CHARGETASK_MSG,&s_chargetask->gui_msg);
 			if (s_chargetask->controltype == HY_GUI_CAN_ON_MASK){
 				hy_can_stop(OBC_BMS_CST_MANUAL_STOP(1),NULL);
 			}
@@ -548,6 +545,7 @@ void hy_chargetask_main()
 	s_chargetask->gui_msg.currentx10A = hy_chargetask_getoutputcur_x10A();
 	s_chargetask->gui_msg.voltagex10V = hy_chargetask_getoutputvol_x10V();
 	hy_emit_gui_msg(CHARGETASK_MSG,&s_chargetask->gui_msg);
+
 	
 }
 

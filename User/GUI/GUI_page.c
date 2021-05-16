@@ -431,7 +431,8 @@ PAGE displaypage1_1(uint32_t state,
 	uint32_t time)
 {
 	uint32_t flag = 0;
-	lcd_clear();
+	lcd_clear_5s();
+	
 
 	lcd_display_chinese_at(0,0,chong);
 	lcd_display_chinese(dian);
@@ -454,7 +455,8 @@ PAGE displaypage1_1(uint32_t state,
 	lcd_display_chinese(tj);
 	lcd_display_chinese(zhong);
 
-	while(1){
+	hy_led_control(led_offall);	
+
 		if(s_gui->button_flag == BUTTON_MSG)
 		{
 			s_gui->button_flag = NO_MSG;
@@ -484,8 +486,8 @@ PAGE displaypage1_1(uint32_t state,
 				break;
 			}
 		}			
-
-	}
+		return DisplayPage1_1;
+	
 
 
 }

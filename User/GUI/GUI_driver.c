@@ -328,6 +328,15 @@ void lcd_clear()
   hy_delay_ms(5);
   lcd_cursor_close();
 }
+
+
+void lcd_clear_5s(){
+	static lastcleartime = 0;
+	if(systime_elapse_ms(lastcleartime)>=5000){
+		lastcleartime=hy_time_now_ms();
+		lcd_clear();
+	}
+}
  
 void lcd_goto_pos(uint8_t posy,uint8_t posx){
 	uint8_t addr,x,y;

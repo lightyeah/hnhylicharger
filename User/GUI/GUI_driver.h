@@ -39,7 +39,8 @@ void lcd_display_space(void);
 void lcd_highlight(uint8_t no);
 void lcd_cursor_goto(uint8_t posy,uint8_t posx);
 void lcd_cursor_close(void);
-void lcd_clear(void);   
+void lcd_clear(void);
+void lcd_clear_5s(void);   
 
 /*button*/
 void hy_button_init(void* gui_handle);

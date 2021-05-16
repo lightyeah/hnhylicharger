@@ -222,7 +222,7 @@ int hy_can_getmsg()
 				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_100MS_FRAME_ID;
 				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
 			  ghy_can_GWcharger_batteryoff_flag=s_cancom->canmsg.databyte[1]&0x01;//电池未连接
-				   LOG_DEBUG_TAG(HY_LOG_TAG, "====batteryoff [%d]",ghy_can_GWcharger_batteryoff_flag);
+				   // LOG_DEBUG_TAG(HY_LOG_TAG, "====batteryoff [%d]",ghy_can_GWcharger_batteryoff_flag);
 // 				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
 // 				s_cancom->canmsg.databyte[2] = RXMsg.dataA[2];
 // 				s_cancom->canmsg.databyte[3] = RXMsg.dataA[3];	
