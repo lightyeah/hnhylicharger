@@ -165,11 +165,11 @@ int hy_can_GWcharger_batteryoff(void){
 
 
 int hy_can_GWcharger_status1(void){
-	return (ghy_can_GWcharger_status1&ghy_can_GWcharger_status3);
+	return (ghy_can_GWcharger_status1|ghy_can_GWcharger_status3);
 }
 
 int hy_can_GWcharger_status2(void){
-	return (ghy_can_GWcharger_status2&ghy_can_GWcharger_status4);
+	return (ghy_can_GWcharger_status2|ghy_can_GWcharger_status4);
 }
 //报文控制关闭充电机输出, 
 int hy_can_stop_GWcharger(void){

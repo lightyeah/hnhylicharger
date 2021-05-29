@@ -172,8 +172,8 @@ int main(void)
 // 	s_hy_instance.config.chargetimeout_3_min = 15; //充电时间
 // 	s_hy_instance.config.switchcurrent_3 = 10;//跳转电流
 	
-	s_hy_instance.config.voltagerange = 96;
-	s_hy_instance.config.currentrange = 40;
+	// s_hy_instance.config.voltagerange = 96;
+	// s_hy_instance.config.currentrange = 40;
 //	
 //	LOG_PRINT("==================test\r\n");
 //	LOG_INFO_TAG(HY_LOG_TAG,"instance get config in rom voltagerange   [%d] ",s_hy_instance.config.voltagerange);
