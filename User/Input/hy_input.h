@@ -40,11 +40,23 @@ void hy_set_currentfb_x10A(uint16_t value);
 uint16_t hy_get_voltagefb_x10V(void);
 uint16_t hy_get_currentfb_x10A(void);
 
+void hy_set_voltagefb1_x10V(uint16_t value);
+
+void hy_set_currentfb1_x10A(uint16_t value);
+
+void hy_set_voltagefb2_x10V(uint16_t value);
+
+void hy_set_currentfb2_x10A(uint16_t value);
+
 typedef struct HYInputSignalStruct{
 	uint16_t voltagefb;
 	uint16_t currentfb;
 	uint16_t voltagefb_x10V;
 	uint16_t currentfb_x10A;
+	uint16_t voltagefb1_x10V;
+	uint16_t currentfb1_x10A;
+	uint16_t voltagefb2_x10V;
+	uint16_t currentfb2_x10A;
 	uint16_t heatwarn;
 	uint16_t resettrigger;
 	uint16_t embtrigger;
