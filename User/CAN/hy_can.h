@@ -96,13 +96,27 @@
 /********************协议********/
 /*************************************/
 #define HY_CHARGE_ID_FORMAT					 STD_ID_FORMAT
+#define HY_CHARGE_ID_EXT_FORMAT      EXT_ID_FORMAT
 
+// 英瑞可
+#define HY_CHARGE_CONTROL_YRK_FRAME_ID 0x1307C081
+#define HY_CHARGE_MSG_YRK_FRAME_ID     0x1207C081
+
+
+
+
+
+
+// 国威 GW
 #define HY_CHARGE_CONTROL_FRAME_ID   0x200
 #define HY_CHARGE_MSG_100MS_FRAME_ID     0x201//100ms间隔上报帧
 #define HY_CHARGE_MSG_500MS_FRAME_ID     0x301//500ms间隔上报帧
 
 #define HY_CHARGE_MSG_100MS_FRAME_ID2     0x205//100ms间隔上报帧
 #define HY_CHARGE_MSG_500MS_FRAME_ID2     0x305//500ms间隔上报帧
+
+#define HY_CHARGE_MSG_100MS_FRAME_ID3     0x204//100ms间隔上报帧
+#define HY_CHARGE_MSG_500MS_FRAME_ID3     0x304//500ms间隔上报帧
 
 /*start*********增加充电器控制协议*********/
 /********************/
@@ -157,6 +171,10 @@ typedef struct CanComStrcut{
 
 int hy_can_send(hy_canmsg* msg);
 int hy_can_send_test(void);
+
+// YRK控制
+int hy_can_start_YRKcharger(void);
+int hy_can_stop_YRKcharger(void);
 
 //充电器控制
 int hy_can_control_GWcharger(uint16_t vol_x10v, uint16_t cur_x10a);

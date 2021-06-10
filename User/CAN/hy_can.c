@@ -121,25 +121,59 @@ int hy_can_send_test(void)
 {
 
 	
-//     TXMsg.format = HY_CHARGE_ID_FORMAT;
-//     TXMsg.len = 8;
-//     TXMsg.id = HY_CHARGE_CONTROL_FRAME_ID;
-// 	
-//     *((uint8_t *) &TXMsg.dataA[0])= 0xff;
-//     *((uint8_t *) &TXMsg.dataA[1])= 0x03;
-//     *((uint8_t *) &TXMsg.dataA[2])= 0x01;
-//     *((uint8_t *) &TXMsg.dataA[3])= 0xf4;
-//     *((uint8_t *) &TXMsg.dataB[0])= 0x00;
-//     *((uint8_t *) &TXMsg.dataB[1])= 0x10;
-//     *((uint8_t *) &TXMsg.dataB[2])= 0x00;
-//     *((uint8_t *) &TXMsg.dataB[3])= 0x00;
+    TXMsg.format = HY_CHARGE_ID_EXT_FORMAT;
+    TXMsg.len = 8;
+    TXMsg.id = HY_CHARGE_CONTROL_YRK_FRAME_ID;
+	
+    *((uint8_t *) &TXMsg.dataA[0])= 0x02;
+    *((uint8_t *) &TXMsg.dataA[1])= 0x00;
+    *((uint8_t *) &TXMsg.dataA[2])= 0x00;
+    *((uint8_t *) &TXMsg.dataA[3])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[0])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[1])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[2])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[3])= 0x55;
 
-//     CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+    CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+		LOG_INFO_TAG(HY_LOG_TAG,"=========11");
 		
     return 0;
 }
 
+
+char YRK_charger_on_flag=0;
+int hy_can_control_GWcharger(uint16_t vol_x10v, uint16_t cur_x10a){//for YRK
+	
+		uint32_t vol_x1000v=(uint32_t)vol_x10v*100;//输出电压电流(A)*1000
+		uint32_t cur_x1000a=(uint32_t)cur_x10a*100;
+	
+		TXMsg.format = HY_CHARGE_ID_EXT_FORMAT;
+    TXMsg.len = 8;
+    TXMsg.id = HY_CHARGE_CONTROL_YRK_FRAME_ID;
+	
+
+		if(0==YRK_charger_on_flag){
+			YRK_charger_on_flag=1;
+			hy_can_start_YRKcharger();//todo 连续发送两个报文会不会有问题 测试看看
+			
+		}
+// 	   LOG_DEBUG_TAG(HY_LOG_TAG, "====control [%d]v [%d]a",vol_x10v,cur_x10a);
+    *((uint8_t *) &TXMsg.dataA[0])= 0x00;//YRK 设定输出
+    *((uint8_t *) &TXMsg.dataA[1])= INT32TO8_3((cur_x1000a));//YRK 电流
+    *((uint8_t *) &TXMsg.dataA[2])= INT32TO8_2((cur_x1000a));//YRK 电流
+    *((uint8_t *) &TXMsg.dataA[3])= INT32TO8_1((cur_x1000a));//YRK 电流
+    *((uint8_t *) &TXMsg.dataB[0])= INT32TO8_4((vol_x1000v));//YRK 电压
+    *((uint8_t *) &TXMsg.dataB[1])= INT32TO8_3((vol_x1000v));//YRK 电压
+    *((uint8_t *) &TXMsg.dataB[2])= INT32TO8_2((vol_x1000v));//YRK 电压
+    *((uint8_t *) &TXMsg.dataB[3])= INT32TO8_1((vol_x1000v));//YRK 电压
+
+	  CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+		
+    return 0;	
+}
+
 //报文控制充电机输出, 
+/*
 int hy_can_control_GWcharger(uint16_t vol_x10v, uint16_t cur_x10a){
     TXMsg.format = HY_CHARGE_ID_FORMAT;
     TXMsg.len = 8;
@@ -157,7 +191,7 @@ int hy_can_control_GWcharger(uint16_t vol_x10v, uint16_t cur_x10a){
 	  CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
 		
     return 0;	
-}
+}*/
 
 int hy_can_GWcharger_batteryoff(void){
 	return ghy_can_GWcharger_batteryoff_flag;
@@ -171,20 +205,64 @@ int hy_can_GWcharger_status1(void){
 int hy_can_GWcharger_status2(void){
 	return (ghy_can_GWcharger_status2|ghy_can_GWcharger_status4);
 }
-//报文控制关闭充电机输出, 
-int hy_can_stop_GWcharger(void){
-    TXMsg.format = HY_CHARGE_ID_FORMAT;
+
+//报文控制开始充电机输出, 
+int hy_can_start_YRKcharger(void){
+    TXMsg.format = HY_CHARGE_ID_EXT_FORMAT;
     TXMsg.len = 8;
-    TXMsg.id = HY_CHARGE_CONTROL_FRAME_ID;
+    TXMsg.id = HY_CHARGE_CONTROL_YRK_FRAME_ID;
 	
-    *((uint8_t *) &TXMsg.dataA[0])= 0xff;//广播地址
-    *((uint8_t *) &TXMsg.dataA[1])= 0x01;//充电机正常工作，充电继电器打开
+    *((uint8_t *) &TXMsg.dataA[0])= 0x02;//控制指令2 
+    *((uint8_t *) &TXMsg.dataA[1])= 0x00;
     *((uint8_t *) &TXMsg.dataA[2])= 0x00;
     *((uint8_t *) &TXMsg.dataA[3])= 0x00;
     *((uint8_t *) &TXMsg.dataB[0])= 0x00;
     *((uint8_t *) &TXMsg.dataB[1])= 0x00;
     *((uint8_t *) &TXMsg.dataB[2])= 0x00;
-    *((uint8_t *) &TXMsg.dataB[3])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[3])= 0x55;//YRK 开机
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+		
+    return 0;	
+}
+
+
+//报文控制关闭充电机输出, 
+int hy_can_stop_YRKcharger(void){
+    TXMsg.format = HY_CHARGE_ID_EXT_FORMAT;
+    TXMsg.len = 8;
+    TXMsg.id = HY_CHARGE_CONTROL_YRK_FRAME_ID;
+		
+		YRK_charger_on_flag=0;
+			
+    *((uint8_t *) &TXMsg.dataA[0])= 0x02;//YRK 控制指令2 
+    *((uint8_t *) &TXMsg.dataA[1])= 0x00;
+    *((uint8_t *) &TXMsg.dataA[2])= 0x00;
+    *((uint8_t *) &TXMsg.dataA[3])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[0])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[1])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[2])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[3])= 0xAA;//YRK 关机
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+		
+    return 0;	
+}
+
+//报文控制关闭英瑞可充电机输出, 
+int hy_can_stop_GWcharger(void){// for YRK
+    TXMsg.format = HY_CHARGE_ID_EXT_FORMAT;
+    TXMsg.len = 8;
+    TXMsg.id = HY_CHARGE_CONTROL_YRK_FRAME_ID;
+	
+    *((uint8_t *) &TXMsg.dataA[0])= 0x02;
+    *((uint8_t *) &TXMsg.dataA[1])= 0x00;
+    *((uint8_t *) &TXMsg.dataA[2])= 0x00;
+    *((uint8_t *) &TXMsg.dataA[3])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[0])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[1])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[2])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[3])= 0xaa;//关机
 
 	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
 		
