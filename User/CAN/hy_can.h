@@ -144,6 +144,8 @@ typedef enum HY_CANTASK_STATE{
 	HY_CANTASK_CHARGE_MSG_100MS,//充电器上报状态报文 100ms间隔
 	HY_CANTASK_CHARGE_MSG_500MS,//充电器上报状态报文 500ms间隔
 	
+	HY_CANTASK_CHARGE_MSG_YRK,//YRK 上报状态
+	
 	HY_CANTASK_ERR
 }hy_cantask_state;
 
@@ -183,6 +185,8 @@ int hy_can_GWcharger_batteryoff(void);
 
 int hy_can_GWcharger_status1(void);
 int hy_can_GWcharger_status2(void);
+
+int hy_can_query_YRKcharger(void);//YRK 获取充电器状态数据
 
 int hy_can_init(void* hy_instance);
 int hy_can_getmsg(void);

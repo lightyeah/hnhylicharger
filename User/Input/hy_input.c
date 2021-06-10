@@ -163,12 +163,13 @@ void hy_set_currentfb2_x10A(uint16_t value){
 /*ADC TODO use more effecient method !!!!*/
 uint16_t hy_get_voltagefb_x10V(void){
 	  //LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1 ",hy_instance->inputsignal.voltagefb_x10V);
-    return hy_instance->inputsignal.voltagefb1_x10V;
+		hy_can_query_YRKcharger();
+    return hy_instance->inputsignal.voltagefb_x10V;
 }
 
 uint16_t hy_get_currentfb_x10A(void){
 
-	hy_instance->inputsignal.currentfb_x10A = hy_instance->inputsignal.currentfb1_x10A+hy_instance->inputsignal.currentfb2_x10A;
+	  //hy_instance->inputsignal.currentfb_x10A = hy_instance->inputsignal.currentfb1_x10A+hy_instance->inputsignal.currentfb2_x10A;
     return hy_instance->inputsignal.currentfb_x10A;
 }
 
