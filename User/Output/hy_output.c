@@ -135,6 +135,12 @@ int hy_output_init(void* hy_instance_handle)
 	return ret;
 }
 
+
+int hy_set_stop_output(void)
+{
+	hy_can_stop_YRKcharger();
+}
+
 int hy_set_output(uint32_t value)
 {
 	int ret = HY_OK;

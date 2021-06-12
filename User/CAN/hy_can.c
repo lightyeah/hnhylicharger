@@ -142,11 +142,19 @@ int hy_can_send_test(void)
 
 
 char YRK_charger_on_flag=0;
+uint16_t yrk_set_vol_x10v=0;
+uint16_t yrk_set_cur_x10v=0;
 int hy_can_control_GWcharger(uint16_t vol_x10v, uint16_t cur_x10a){//for YRK
 	
+		
 		uint32_t vol_x1000v=(uint32_t)vol_x10v*100;//输出电压电流(A)*1000
 		uint32_t cur_x1000a=(uint32_t)cur_x10a*100;
-	
+		if(yrk_set_vol_x10v==vol_x10v&&yrk_set_cur_x10v==cur_x10a){
+			return 1;
+		}
+		yrk_set_vol_x10v=vol_x10v;
+		yrk_set_cur_x10v=cur_x10a;
+		
 		TXMsg.format = HY_CHARGE_ID_EXT_FORMAT;
     TXMsg.len = 8;
     TXMsg.id = HY_CHARGE_CONTROL_YRK_FRAME_ID;
@@ -346,16 +354,21 @@ int hy_can_getmsg()
 			case HY_CHARGE_MSG_YRK_FRAME_ID:
 				s_cancom->state = HY_CANTASK_CHARGE_MSG_YRK;
    			s_cancom->canmsg.frame_id = HY_CHARGE_MSG_YRK_FRAME_ID;
+			LOG_ERROR_TAG(HY_LOG_TAG,"======GET YRK [%d]",RXMsg.dataA[0]);	
 				if(RXMsg.dataA[0]==0x01){//返回模块信息
-					hy_set_voltagefb_x10V(INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]));//YRK 返回电压 byte4 5
+					LOG_ERROR_TAG(HY_LOG_TAG,"======GET voltage [%d] current [%d]",INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]),INT8TO16(RXMsg.dataA[2],RXMsg.dataA[3]));	
 					hy_set_currentfb_x10A(INT8TO16(RXMsg.dataA[2],RXMsg.dataA[3]));//YRK 返回电流 byte2,3
-					if(ghy_can_GWcharger_batteryoff_flag==1&&INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1])>=100){//电池未连接的时候，电压不等于0
+					hy_set_voltagefb_x10V(INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]));//YRK 返回电压 byte4 5
+					
+					if(ghy_can_GWcharger_batteryoff_flag==1&&INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1])>=150){//电池未连接的时候，电压不等于0
 						ghy_can_GWcharger_batteryoff_flag=0;
 						
-					}else if(ghy_can_GWcharger_batteryoff_flag==0&&INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1])<=0){//电池连接的时候，电压等于0
+					}else if(ghy_can_GWcharger_batteryoff_flag==0&&INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1])<=150){//电池连接的时候，电压等于0
 						ghy_can_GWcharger_batteryoff_flag=1;
 					}
 				}
+				break;
+			case HY_CHARGE_MSG_YRK_TEST_FRAME_ID:
 				break;
 			//YRK
 			

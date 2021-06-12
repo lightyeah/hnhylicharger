@@ -58,7 +58,7 @@ static void timecounting(void){
 			return;			
 		}
     if(systime_elapse_ms(s_systime->lastcount_ms) >= 1000){
-			hy_can_send_test();
+			//hy_can_send_test();
 			  s_systime->lastcount_ms = s_systime->now_ms;
         s_systime->second_60 += 1;
         if(s_systime->second_60 >= 60){

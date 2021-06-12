@@ -201,7 +201,8 @@ int hy_chargetask_emergencystop()
 	LOG_ERROR_TAG(HY_LOG_TAG,"!!!!!!!!!!!!!!!!!!");
 	s_chargetask->start_flag = HY_FALSE;
 	s_chargetask->end_flag = HY_TRUE;
-	hy_set_output(0);
+	//hy_set_output(0);
+	hy_set_stop_output();
 	s_chargetask->state = CHARGETASK_IDLE;
 	return 0;
 }
@@ -301,11 +302,11 @@ void hy_chargetask_set_output(uint32_t currentfb_x10A,uint32_t voltagefb_x10V,ui
 	
 	switch (s_chargetask->state){
 		case CHARGETASK_LOCAL_ONE:
-			if((voltagefb_x10V+100)<480){
-				hy_can_control_GWcharger(480, hy_instance->config.chargecurrent_1*10);
-			}else{
-				hy_can_control_GWcharger(voltagefb_x10V+100, hy_instance->config.chargecurrent_1*10);
-			}
+			//if((voltagefb_x10V+100)<480){
+			//	hy_can_control_GWcharger(480, hy_instance->config.chargecurrent_1*10);
+			//}else{
+				hy_can_control_GWcharger(hy_instance->config.limitvoltage_1*10, hy_instance->config.chargecurrent_1*10);
+			//}
 // 			hy_chargetask_setaim(BMS_OBC_BCL_MODE_CUR,hy_instance->config.chargecurrent_1*10);
 // 			s_chargetask->max_voltage_x10V = (hy_instance->config.limitvoltage_1*10);
 // 			s_chargetask->max_current_x10A = (hy_instance->config.currentrange*10);
@@ -423,13 +424,14 @@ void hy_chargetask_main()
 				s_chargetask->output_dac_value = s_chargetask->output_dac_value - 20;
 				if(s_chargetask->output_dac_value <= 0 )
 					s_chargetask->output_dac_value = 0;		
+					
 			}
 			LOG_ERROR_TAG(HY_LOG_TAG,"idletest [%d]",s_chargetask->output_dac_value);
-			hy_set_output(s_chargetask->output_dac_value);
+			hy_set_stop_output();
 			
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
 				LOG_INFO_TAG(HY_LOG_TAG,
-				"***chargetask idle state... \r\n******get voltage [%d]x0.1V current [%d]x0.1A",
+				"***chargetask idle state... \r\n******set voltage [%d]x0.1V current [%d]x0.1A",
 				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
 				if(s_chargetask->controltype == HY_CONTROLSTYLE_CAN){
 					if (!hy_can_connected()){/*can disconnected*/
@@ -531,7 +533,8 @@ void hy_chargetask_main()
 				s_chargetask->output_dac_value--;
 				if(s_chargetask->output_dac_value<=0)
 					s_chargetask->output_dac_value=0;
-				hy_set_output(s_chargetask->output_dac_value);
+				//hy_set_output(s_chargetask->output_dac_value);
+				 hy_set_stop_output();
 			}
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
 				LOG_WARN_TAG(HY_LOG_TAG,

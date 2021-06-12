@@ -30,6 +30,8 @@ typedef struct HYOutputSignalStruct
 int hy_output_init(void* hy_instance_handle);
 int hy_set_output(uint32_t value);
 
+int hy_set_stop_output(void);
+
 int hy_output_set_charge_relay(int state);
 int hy_output_set_error_relay(int state);
 
