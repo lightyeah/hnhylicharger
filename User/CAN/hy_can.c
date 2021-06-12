@@ -24,6 +24,10 @@ char ghy_can_GWcharger_status2 = 0;
 // 第二台充电机
 char ghy_can_GWcharger_status3 = 0;
 char ghy_can_GWcharger_status4 = 0;
+
+// 第三台充电机
+char ghy_can_GWcharger_status5 = 0;
+char ghy_can_GWcharger_status6 = 0;
 // char ghy_can_gwcharger_jiaoliuqianya=0;
 // char ghy_can_gwcharger_jiaoliuguoya=0;
 // char ghy_can_gwcharger_shuchuqianya=0;
@@ -165,11 +169,11 @@ int hy_can_GWcharger_batteryoff(void){
 
 
 int hy_can_GWcharger_status1(void){
-	return (ghy_can_GWcharger_status1|ghy_can_GWcharger_status3);
+	return (ghy_can_GWcharger_status1|ghy_can_GWcharger_status3|ghy_can_GWcharger_status5);
 }
 
 int hy_can_GWcharger_status2(void){
-	return (ghy_can_GWcharger_status2|ghy_can_GWcharger_status4);
+	return (ghy_can_GWcharger_status2|ghy_can_GWcharger_status4|ghy_can_GWcharger_status6);
 }
 //报文控制关闭充电机输出, 
 int hy_can_stop_GWcharger(void){
@@ -281,7 +285,7 @@ int hy_can_getmsg()
 			  	ghy_can_GWcharger_status3 = RXMsg.dataA[0];
 				ghy_can_GWcharger_status4 = RXMsg.dataA[1];
 
-			    ghy_can_GWcharger_batteryoff_flag=ghy_can_GWcharger_status4&0x01;//电池未连接
+			   // ghy_can_GWcharger_batteryoff_flag=ghy_can_GWcharger_status4&0x01;//电池未连接
 			    LOG_DEBUG_TAG(HY_LOG_TAG,"======batteryoff [%d]",ghy_can_GWcharger_batteryoff_flag);
 
 				s_cancom->canmsg.databyte[6] = RXMsg.dataB[2];	
@@ -295,7 +299,30 @@ int hy_can_getmsg()
 				s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
 				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
 			 	hy_set_voltagefb2_x10V(INT8TO16(s_cancom->canmsg.databyte[0],s_cancom->canmsg.databyte[1]));
-				break;			
+				break;
+			//第三台
+			case HY_CHARGE_MSG_100MS_FRAME_ID3://100ms 第二台充电器上报数据处理
+    
+				s_cancom->state = HY_CANTASK_CHARGE_MSG_100MS;
+				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_100MS_FRAME_ID;
+			  	ghy_can_GWcharger_status5 = RXMsg.dataA[0];
+				ghy_can_GWcharger_status6 = RXMsg.dataA[1];
+
+			   //ghy_can_GWcharger_batteryoff_flag=ghy_can_GWcharger_status6&0x01;//电池未连接
+			    LOG_DEBUG_TAG(HY_LOG_TAG,"======batteryoff [%d]",ghy_can_GWcharger_batteryoff_flag);
+
+				s_cancom->canmsg.databyte[6] = RXMsg.dataB[2];	
+				s_cancom->canmsg.databyte[7] = RXMsg.dataB[3];	
+			
+			 	hy_set_currentfb3_x10A(INT8TO16(s_cancom->canmsg.databyte[6],s_cancom->canmsg.databyte[7]));
+				break;
+			case HY_CHARGE_MSG_500MS_FRAME_ID3://500ms 第二台充电器上报数据处理
+				s_cancom->state = HY_CANTASK_CHARGE_MSG_500MS;
+				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_500MS_FRAME_ID;
+				s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
+				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
+			 	hy_set_voltagefb3_x10V(INT8TO16(s_cancom->canmsg.databyte[0],s_cancom->canmsg.databyte[1]));
+				break;				
 			default:
 				//s_cancom->state = HY_CANTASK_IDLE;
 				LOG_ERROR_TAG(HY_LOG_TAG,"get can wrong msg!!!");

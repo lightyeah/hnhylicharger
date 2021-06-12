@@ -104,6 +104,9 @@
 #define HY_CHARGE_MSG_100MS_FRAME_ID2     0x205//100ms间隔上报帧
 #define HY_CHARGE_MSG_500MS_FRAME_ID2     0x305//500ms间隔上报帧
 
+#define HY_CHARGE_MSG_100MS_FRAME_ID3     0x204//100ms间隔上报帧
+#define HY_CHARGE_MSG_500MS_FRAME_ID3     0x304//500ms间隔上报帧
+
 /*start*********增加充电器控制协议*********/
 /********************/
 

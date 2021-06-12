@@ -57,6 +57,8 @@ typedef struct HYInputSignalStruct{
 	uint16_t currentfb1_x10A;
 	uint16_t voltagefb2_x10V;
 	uint16_t currentfb2_x10A;
+	uint16_t voltagefb3_x10V;
+	uint16_t currentfb3_x10A;
 	uint16_t heatwarn;
 	uint16_t resettrigger;
 	uint16_t embtrigger;

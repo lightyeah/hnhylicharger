@@ -160,6 +160,17 @@ void hy_set_currentfb2_x10A(uint16_t value){
 
     hy_instance->inputsignal.currentfb2_x10A = value;
 }
+
+void hy_set_voltagefb3_x10V(uint16_t value){
+	   LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1",value);
+    hy_instance->inputsignal.voltagefb3_x10V = value;
+}
+
+void hy_set_currentfb3_x10A(uint16_t value){
+
+    hy_instance->inputsignal.currentfb3_x10A = value;
+}
+
 /*ADC TODO use more effecient method !!!!*/
 uint16_t hy_get_voltagefb_x10V(void){
 	  //LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1 ",hy_instance->inputsignal.voltagefb_x10V);
@@ -168,7 +179,7 @@ uint16_t hy_get_voltagefb_x10V(void){
 
 uint16_t hy_get_currentfb_x10A(void){
 
-	hy_instance->inputsignal.currentfb_x10A = hy_instance->inputsignal.currentfb1_x10A+hy_instance->inputsignal.currentfb2_x10A;
+	hy_instance->inputsignal.currentfb_x10A = hy_instance->inputsignal.currentfb1_x10A+hy_instance->inputsignal.currentfb2_x10A+hy_instance->inputsignal.currentfb3_x10A;
     return hy_instance->inputsignal.currentfb_x10A;
 }
 
