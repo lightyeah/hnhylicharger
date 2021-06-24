@@ -34,7 +34,7 @@ int hy_gui_init(void* hy_instance_handle)
 	
 	s_gui->controlstyle = hy_instance->config.controlstyle;
 	s_gui->lastfreshtime_ms = 0;
-	s_gui->set_in_flash = HY_FALSE;
+	s_gui->set_in_flash = HY_TRUE;
 	s_gui->machine_stop_flag = HY_FALSE;
 
 	hy_gui_page_init(s_gui,&(hy_instance->config));
@@ -285,10 +285,10 @@ void MainProcess(void){
 				PageState = welcomepage();
 				break;
 			case DisplayPage1:
-				if (s_gui->set_in_flash){
-					PageState = DisplayPage1_3;
-					break;
-				}
+// 				if (s_gui->set_in_flash){
+// 					PageState = DisplayPage1_3;
+// 					break;
+// 				}
 				if (s_gui->machine_stop_flag){
 					PageState = DisplayPage1_1;
 					break;

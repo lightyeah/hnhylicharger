@@ -98,6 +98,7 @@ typedef struct Hy_Gui_Struct{
 
 	uint8_t controlstyle;
 
+	
 	uint32_t lastfreshtime_ms;
 
 	int8_t set_in_flash;
