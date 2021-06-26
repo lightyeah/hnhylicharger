@@ -298,7 +298,8 @@ void hy_chargetask_set_output(uint32_t currentfb_x10A,uint32_t voltagefb_x10V,ui
 	LOG_INFO_TAG(HY_LOG_TAG,"fbvol[%d] fbcur[%d]",voltagefb_x10V,currentfb_x10A);
 	LOG_INFO_TAG(HY_LOG_TAG,"aimtype [%d]  aimcur [%d] aimvol [%d] outputvalue [%d]",aimtype,
 		s_chargetask->aim_current_x10A,s_chargetask->aim_voltage_x10V,s_chargetask->output_dac_value);
-	
+
+	return;
 	switch (s_chargetask->state){
 		case CHARGETASK_LOCAL_ONE:
 			if((voltagefb_x10V+100)<480){
@@ -424,7 +425,7 @@ void hy_chargetask_main()
 				if(s_chargetask->output_dac_value <= 0 )
 					s_chargetask->output_dac_value = 0;		
 			}
-			LOG_ERROR_TAG(HY_LOG_TAG,"idletest [%d]",s_chargetask->output_dac_value);
+			//LOG_ERROR_TAG(HY_LOG_TAG,"idle [%d]",s_chargetask->output_dac_value);
 			hy_set_output(s_chargetask->output_dac_value);
 			
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){

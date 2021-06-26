@@ -31,14 +31,19 @@
 
 
 int hy_input_init(void* hy_instance_handle);
-uint8_t hy_get_heatwarn(void);
-uint8_t hy_get_resettrigger(void);
-uint8_t hy_get_embtrigger(void);
+
+uint16_t hy_get_voltagefb_x10V(void);
+
+uint16_t hy_get_currentfb_x10A(void);
 
 void hy_set_voltagefb_x10V(uint16_t value);
+
 void hy_set_currentfb_x10A(uint16_t value);
-uint16_t hy_get_voltagefb_x10V(void);
-uint16_t hy_get_currentfb_x10A(void);
+
+void hy_set_input_voltage_x10V(uint16_t value);
+
+void hy_set_battery_voltage_x10V(uint16_t value);
+
 
 void hy_set_voltagefb1_x10V(uint16_t value);
 
@@ -59,9 +64,12 @@ typedef struct HYInputSignalStruct{
 	uint16_t currentfb2_x10A;
 	uint16_t voltagefb3_x10V;
 	uint16_t currentfb3_x10A;
-	uint16_t heatwarn;
-	uint16_t resettrigger;
-	uint16_t embtrigger;
+	uint16_t inputvoltage_x10V;
+	uint16_t batteryvoltage_x10V;
+	uint8_t gw_temperature;
+	uint8_t gw_state1;
+	uint8_t gw_state2;
+	uint8_t gw_relay;
 }hy_inputsignal_t;
 
 

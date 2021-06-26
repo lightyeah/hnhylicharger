@@ -57,6 +57,7 @@ int hy_can_init(void* hy_instance_handle)
 		s_cancom->obc_stop_code = 0;
 		s_cancom->canconnected = HY_FALSE;
 		s_cancom->connectupdate_time_ms = 0;
+		s_cancom->hy_sy_msg_pgn = 0xff;
     
     PinCfg.Funcnum = 1;
     PinCfg.OpenDrain = 0;
@@ -120,6 +121,13 @@ int hy_can_send(hy_canmsg* msg)
     return 0;
 }
 
+
+int hy_can_send_ext(hy_canmsg* msg)
+{
+	
+	return 0;
+}
+
 /*测试接口*/
 int hy_can_send_test(void)
 {
@@ -153,8 +161,8 @@ int hy_can_control_GWcharger(uint16_t vol_x10v, uint16_t cur_x10a){
     *((uint8_t *) &TXMsg.dataA[1])= 0x03;//充电机正常工作，充电继电器打开
     *((uint8_t *) &TXMsg.dataA[2])= INT16TO8_2((vol_x10v));
     *((uint8_t *) &TXMsg.dataA[3])= INT16TO8_1((vol_x10v));
-    *((uint8_t *) &TXMsg.dataB[0])= INT16TO8_2((cur_x10a>>1));
-    *((uint8_t *) &TXMsg.dataB[1])= INT16TO8_1((cur_x10a>>1));
+    *((uint8_t *) &TXMsg.dataB[0])= INT16TO8_2((cur_x10a));
+    *((uint8_t *) &TXMsg.dataB[1])= INT16TO8_1((cur_x10a));
     *((uint8_t *) &TXMsg.dataB[2])= 0x00;
     *((uint8_t *) &TXMsg.dataB[3])= 0x00;
 
@@ -169,11 +177,11 @@ int hy_can_GWcharger_batteryoff(void){
 
 
 int hy_can_GWcharger_status1(void){
-	return (ghy_can_GWcharger_status1|ghy_can_GWcharger_status3|ghy_can_GWcharger_status5);
+	return (ghy_can_GWcharger_status1);
 }
 
 int hy_can_GWcharger_status2(void){
-	return (ghy_can_GWcharger_status2|ghy_can_GWcharger_status4|ghy_can_GWcharger_status6);
+	return (ghy_can_GWcharger_status2);
 }
 //报文控制关闭充电机输出, 
 int hy_can_stop_GWcharger(void){
@@ -190,7 +198,7 @@ int hy_can_stop_GWcharger(void){
     *((uint8_t *) &TXMsg.dataB[2])= 0x00;
     *((uint8_t *) &TXMsg.dataB[3])= 0x00;
 
-	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+	//CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
 		
     return 0;	
 }
@@ -276,56 +284,10 @@ int hy_can_getmsg()
 // 				s_cancom->canmsg.databyte[2] = RXMsg.dataA[2];
 // 				s_cancom->canmsg.databyte[3] = RXMsg.dataA[3];
 			 	hy_set_voltagefb1_x10V(INT8TO16(s_cancom->canmsg.databyte[0],s_cancom->canmsg.databyte[1]));
-				break;
-			//第二台
-			case HY_CHARGE_MSG_100MS_FRAME_ID2://100ms 第二台充电器上报数据处理
-    
-				s_cancom->state = HY_CANTASK_CHARGE_MSG_100MS;
-				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_100MS_FRAME_ID;
-			  	ghy_can_GWcharger_status3 = RXMsg.dataA[0];
-				ghy_can_GWcharger_status4 = RXMsg.dataA[1];
-
-			   // ghy_can_GWcharger_batteryoff_flag=ghy_can_GWcharger_status4&0x01;//电池未连接
-			    LOG_DEBUG_TAG(HY_LOG_TAG,"======batteryoff [%d]",ghy_can_GWcharger_batteryoff_flag);
-
-				s_cancom->canmsg.databyte[6] = RXMsg.dataB[2];	
-				s_cancom->canmsg.databyte[7] = RXMsg.dataB[3];	
-			
-			 	hy_set_currentfb2_x10A(INT8TO16(s_cancom->canmsg.databyte[6],s_cancom->canmsg.databyte[7]));
-				break;
-			case HY_CHARGE_MSG_500MS_FRAME_ID2://500ms 第二台充电器上报数据处理
-				s_cancom->state = HY_CANTASK_CHARGE_MSG_500MS;
-				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_500MS_FRAME_ID;
-				s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
-				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
-			 	hy_set_voltagefb2_x10V(INT8TO16(s_cancom->canmsg.databyte[0],s_cancom->canmsg.databyte[1]));
-				break;
-			//第三台
-			case HY_CHARGE_MSG_100MS_FRAME_ID3://100ms 第二台充电器上报数据处理
-    
-				s_cancom->state = HY_CANTASK_CHARGE_MSG_100MS;
-				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_100MS_FRAME_ID;
-			  	ghy_can_GWcharger_status5 = RXMsg.dataA[0];
-				ghy_can_GWcharger_status6 = RXMsg.dataA[1];
-
-			   //ghy_can_GWcharger_batteryoff_flag=ghy_can_GWcharger_status6&0x01;//电池未连接
-			    LOG_DEBUG_TAG(HY_LOG_TAG,"======batteryoff [%d]",ghy_can_GWcharger_batteryoff_flag);
-
-				s_cancom->canmsg.databyte[6] = RXMsg.dataB[2];	
-				s_cancom->canmsg.databyte[7] = RXMsg.dataB[3];	
-			
-			 	hy_set_currentfb3_x10A(INT8TO16(s_cancom->canmsg.databyte[6],s_cancom->canmsg.databyte[7]));
-				break;
-			case HY_CHARGE_MSG_500MS_FRAME_ID3://500ms 第二台充电器上报数据处理
-				s_cancom->state = HY_CANTASK_CHARGE_MSG_500MS;
-				s_cancom->canmsg.frame_id = HY_CHARGE_MSG_500MS_FRAME_ID;
-				s_cancom->canmsg.databyte[0] = RXMsg.dataA[0];
-				s_cancom->canmsg.databyte[1] = RXMsg.dataA[1];
-			 	hy_set_voltagefb3_x10V(INT8TO16(s_cancom->canmsg.databyte[0],s_cancom->canmsg.databyte[1]));
-				break;				
+				break;			
 			default:
 				//s_cancom->state = HY_CANTASK_IDLE;
-				LOG_ERROR_TAG(HY_LOG_TAG,"get can wrong msg!!!");
+				//LOG_ERROR_TAG(HY_LOG_TAG,"get can wrong msg!!!");
 				break;
 		}
 	}else{/*receive timeout!!!*/
@@ -348,7 +310,7 @@ void hy_can_task_main()
 	static uint32_t lastsendtime_ms = 0;
 	static uint32_t canmonitortime_ms = 0;
 	
-	hy_can_getmsg();
+	//hy_can_getmsg();
 	if(systime_elapse_ms(canmonitortime_ms)>=HY_CAN_TASK_MONITOR_INTERVAL){
 		canmonitortime_ms = hy_time_now_ms();
 		LOG_INFO_TAG(HY_LOG_TAG,"can monitor on cancom.state = [%d]",s_cancom->state);
@@ -356,149 +318,9 @@ void hy_can_task_main()
 	
 	switch (s_cancom->state){
 		case HY_CANTASK_IDLE:
-//			msg.frame_id = OBC_BMS_CHM_FRAME_ID;
-//			memset(msg.databyte,0,8);
-//			msg.databyte[0] = OBC_BMS_PROTOCOL_VERSION_BYTE1;
-//		  msg.databyte[1] = OBC_BMS_PROTOCOL_VERSION_BYTE2;
-//			msg.databyte[2] = OBC_BMS_PROTOCOL_VERSION_BYTE3;	  
-//			msg.resendcounts = HY_CAN_MSG_NO_RESEND;
-			if(systime_elapse_ms(lastsendtime_ms)>=OBC_BMS_CHM_INTERVAL){
-				msg.frame_id = OBC_BMS_CHM_FRAME_ID;
-				memset(msg.databyte,0,8);
-				msg.databyte[0] = OBC_BMS_PROTOCOL_VERSION_BYTE1;
-				msg.databyte[1] = OBC_BMS_PROTOCOL_VERSION_BYTE2;
-				msg.databyte[2] = OBC_BMS_PROTOCOL_VERSION_BYTE3;
-				msg.resendcounts = HY_CAN_MSG_NO_RESEND;
-				// hy_can_send(&msg);
-				lastsendtime_ms = hy_time_now_ms();
-			}
 			break;
 			
 			
-		case HY_CANTASK_HANDSHAKE:
-//			msg.frame_id = OBC_BMS_CML_FRAME_ID;
-//			memset(msg.databyte,0,8);
-//			msg.databyte[0] = INT16TO8_1((hy_config_readvoltagerange()*10)&HY_MAX_VOLTAGE);
-//			msg.databyte[1] = INT16TO8_2((hy_config_readvoltagerange()*10)&HY_MAX_VOLTAGE);
-//			msg.databyte[4] = INT16TO8_1((hy_config_readcurrentrange()*10)&HY_MAX_CURRENT);
-//			msg.databyte[5] = INT16TO8_2((hy_config_readcurrentrange()*10)&HY_MAX_CURRENT);
-//			msg.resendcounts = HY_CAN_MSG_NO_RESEND;
-			if(systime_elapse_ms(lastsendtime_ms)>=OBC_BMS_CML_INTERVAL){
-				msg.frame_id = OBC_BMS_CML_FRAME_ID;
-				memset(msg.databyte,0,8);
-				msg.databyte[0] = INT16TO8_2((hy_config_readvoltagerange()*10)&HY_MAX_VOLTAGE);
-				msg.databyte[1] = INT16TO8_1((hy_config_readvoltagerange()*10)&HY_MAX_VOLTAGE);
-				msg.databyte[4] = INT16TO8_2((hy_config_readcurrentrange()*10)&HY_MAX_CURRENT);
-				msg.databyte[5] = INT16TO8_1((hy_config_readcurrentrange()*10)&HY_MAX_CURRENT);
-				msg.resendcounts = HY_CAN_MSG_NO_RESEND;
-				hy_can_send(&msg);
-				lastsendtime_ms = hy_time_now_ms();
-			}
-			break;
-			
-			
-		case HY_CANTASK_CHARGE:
-			hy_chargetask_start(HY_CONTROLSTYLE_CAN,NULL);
-//			msg.frame_id = OBC_BMS_CCS_FRAME_ID;
-//			memset(msg.databyte,0,8);
-//			msg.databyte[0] = INT16TO8_1(hy_chargetask_getoutputvol_x10V());
-//			msg.databyte[1] = INT16TO8_2(hy_chargetask_getoutputvol_x10V());
-//			msg.databyte[2] = INT16TO8_1(hy_chargetask_getoutputcur_x10A());
-//			msg.databyte[3] = INT16TO8_2(hy_chargetask_getoutputcur_x10A());
-//			msg.databyte[4] = INT16TO8_1(hy_chargetask_getchargetime_min());
-//			msg.databyte[5] = INT16TO8_2(hy_chargetask_getchargetime_min());
-//			msg.databyte[6] = OBC_BMS_CCS_ALWAYS_ON;
-//			msg.resendcounts = HY_CAN_MSG_NO_RESEND;
-			if(systime_elapse_ms(lastsendtime_ms)>=OBC_BMS_CCS_INTERVAL){
-					msg.frame_id = OBC_BMS_CCS_FRAME_ID;
-				memset(msg.databyte,0,8);
-				msg.databyte[0] = INT16TO8_2(hy_chargetask_getoutputvol_x10V());
-				msg.databyte[1] = INT16TO8_1(hy_chargetask_getoutputvol_x10V());
-				msg.databyte[2] = INT16TO8_2(hy_chargetask_getoutputcur_x10A());
-				msg.databyte[3] = INT16TO8_1(hy_chargetask_getoutputcur_x10A());
-				msg.databyte[4] = INT16TO8_2(hy_chargetask_getchargetime_min());
-				msg.databyte[5] = INT16TO8_1(hy_chargetask_getchargetime_min());
-				msg.databyte[6] = OBC_BMS_CCS_ALWAYS_ON;
-				msg.resendcounts = HY_CAN_MSG_NO_RESEND;
-				hy_can_send(&msg);
-				lastsendtime_ms = hy_time_now_ms();
-			}
-			break;
-			
-			
-		case HY_CANTASK_BMS_STOP:
-			s_cancom->bms_stop_code = HY_CAN_BMS_STOP;
-			hy_chargetask_stop(CHARGETASK_CAN_STOP_CODE,&(s_cancom->bms_stop_code));
-			if(msg.resendcounts == HY_CAN_MSG_RESEND_DONE){
-				msg.resendcounts = HY_CAN_MSG_NO_RESEND;
-				s_cancom->state = HY_CANTASK_END;
-				break;
-			}else if(msg.resendcounts > HY_CAN_MSG_NEED_RESEND){
-				if(systime_elapse_ms(lastsendtime_ms)>=OBC_BMS_CST_INTERVAL){
-					hy_can_send(&msg);
-					LOG_INFO_TAG(HY_LOG_TAG,"can resend [bms stop] counts = [%d]",msg.resendcounts);
-					lastsendtime_ms = hy_time_now_ms();
-				}	
-				break;
-			}
-			msg.frame_id = OBC_BMS_CST_FRAME_ID;
-			memset(msg.databyte,0,8);
-			s_cancom->obc_stop_code =  OBC_BMS_CST_REACH_GOAL(1);
-			msg.databyte[0] = INT32TO8_4(s_cancom->obc_stop_code);
-			msg.databyte[1] = INT32TO8_3(s_cancom->obc_stop_code);
-			msg.databyte[2] = INT32TO8_2(s_cancom->obc_stop_code);
-			msg.databyte[3] = INT32TO8_1(s_cancom->obc_stop_code);
-			msg.resendcounts = HY_CAN_MSG_RESEND(5);
-			hy_can_send(&msg);
-			break;
-			
-			
-		case HY_CANTASK_OBC_STOP:
-			if(msg.resendcounts <= HY_CAN_MSG_RESEND_DONE){
-				msg.resendcounts = HY_CAN_MSG_NO_RESEND;
-				s_cancom->state = HY_CANTASK_END;
-				break;
-			}else if(msg.resendcounts > HY_CAN_MSG_NEED_RESEND){
-				if(systime_elapse_ms(lastsendtime_ms) >= OBC_BMS_CST_INTERVAL){
-					hy_can_send(&msg);
-					LOG_INFO_TAG(HY_LOG_TAG,"can resend [cantask end] counts = [%d]",msg.resendcounts);
-					lastsendtime_ms = hy_time_now_ms();
-				}	
-				break;
-			}
-			msg.frame_id = OBC_BMS_CST_FRAME_ID;
-			memset(msg.databyte,0,8);
-			msg.databyte[0] = INT32TO8_4(s_cancom->obc_stop_code);
-			msg.databyte[1] = INT32TO8_3(s_cancom->obc_stop_code);
-			msg.databyte[2] = INT32TO8_2(s_cancom->obc_stop_code);
-			msg.databyte[3] = INT32TO8_1(s_cancom->obc_stop_code);
-			msg.resendcounts = HY_CAN_MSG_RESEND(5);
-			hy_can_send(&msg);
-			break;
-		
-		
-		case HY_CANTASK_END:
-			if(msg.resendcounts == HY_CAN_MSG_RESEND_DONE){
-				msg.resendcounts = HY_CAN_MSG_NO_RESEND;
-				s_cancom->state = HY_CANTASK_IDLE;
-				break;
-			}else if(msg.resendcounts > HY_CAN_MSG_NEED_RESEND){
-				if(systime_elapse_ms(lastsendtime_ms)>=OBC_BMS_CSD_INTERVAL){
-					hy_can_send(&msg);
-					LOG_INFO_TAG(HY_LOG_TAG,"can resend [cantask end] counts = [%d]",msg.resendcounts);
-					lastsendtime_ms = hy_time_now_ms();
-				}	
-				break;
-			}
-			msg.frame_id = OBC_BMS_CSD_FRAME_ID;
-			memset(msg.databyte,0,8);
-			msg.databyte[0] = INT16TO8_2(hy_chargetask_getchargetime_min());
-			msg.databyte[1] = INT16TO8_1(hy_chargetask_getchargetime_min());
-			msg.databyte[2] = INT16TO8_2(hy_chargetask_gettotalpower_x10kwh());
-			msg.databyte[3] = INT16TO8_1(hy_chargetask_gettotalpower_x10kwh());
-			msg.resendcounts = HY_CAN_MSG_RESEND(600*1000/OBC_BMS_CSD_INTERVAL);//重复10分钟
-			hy_can_send(&msg);
-			break;
 			
 			
 		case HY_CANTASK_CHARGE_MSG_100MS://100ms 充电器上报状态处理
@@ -509,8 +331,11 @@ void hy_can_task_main()
 			break;
 		
 		case HY_CANTASK_ERR:
+			
 			break;
+			
 		default:
+		
 			break;
 	}
 
@@ -531,6 +356,86 @@ void CAN_IRQHandler()
 			CAN_ReceiveMsg(BMS_CAN_TUNNEL_X,&RXMsg);
 			s_cancom->msgupdate_flag = HY_TRUE;
 			// LOG_DEBUG_TAG(HY_LOG_TAG,"get can msg");
+			switch (RXMsg.id){
+				/*圣阳电池*/
+				case TP_BAM_CONTROLER_ID:
+					//hy_can_control_GWcharger(RXMsg.dataB[2],RXMsg.dataB[3]);
+					if (RXMsg.dataB[2]==0xf1){//CONTROL_REQUEST_PGN
+						switch (RXMsg.dataB[1]){
+							case 0x01:
+								//hy_can_control_GWcharger(1,16);
+								s_cancom->hy_sy_msg_pgn = CONTROL_REQUEST_PGN;
+								break;
+							case 0x02:
+								//hy_can_control_GWcharger(2,16);
+								s_cancom->hy_sy_msg_pgn = CONFIG_REQUEST_PGN;
+								break;
+							case 0x03:
+								//hy_can_control_GWcharger(3,16);
+								s_cancom->hy_sy_msg_pgn = EXIT_REQUEST_PGN;
+								break;
+							case 0x04:
+								//hy_can_control_GWcharger(4,16);
+								s_cancom->hy_sy_msg_pgn = BROADCAST_REQUEST_PGN;
+								break;
+							case 0x05:
+								//hy_can_control_GWcharger(5,16);
+								s_cancom->hy_sy_msg_pgn = ADDRESS_RESET_REQUEST_PGN;
+								break;
+							default:
+							s_cancom->hy_sy_msg_pgn = 0xff;
+								break;
+						}
+						
+					}
+					break;
+				case TP_DP_CONTROLER_ID:
+					hy_can_control_GWcharger(INT8TO16(RXMsg.dataA[2],RXMsg.dataA[1]),
+											 INT8TO16(RXMsg.dataB[0],RXMsg.dataA[3]));
+//					switch(s_cancom->hy_sy_msg_pgn){
+//						case CONTROL_REQUEST_PGN:
+//							if(RXMsg.dataA[1]==0x01){
+//								hy_sy_control_response(0);
+//							}
+//							break;
+//						case CONFIG_REQUEST_PGN:
+//							if(RXMsg.dataA[1]==0x02){
+//								hy_sy_config_response(0,2400,10000,1);
+//							}
+//							break;
+//						case EXIT_REQUEST_PGN:
+//							if(RXMsg.dataA[1]==0x03){
+//								hy_sy_exit_response(0);
+//							}
+//							break;
+//						case BROADCAST_REQUEST_PGN:
+//							if(RXMsg.dataA[1]==0x04){
+//								hy_sy_broadcast_response(0);
+//							}
+//							break;
+//						case ADDRESS_RESET_REQUEST_PGN:
+//							if(RXMsg.dataA[1]==0x05){
+//								hy_sy_address_reset_response(0x4c);
+//							}
+//							break;
+//						default:
+//							break;
+//					}
+					break;
+				/*国威模块*/
+				case HY_CHARGE_MSG_100MS_FRAME_ID:
+					hy_set_voltagefb_x10V(INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]));
+					hy_set_currentfb_x10A(INT8TO16(RXMsg.dataB[2],RXMsg.dataB[3]));
+					break;
+				case HY_CHARGE_MSG_500MS_FRAME_ID:
+					hy_set_battery_voltage_x10V(INT8TO16(RXMsg.dataA[0],RXMsg.dataA[1]));
+					hy_set_input_voltage_x10V(INT8TO16(RXMsg.dataA[2],RXMsg.dataA[3]));
+					break;
+				
+				default:
+					break;
+					
+			}
     }
 }
 
@@ -551,3 +456,243 @@ int hy_can_stop(int stop_code, void* ctx)
 	s_cancom->obc_stop_code = stop_code;
 	return HY_OK;
 }
+
+
+
+
+/*************
+
+ 圣阳电池 控制协议驱动
+
+
+***********/
+
+/**
+* 控制请求应答
+**/
+int hy_sy_control_response(uint32_t charger_id){
+    TXMsg.format = SY_ID_FORMAT;
+    TXMsg.len = 8;
+	if(charger_id == 0){
+    	TXMsg.id = TP_BAM_CHARGER_DEFAULT_ID;
+	}else{
+		TXMsg.id = (TP_BAM_CHARGER_MASK&charger_id);
+	}
+	
+    *((uint8_t *) &TXMsg.dataA[0])= 0x20;
+    *((uint8_t *) &TXMsg.dataA[1])= 0x02;
+    *((uint8_t *) &TXMsg.dataA[2])= 0x00;
+    *((uint8_t *) &TXMsg.dataA[3])= 0x01;
+    *((uint8_t *) &TXMsg.dataB[0])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[1])= 0x00;//CONTROL_RESPONSE_PGN
+    *((uint8_t *) &TXMsg.dataB[2])= 0xf1;//
+    *((uint8_t *) &TXMsg.dataB[3])= 0x01;//
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+
+	if(charger_id == 0){
+    	TXMsg.id = TP_DP_CHARGER_DEFAULT_ID;
+	}else{
+		TXMsg.id = (TP_DP_CHARGER_MASK&charger_id);
+	}
+
+    *((uint8_t *) &TXMsg.dataA[0])= 0x01;
+    *((uint8_t *) &TXMsg.dataA[1])= 0xF1;//
+    *((uint8_t *) &TXMsg.dataA[2])= 0x01;//CONTROL_RESPONSE_2_BYTE
+    *((uint8_t *) &TXMsg.dataA[3])= 0xFF;
+    *((uint8_t *) &TXMsg.dataB[0])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[1])= 0xFF;
+    *((uint8_t *) &TXMsg.dataB[2])= 0xFF;
+    *((uint8_t *) &TXMsg.dataB[3])= 0xFF;
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+    return 0;	
+
+	
+}
+
+
+/**
+* 配置参数应答
+**/
+int hy_sy_config_response(uint32_t charger_id, uint16_t output_Vx100, uint16_t output_Ax100, uint8_t charger_status){
+    TXMsg.format = SY_ID_FORMAT;
+    TXMsg.len = 8;
+	if(charger_id == 0){
+    	TXMsg.id = TP_BAM_CHARGER_DEFAULT_ID;
+	}else{
+		TXMsg.id = (TP_BAM_CHARGER_MASK&charger_id);
+	}
+	
+    *((uint8_t *) &TXMsg.dataA[0])= 0x20;
+    *((uint8_t *) &TXMsg.dataA[1])= 0x05;
+    *((uint8_t *) &TXMsg.dataA[2])= 0x00;
+    *((uint8_t *) &TXMsg.dataA[3])= 0x01;
+    *((uint8_t *) &TXMsg.dataB[0])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[1])= 0x00;//CONFIG_RESPONSE_PGN
+    *((uint8_t *) &TXMsg.dataB[2])= 0xf1;//
+    *((uint8_t *) &TXMsg.dataB[3])= 0x02;//
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+
+	if(charger_id == 0){
+    	TXMsg.id = TP_DP_CHARGER_DEFAULT_ID;
+	}else{
+		TXMsg.id = (TP_DP_CHARGER_MASK&charger_id);
+	}
+
+    *((uint8_t *) &TXMsg.dataA[0])= 0x01;
+    *((uint8_t *) &TXMsg.dataA[1])= INT16TO8_1(output_Vx100);//LSB
+    *((uint8_t *) &TXMsg.dataA[2])= INT16TO8_2(output_Vx100);//MSB
+    *((uint8_t *) &TXMsg.dataA[3])= INT16TO8_1(output_Ax100);//LSB
+    *((uint8_t *) &TXMsg.dataB[0])= INT16TO8_2(output_Ax100);//MSB
+    *((uint8_t *) &TXMsg.dataB[1])= charger_status;
+    *((uint8_t *) &TXMsg.dataB[2])= 0xFF;
+    *((uint8_t *) &TXMsg.dataB[3])= 0xFF;
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+    return 0;	
+
+	
+}
+
+
+/**
+* 退出请求应答
+**/
+int hy_sy_exit_response(uint32_t charger_id){
+    TXMsg.format = SY_ID_FORMAT;
+    TXMsg.len = 8;
+	if(charger_id == 0){
+    	TXMsg.id = TP_BAM_CHARGER_DEFAULT_ID;
+	}else{
+		TXMsg.id = (TP_BAM_CHARGER_MASK&charger_id);
+	}
+	
+    *((uint8_t *) &TXMsg.dataA[0])= 0x20;
+    *((uint8_t *) &TXMsg.dataA[1])= 0x02;
+    *((uint8_t *) &TXMsg.dataA[2])= 0x00;
+    *((uint8_t *) &TXMsg.dataA[3])= 0x01;
+    *((uint8_t *) &TXMsg.dataB[0])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[1])= 0x00;//EXIT_RESPONSE_PGN
+    *((uint8_t *) &TXMsg.dataB[2])= 0xf1;//
+    *((uint8_t *) &TXMsg.dataB[3])= 0x03;//
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+
+	if(charger_id == 0){
+    	TXMsg.id = TP_DP_CHARGER_DEFAULT_ID;
+	}else{
+		TXMsg.id = (TP_DP_CHARGER_MASK&charger_id);
+	}
+
+    *((uint8_t *) &TXMsg.dataA[0])= 0x01;
+    *((uint8_t *) &TXMsg.dataA[1])= 0xf1;//EXIT_REQUEST_2_BYTE
+    *((uint8_t *) &TXMsg.dataA[2])= 0x03;
+    *((uint8_t *) &TXMsg.dataA[3])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[0])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[1])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[2])= 0xFF;
+    *((uint8_t *) &TXMsg.dataB[3])= 0xFF;
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+    return 0;	
+
+	
+}
+
+
+/**
+* 广播请求应答 TODO
+**/
+int hy_sy_broadcast_response(uint32_t charger_id){
+    TXMsg.format = SY_ID_FORMAT;
+    TXMsg.len = 8;
+	if(charger_id == 0){
+    	TXMsg.id = TP_BAM_CHARGER_DEFAULT_ID;
+	}else{
+		TXMsg.id = (TP_BAM_CHARGER_MASK&charger_id);
+	}
+	
+    *((uint8_t *) &TXMsg.dataA[0])= 0x20;
+    *((uint8_t *) &TXMsg.dataA[1])= 0x10;
+    *((uint8_t *) &TXMsg.dataA[2])= 0x00;
+    *((uint8_t *) &TXMsg.dataA[3])= 0x03;
+    *((uint8_t *) &TXMsg.dataB[0])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[1])= 0x00;//EXIT_RESPONSE_PGN
+    *((uint8_t *) &TXMsg.dataB[2])= 0xf1;//
+    *((uint8_t *) &TXMsg.dataB[3])= 0x04;//
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+
+	if(charger_id == 0){
+    	TXMsg.id = TP_DP_CHARGER_DEFAULT_ID;
+	}else{
+		TXMsg.id = (TP_DP_CHARGER_MASK&charger_id);
+	}
+
+    *((uint8_t *) &TXMsg.dataA[0])= 0x01;
+    *((uint8_t *) &TXMsg.dataA[1])= 0xf1;//EXIT_REQUEST_2_BYTE
+    *((uint8_t *) &TXMsg.dataA[2])= 0x03;
+    *((uint8_t *) &TXMsg.dataA[3])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[0])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[1])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[2])= 0xFF;
+    *((uint8_t *) &TXMsg.dataB[3])= 0xFF;
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+
+	*((uint8_t *) &TXMsg.dataA[0])= 0x02;
+    *((uint8_t *) &TXMsg.dataA[1])= 0xf2;//EXIT_REQUEST_2_BYTE
+    *((uint8_t *) &TXMsg.dataA[2])= 0x03;
+    *((uint8_t *) &TXMsg.dataA[3])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[0])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[1])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[2])= 0xFF;
+    *((uint8_t *) &TXMsg.dataB[3])= 0xFF;
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+
+	*((uint8_t *) &TXMsg.dataA[0])= 0x03;
+    *((uint8_t *) &TXMsg.dataA[1])= 0xf3;//EXIT_REQUEST_2_BYTE
+    *((uint8_t *) &TXMsg.dataA[2])= 0x03;
+    *((uint8_t *) &TXMsg.dataA[3])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[0])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[1])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[2])= 0xFF;
+    *((uint8_t *) &TXMsg.dataB[3])= 0xFF;
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+    return 0;	
+
+	
+}
+
+
+/**
+* 地址重置	请求
+**/
+int hy_sy_address_reset_response(uint8_t address){
+    TXMsg.format = SY_ID_FORMAT;
+    TXMsg.len = 8;
+
+	TXMsg.id = (ADDRESS_CLAIM_MASK&(0xffffff00|(uint32_t)address));
+	
+	
+    *((uint8_t *) &TXMsg.dataA[0])= 0x01;
+    *((uint8_t *) &TXMsg.dataA[1])= address;
+    *((uint8_t *) &TXMsg.dataA[2])= 0xff;
+    *((uint8_t *) &TXMsg.dataA[3])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[0])= 0xff;
+    *((uint8_t *) &TXMsg.dataB[1])= 0xff;//EXIT_RESPONSE_PGN
+    *((uint8_t *) &TXMsg.dataB[2])= 0xff;//
+    *((uint8_t *) &TXMsg.dataB[3])= 0xff;//
+
+
+	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+    return 0;	
+	
+}
+
+
+

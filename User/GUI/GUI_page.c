@@ -328,9 +328,9 @@ PAGE displaypage1(uint32_t state,
 			state = state|HY_GUI_ERR_MASK;
 			
 		}
-		LOG_INFO_TAG(HY_LOG_TAG,"====[][%d][%d][%d]",
-				gwcharger_statu1,gwcharger_statu2,
-				(state & HY_GUI_ERR_MASK));
+		//LOG_INFO_TAG(HY_LOG_TAG,"====[][%d][%d][%d]",
+// 				gwcharger_statu1,gwcharger_statu2,
+// 				(state & HY_GUI_ERR_MASK));
 		if (!(state&HY_GUI_BATTERY_ON_MASK))/*no battery*/{
 			hy_led_control(led_offall);
 			lcd_display_chinese(dian);

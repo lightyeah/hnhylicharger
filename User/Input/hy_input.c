@@ -29,9 +29,6 @@ int hy_input_init(void* hy_instance_handle)
 	s_inputsignal->currentfb_x10A = 0;
 	s_inputsignal->voltagefb = 0;
 	s_inputsignal->voltagefb_x10V = 0;
-	s_inputsignal->heatwarn = 0;/*todo*/
-	s_inputsignal->resettrigger = 0;
-	s_inputsignal->embtrigger = 0;
 	
 	/*hardware init*/  
     //Init the input control message 
@@ -91,58 +88,37 @@ int hy_input_init(void* hy_instance_handle)
 }
 
 
-uint8_t hy_get_heatwarn(void){// 1 for normal 0 for heat
-		
-	uint32_t ret = ((GPIO_ReadValue(1)&(1<<16))>>16);
-	hy_instance->inputsignal.heatwarn = ret;
-	// LOG_INFO_TAG(HY_LOG_TAG,"hy get heatwarn [%d]",ret);
-	if(ret){	
-		return 0;
-	}else{
-		return 1;
-	}
-};
 
-uint8_t hy_get_embtrigger(void){
-	uint32_t ret = GPIO_ReadValue(0)&(1<<6);
-		if(hy_instance==NULL){
-		LOG_ERROR_TAG(HY_LOG_TAG,"hy input not init!!");
-	}
-	hy_instance->inputsignal.embtrigger = ret;
-	LOG_INFO_TAG(HY_LOG_TAG,"hy get embtrigger [%d]",ret);
-	if(ret){	
-		return ret;
-	}else{
-		return ret;
-	}
+
+
+
+
+/**电池电压**/
+void hy_set_battery_voltage_x10V(uint16_t value){
+	 LOG_INFO_TAG(HY_LOG_TAG,"get battery voltage [%d]x0.1",value);
+    hy_instance->inputsignal.batteryvoltage_x10V = value;
 }
 
-uint8_t hy_get_resettrigger(void){
-	uint32_t ret = GPIO_ReadValue(1)&(1<<17);
-	if(hy_instance==NULL){
-		LOG_ERROR_TAG(HY_LOG_TAG,"hy input not init!!");
-	}
-	hy_instance->inputsignal.resettrigger=ret;
-	LOG_INFO_TAG(HY_LOG_TAG,"hy get rettrigger [%d]",ret);
-	if(ret){	
-		return ret;
-	}else{
-		return ret;
-	}
+/**输入交流电压**/
+void hy_set_input_voltage_x10V(uint16_t value){
+	   LOG_INFO_TAG(HY_LOG_TAG,"get input voltage [%d]x0.1",value);
+    hy_instance->inputsignal.inputvoltage_x10V = value;
 }
 
+/**输出电压**/
 void hy_set_voltagefb_x10V(uint16_t value){
-	   LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1",value);
+	   //LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1",value);
     hy_instance->inputsignal.voltagefb_x10V = value;
 }
 
+/**输出电流**/
 void hy_set_currentfb_x10A(uint16_t value){
 
     hy_instance->inputsignal.currentfb_x10A = value;
 }
 
 void hy_set_voltagefb1_x10V(uint16_t value){
-	   LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1",value);
+
     hy_instance->inputsignal.voltagefb1_x10V = value;
 }
 
@@ -152,7 +128,7 @@ void hy_set_currentfb1_x10A(uint16_t value){
 }
 
 void hy_set_voltagefb2_x10V(uint16_t value){
-	   LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1",value);
+
     hy_instance->inputsignal.voltagefb2_x10V = value;
 }
 
@@ -162,7 +138,6 @@ void hy_set_currentfb2_x10A(uint16_t value){
 }
 
 void hy_set_voltagefb3_x10V(uint16_t value){
-	   LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1",value);
     hy_instance->inputsignal.voltagefb3_x10V = value;
 }
 
@@ -174,12 +149,11 @@ void hy_set_currentfb3_x10A(uint16_t value){
 /*ADC TODO use more effecient method !!!!*/
 uint16_t hy_get_voltagefb_x10V(void){
 	  //LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1 ",hy_instance->inputsignal.voltagefb_x10V);
-    return hy_instance->inputsignal.voltagefb1_x10V;
+    return hy_instance->inputsignal.voltagefb_x10V;
 }
 
 uint16_t hy_get_currentfb_x10A(void){
 
-	hy_instance->inputsignal.currentfb_x10A = hy_instance->inputsignal.currentfb1_x10A+hy_instance->inputsignal.currentfb2_x10A+hy_instance->inputsignal.currentfb3_x10A;
     return hy_instance->inputsignal.currentfb_x10A;
 }
 

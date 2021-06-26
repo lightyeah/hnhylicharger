@@ -13,6 +13,7 @@
 #include "lpc17xx_libcfg.h"
 #include "dataprocess.h"
 #include "debug_frmwrk.h"
+#include "SY_SAE_J1939.h"
 
 /*config can*/
 #define BMS_CAN_TUNNEL_X      LPC_CAN1
@@ -25,6 +26,9 @@
 /********************Ð­ÒéÄÚÈÝ protocol v1.0********/
 /**************************************************/
 #define HY_ID_FORMAT					 EXT_ID_FORMAT
+
+#define SY_ID_FORMAT   EXT_ID_FORMAT
+
 
 #define  BMS_OBC_BHM_FRAME_ID                   0x182756F4 /*handshake BMS-->OBC*/
 #define  BMS_OBC_BHM_MAX_VOL_MASK               HY_MAX_VOLTAGE     /*handshake data MAX charge Voltage unit:0.1 Volt*/
@@ -113,6 +117,12 @@
 
 
 /*end*********增加充电器控制协议*******/
+
+
+/* start 圣阳电池 */
+
+
+/* end 圣阳电池*/
 #define HY_CAN_TASK_MONITOR_INTERVAL  2000/*unit ms*/
 typedef enum HY_BMS_STOP_MSG{
 	hy_bms_no_stop = 0,
@@ -156,6 +166,7 @@ typedef struct CanComStrcut{
 	int bms_stop_code;
 	int obc_stop_code;
 	hy_cantask_state state;
+	uint32_t hy_sy_msg_pgn;
 }hy_cancom_t;
 
 int hy_can_send(hy_canmsg* msg);
@@ -178,4 +189,35 @@ int hy_can_get_taskstate(void);
 
 int hy_can_restart(int start_code, void* ctx);
 int hy_can_stop(int stop_code, void* ctx);
+
+
+/**圣阳**/
+/**
+* 控制请求应答
+**/
+int hy_sy_control_response(uint32_t charger_id);
+
+
+/**
+* 配置参数应答
+**/
+int hy_sy_config_response(uint32_t charger_id, uint16_t output_Vx100, uint16_t output_Ax100, uint8_t charger_status);
+
+
+/**
+* 退出请求应答
+**/
+int hy_sy_exit_response(uint32_t charger_id);
+
+/**
+* 广播请求应答 TODO
+**/
+int hy_sy_broadcast_response(uint32_t charger_id);
+
+
+/**
+* 地址重置	请求
+**/
+int hy_sy_address_reset_response(uint8_t address);
+
 #endif
