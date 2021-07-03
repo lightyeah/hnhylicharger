@@ -15,108 +15,50 @@
 #include "debug_frmwrk.h"
 
 /*config can*/
-#define BMS_CAN_TUNNEL_X      LPC_CAN1
+#define CHARGER_CAN_TUNNEL_X      LPC_CAN1
+#define BMS_CAN_TUNNEL_X          LPC_CAN1  
 
-#define HY_CAN_MSG_NO_RESEND     0
-#define HY_CAN_MSG_RESEND_DONE   1
-#define HY_CAN_MSG_NEED_RESEND   1
-#define HY_CAN_MSG_RESEND(x)     ((x)+1)
-/**************************************************/
-/********************Ð­ÒéÄÚÈÝ protocol v1.0********/
-/**************************************************/
-#define HY_ID_FORMAT					 EXT_ID_FORMAT
 
-#define  BMS_OBC_BHM_FRAME_ID                   0x182756F4 /*handshake BMS-->OBC*/
-#define  BMS_OBC_BHM_MAX_VOL_MASK               HY_MAX_VOLTAGE     /*handshake data MAX charge Voltage unit:0.1 Volt*/
-#define  BMS_OBC_BHM_INTERVAL                   250 /*all interval unit is ms*/       /*unit: ms*/
-
-#define  BMS_OBC_BCL_FRAME_ID                   0x181056F4 /*charge req BMS-->OBC*/
-#define  BMS_OBC_BCL_VOL_REQ_MASK               HY_MAX_VOLTAGE   
-#define  BMS_OBC_BCL_CUR_REQ_MASK               HY_MAX_CURRENT
-#define  BMS_OBC_BCL_MODE_VOL                   0x01
-#define  BMS_OBC_BCL_MODE_CUR                   0x02
-#define  BMS_OBC_BCL_INTERVAL                   50
-
-#define  BMS_OBC_BST_FRAME_ID                  	0x101956F4 /*BMS stop charge BMS --> OBC*/
-#define  BMS_OBC_BST_REACH_SOC_GOAL_MASK        0x01 /*0 for normal 1 for higher 2 3for uncertainty */               
-#define  BMS_OBC_BST_REACH_TOTAL_VOL_MASK       ((0x01)<<2)/*0 for unreach 1 for reached 2 3for uncertainty*/
-#define  BMS_OBC_BST_REACH_SINGLE_VOL_MASK      ((0x01)<<4)/*0 for unreach 1 for reached 2 3for uncertainty*/
-#define  BMS_OBC_BST_OBC_STOP_MASK              ((0x01)<<6)/*0 for normal 1 for stoped 2 3for uncertainty*/
-#define  BMS_OBC_BST_INSULATION_ERR_MASK        ((0x01)<<8)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  BMS_OBC_BST_CONNECTOR_HEAT_MASK        ((0x01)<<10)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  BMS_OBC_BST_BMS_HEAT_MASK              ((0x01)<<12)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  BMS_OBC_BST_C_CONNECTOR_HEAT_MASK      ((0x01)<<14)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  BMS_OBC_BST_BATTERY_HEAT_MASK          ((0x01)<<16)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  BMS_OBC_BST_RELAY_ERR_MASK             ((0x01)<<18)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  BMS_OBC_BST_POINT_2_ERR_MASK           ((0x01)<<20)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  BMS_OBC_BST_OTHER_ERR_MASK             ((0x01)<<22)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  BMS_OBC_BST_CUR_OVERFLOW_MASK          ((0x01)<<24)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  BMS_OBC_BST_VOL_ERR_MASK               ((0x01)<<26)/*0 for normal 1 for error 2 3for uncertainty*/ 
-#define  BMS_OBC_BST_INTERVAL                   10
-
-#define  OBC_BMS_CHM_FRAME_ID                   0x1826F456/*OBC handshake OBC-->BMS*/
-#define  OBC_BMS_PROTOCOL_VERSION_BYTE1         0x00
-#define  OBC_BMS_PROTOCOL_VERSION_BYTE2         0x01
-#define  OBC_BMS_PROTOCOL_VERSION_BYTE3         0x01
-#define  OBC_BMS_CHM_INTERVAL                   250
-
-#define  OBC_BMS_CML_FRAME_ID                    0x1808F456/*OBC MAX output OBC-->BMS*/
-#define  OBC_BMS_CML_INTERVAL                    250
-
-#define  OBC_BMS_CCS_FRAME_ID                    0x1812F456/*OBC charge control state OBC-->BMS*/
-#define  OBC_BMS_CCS_ALWAYS_ON                   0x01
-#define  OBC_BMS_CCS_INTERVAL                    50
-
-#define  OBC_BMS_CST_FRAME_ID                    0x101AF456/*OBC stop charge OBC-->BMS*/
-#define  OBC_BMS_CST_REACH_GOAL(x)               ((x)&0x01) /*0 for normal 1 for higher 2 3for uncertainty */               
-#define  OBC_BMS_CST_MANUAL_STOP(x)              (((x)&0x01)<<2)/*0 for unreach 1 for reached 2 3for uncertainty*/
-#define  OBC_BMS_CST_ERR_STOP(x)                 (((x)&0x01)<<4)/*0 for unreach 1 for reached 2 3for uncertainty*/
-#define  OBC_BMS_CST_BMS_STOP(x)                 (((x)&0x01)<<6)/*0 for normal 1 for stoped 2 3for uncertainty*/
-#define  OBC_BMS_CST_HEAT_ERR(x)                 (((x)&0x01)<<8)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  OBC_BMS_CST_CONNECTOR_ERR(x)            (((x)&0x01)<<10)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  OBC_BMS_CST_OBC_HEAT_ERR(x)             (((x)&0x01)<<12)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  OBC_BMS_CST_BEYOND_CAPACITY(x)          (((x)&0x01)<<14)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  OBC_BMS_CST_EMERGENCY_STOP(x)           (((x)&0x01)<<16)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  OBC_BMS_CST_OHTER_ERR(x)                (((x)&0x01)<<18)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  OBC_BMS_CST_CUR_NOT_MATCH(x)            (((x)&0x01)<<24)/*0 for normal 1 for error 2 3for uncertainty*/
-#define  OBC_BMS_CST_VOL_ERR(x)                  (((x)&0x01)<<26)/*0 for normal 1 for error 2 3for uncertainty*/ 
-#define  OBC_BMS_CST_INTERVAL                    10 
-
-#define  OBC_BMS_CSD_FRAME_ID                    0x181DF459/*OBC charge static data OBC-->BMS*/
-#define  OBC_BMS_CSD_INTERVAL                    250
-
-#define  FRAME_ID(x)               x##_FRAME_ID 
-#define  INTERVAL(x)               x##_INTERVAL
 
 #define  HY_CAN_CONNECT_TIMEOUT                  30000/*unit ms*/
 
-#define HY_CAN_BMS_STOP                          2/**/
-#define HY_CAN_OBC_STOP_CANTIMEOUT               3
 /*************************************/
 /********************协议********/
 /*************************************/
 #define HY_CHARGE_ID_FORMAT					 STD_ID_FORMAT
-#define HY_CHARGE_ID_EXT_FORMAT      EXT_ID_FORMAT
+#define HY_CHARGE_ID_EXT_FORMAT              EXT_ID_FORMAT
+
+
+#define HY_CHARGE_MSG_TEST_FRAME_ID 0x12078081
 
 // 英瑞可
-#define HY_CHARGE_CONTROL_YRK_FRAME_ID 0x1307C081
-#define HY_CHARGE_MSG_YRK_FRAME_ID     0x1207C081
-#define HY_CHARGE_MSG_YRK_TEST_FRAME_ID 0x12078081
+//控制指令ID
+/*
+* 1. 开机 CMD=2
+* 2. 关机 CMD=2
+* 3. 设置电压电流 CMD=0
+* 4. 读取模块信息 电流电压状态 CMD=1
+*/
+#define HY_YRK_CONTROL_FRAME_ID          0x1307C081
+#define HY_YRK_CONTROL_BACK_FRAME_ID     0x1207C081
+
+//读取监控设定电压
+#define HY_YRK_READ_SETTING_VOLTAGE_FRAMD_ID      0x13010081
+#define HY_YRK_READ_SETTING_VOLTAGE_BACK_FRAMD_ID 0x12010081
+
+//读取监控设定电流
+#define HY_YRK_READ_SETTING_CURRENT_FRAMD_ID      0x13010881
+#define HY_YRK_READ_SETTING_CURRENT_BACK_FRAMD_ID 0x12010881
+
+//读取输入电压
+#define HY_YRK_READ_INPUT_VOLTAGE_FRAMD_ID        0x1307a081
+#define HY_YRK_READ_INPUT_VOLTAGE_BACK_FRAMD_ID   0x1207a081
+
+//读取环境温度
+#define HY_YRK_READ_TEMPERATURE_FRAMD_ID          0x13008081
+#define HY_YRK_READ_TEMPERATURE_BACK_FRAMD_ID     0x12008081
 
 
-
-
-
-// 国威 GW
-#define HY_CHARGE_CONTROL_FRAME_ID   0x200
-#define HY_CHARGE_MSG_100MS_FRAME_ID     0x201//100ms间隔上报帧
-#define HY_CHARGE_MSG_500MS_FRAME_ID     0x301//500ms间隔上报帧
-
-#define HY_CHARGE_MSG_100MS_FRAME_ID2     0x205//100ms间隔上报帧
-#define HY_CHARGE_MSG_500MS_FRAME_ID2     0x305//500ms间隔上报帧
-
-#define HY_CHARGE_MSG_100MS_FRAME_ID3     0x204//100ms间隔上报帧
-#define HY_CHARGE_MSG_500MS_FRAME_ID3     0x304//500ms间隔上报帧
 
 /*start*********增加充电器控制协议*********/
 /********************/
@@ -125,27 +67,13 @@
 
 /*end*********增加充电器控制协议*******/
 #define HY_CAN_TASK_MONITOR_INTERVAL  2000/*unit ms*/
-typedef enum HY_BMS_STOP_MSG{
-	hy_bms_no_stop = 0,
-	HY_BMS_REACH_SOC_GOAL,
-	HY_BMS_REACH_TOTAL_VOL,
-
-
-}hy_bms_stop_msg;
 
 typedef enum HY_CANTASK_STATE{
 	HY_CANTASK_IDLE = 0,
-	HY_CANTASK_HANDSHAKE,
-	HY_CANTASK_CHARGE,
-	HY_CANTASK_BMS_STOP,
-	HY_CANTASK_OBC_STOP,
-	HY_CANTASK_END,
 	
-	HY_CANTASK_CHARGE_MSG_100MS,//充电器上报状态报文 100ms间隔
-	HY_CANTASK_CHARGE_MSG_500MS,//充电器上报状态报文 500ms间隔
+	HY_CANTASK_NORMAL,//正常工作
 	
-	HY_CANTASK_CHARGE_MSG_YRK,//YRK 上报状态
-	
+	HY_CANTASK_ERR_DISCONNECT,
 	HY_CANTASK_ERR
 }hy_cantask_state;
 
@@ -154,47 +82,85 @@ typedef enum HY_CANTASK_STATE{
 typedef struct HY_CANMSG{
 	uint32_t frame_id;
 	uint8_t databyte[8];
-	uint32_t resendcounts;
+	uint8_t updateflag;
 }hy_canmsg;
 
+typedef struct YRK_MSG{
+	uint32_t output_current_x10A;
+	uint32_t output_voltage_x10V;
+	uint8_t statu1;
+	uint8_t statu2;
+	uint32_t setting_voltage_x10V;
+	uint32_t setting_current_10A;
+	uint32_t temperature_x10degree;	
+}yrk_msg;
+
+typedef struct BMS_MSG{
+	int dddd;
+}bms_msg;
+
 typedef struct CanComStrcut{
-	uint8_t msgupdate_flag;
-	int canconnected;
-	uint32_t connectupdate_time_ms;
-	hy_canmsg canmsg;
-	/*注意：
-	* bms_stop_code 都定义为偶数
-	* obc_stop_code	都定义为奇数
-	*/
-	int bms_stop_code;
-	int obc_stop_code;
+
+	uint32_t charger_module_timeout;//刷新连接时间
+	uint32_t bms_module_timeout;
+	
+	hy_canmsg charger_module_canmsg;//充电模块信息
+	hy_canmsg bms_module_canmsg;//bms充电机信息
+	
+	char charger_module_canconnected;//充电模块连接状态
+	char bms_module_connected;//电池bms模块连接状态
+
+	yrk_msg charger_msg;
+
+	bms_msg no_msg;
+	
 	hy_cantask_state state;
 }hy_cancom_t;
 
-int hy_can_send(hy_canmsg* msg);
-int hy_can_send_test(void);
 
-// YRK控制
-int hy_can_start_YRKcharger(void);
-int hy_can_stop_YRKcharger(void);
 
-//充电器控制
-int hy_can_control_GWcharger(uint16_t vol_x10v, uint16_t cur_x10a);
-int hy_can_stop_GWcharger(void);
-int hy_can_GWcharger_batteryoff(void);
 
-int hy_can_GWcharger_status1(void);
-int hy_can_GWcharger_status2(void);
-
-int hy_can_query_YRKcharger(void);//YRK 获取充电器状态数据
 
 int hy_can_init(void* hy_instance);
 int hy_can_getmsg(void);
 void hy_can_task_main(void);
 
-int hy_can_connected(void);
-int hy_can_get_taskstate(void);
 
-int hy_can_restart(int start_code, void* ctx);
-int hy_can_stop(int stop_code, void* ctx);
+// YRK控制
+int hy_can_start_YRKcharger(void);
+int hy_can_stop_YRKcharger(void);
+int hy_can_control_set_yrkcharger(uint32_t current_x1000mA,uint32_t voltage_x1000mV);
+int hy_can_control_query_YRKcharger(void);//YRK 获取充电器状态数据
+
+//YRK 询问信息 异步处理
+int hy_can_query_setting_voltage_yrkcharger(void);
+int hy_can_query_setting_current_yrkcharger(void);
+int hy_can_query_temperature_yrkcharger(void);
+int hy_can_query_220V_yrkcharger(void);
+
+
+
+//信息获取
+int hy_can_get_batterystate(void);//电池连接状态
+uint32_t hy_can_get_battery_voltage(void);//电池电压
+	
+uint32_t hy_can_get_output_voltage_x10V(void);//输出电压
+uint32_t hy_can_get_output_current_x10A(void);//输出电流
+
+int hy_can_get_intput_voltage_x10V(uint32_t* vol1,uint32_t* vol2, uint32_t* vol3);//输入三相电压
+
+uint32_t hy_can_get_charger_module_temperature_x10degree(void);//yrk充电模块温度
+
+uint8_t hy_can_charger_module_connected(void);
+uint8_t hy_can_bms_connected(void);
+
+uint8_t hy_can_get_charger_module_statu1(void);
+
+uint8_t hy_can_get_charger_module_statu2(void);
+
+
+int hy_can_detect_yrkcharger(void);
+int hy_can_detect_bms(void);
+
+
 #endif

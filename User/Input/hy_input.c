@@ -25,153 +25,73 @@ int hy_input_init(void* hy_instance_handle)
 	hy_instance = (hy_instance_t*)hy_instance_handle;
 	s_inputsignal = &(hy_instance->inputsignal);
 	/*software init*/
-	s_inputsignal->currentfb = 0;
-	s_inputsignal->currentfb_x10A = 0;
-	s_inputsignal->voltagefb = 0;
-	s_inputsignal->voltagefb_x10V = 0;
-	s_inputsignal->heatwarn = 0;/*todo*/
-	s_inputsignal->resettrigger = 0;
-	s_inputsignal->embtrigger = 0;
+	s_inputsignal->output_current_x10A = 0;
+	s_inputsignal->output_voltage_x10V = 0;
+	s_inputsignal->battery_voltage_x10V = 0;
+	s_inputsignal->charger_module_temperature_x10degree = 0;
+	s_inputsignal->charger_module_statu1 = 0;/*todo*/
+	s_inputsignal->charger_module_statu2 = 0;
+	s_inputsignal->charger_module_connected = HY_FALSE;
+	s_inputsignal->bms_module_connectd = HY_FALSE;
+	s_inputsignal->battery_module_connected = HY_FALSE;
 	
-	/*hardware init*/  
-    //Init the input control message 
-    PinCfg.Funcnum = 0;
-    PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
-    PinCfg.Pinmode = PINSEL_PINMODE_PULLUP;
 
-    //No.79 P0[6] EMB input
-    PinCfg.Portnum = 0;
-    PinCfg.Pinnum = 6;
-    PINSEL_ConfigPin(&PinCfg);
-    
-    //No.86 P1[17] Reset input
-    PinCfg.Portnum = 1;
-    PinCfg.Pinnum = 17;
-    PINSEL_ConfigPin(&PinCfg);
 
-    //No.87 P1[16] Overheat input
-    PinCfg.Portnum = 1;
-    PinCfg.Pinnum = 16;
-    PINSEL_ConfigPin(&PinCfg);
-
-     //Defined as input
-    GPIO_SetDir(0, (1<<6),0);
-    GPIO_SetDir(1, (1<<17)|(1<<16),0);
-	LOG_INFO_TAG(HY_LOG_TAG,"hy init gpio done!");
-		/*ADC INIT*/
-		/*
-     * Init ADC pin connect
-     * current 7 P0.25 AD0.2  FUNCIONT 1
-     * voltage 21 P1.30 AD0.4 FUNCTION3
-     */
-    PinCfg.OpenDrain = 0;
-    PinCfg.Pinmode = 0;
-    PinCfg.Funcnum = 1;
-    PinCfg.Pinnum = 25;
-    PinCfg.Portnum = 0;
-    PINSEL_ConfigPin(&PinCfg);
-
-    PinCfg.Funcnum = 3;
-    PinCfg.Portnum = 1;
-    PinCfg.Pinnum = 30;
-    PINSEL_ConfigPin(&PinCfg);
-
-    /* Configuration for ADC:
-     *  select: ADC channel 2 
-     *          ADC channel 4 
-     *  ADC conversion rate = 200KHz
-     */
-    ADC_Init(LPC_ADC, 200000);
-		ADC_IntConfig(LPC_ADC,ADC_ADINTEN4,ENABLE);
-		ADC_IntConfig(LPC_ADC,ADC_ADINTEN2,ENABLE);
-
-		LOG_INFO_TAG(HY_LOG_TAG,"hy init adc done!");
+	LOG_INFO_TAG(HY_LOG_TAG,"hy init adc done!");
 	
 	return ret;
 }
 
 
-uint8_t hy_get_heatwarn(void){// 1 for normal 0 for heat
-		
-	uint32_t ret = ((GPIO_ReadValue(1)&(1<<16))>>16);
-	hy_instance->inputsignal.heatwarn = ret;
-	// LOG_INFO_TAG(HY_LOG_TAG,"hy get heatwarn [%d]",ret);
-	if(ret){	
-		return 0;
-	}else{
-		return 1;
-	}
-};
-
-uint8_t hy_get_embtrigger(void){
-	uint32_t ret = GPIO_ReadValue(0)&(1<<6);
-		if(hy_instance==NULL){
-		LOG_ERROR_TAG(HY_LOG_TAG,"hy input not init!!");
-	}
-	hy_instance->inputsignal.embtrigger = ret;
-	LOG_INFO_TAG(HY_LOG_TAG,"hy get embtrigger [%d]",ret);
-	if(ret){	
-		return ret;
-	}else{
-		return ret;
-	}
+//YRK模块首先获取电压
+uint16_t hy_get_output_voltage_x10V(void){
+	hy_can_control_query_YRKcharger();//需要先获取
+	s_inputsignal->output_voltage_x10V = hy_can_get_output_voltage_x10V();
+	return s_inputsignal->output_voltage_x10V;
 }
 
-uint8_t hy_get_resettrigger(void){
-	uint32_t ret = GPIO_ReadValue(1)&(1<<17);
-	if(hy_instance==NULL){
-		LOG_ERROR_TAG(HY_LOG_TAG,"hy input not init!!");
-	}
-	hy_instance->inputsignal.resettrigger=ret;
-	LOG_INFO_TAG(HY_LOG_TAG,"hy get rettrigger [%d]",ret);
-	if(ret){	
-		return ret;
-	}else{
-		return ret;
-	}
+uint16_t hy_get_output_currentfb_x10A(void){
+	s_inputsignal->output_current_x10A = hy_can_get_output_current_x10A();
+	return s_inputsignal->output_current_x10A;
 }
 
-void hy_set_voltagefb_x10V(uint16_t value){
-	   //LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1",value);
-    hy_instance->inputsignal.voltagefb_x10V = value;
+uint8_t hy_get_charger_module_statu1(void){
+	s_inputsignal->charger_module_statu1 = hy_can_get_charger_module_statu1();
+	return s_inputsignal->charger_module_statu1;
 }
 
-void hy_set_currentfb_x10A(uint16_t value){
+uint8_t hy_get_charger_module_statu2(void){
+	s_inputsignal->charger_module_statu2 = hy_can_get_charger_module_statu2();
+	return s_inputsignal->charger_module_statu2;
 
-    hy_instance->inputsignal.currentfb_x10A = value;
 }
 
-void hy_set_voltagefb1_x10V(uint16_t value){
-	   //LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1",value);
-    hy_instance->inputsignal.voltagefb1_x10V = value;
+
+
+uint16_t hy_get_output_battery_voltage_x10V(void){
+	return s_inputsignal->output_voltage_x10V;
 }
 
-void hy_set_currentfb1_x10A(uint16_t value){
 
-    hy_instance->inputsignal.currentfb1_x10A = value;
+//todo
+//uint16_t hy_get_input_voltage_x10V(void);
+
+uint16_t hy_get_charger_module_temperatur_x10degree(void){
+	hy_can_query_temperature_yrkcharger();
+	s_inputsignal->charger_module_temperature_x10degree = hy_can_get_charger_module_temperature_x10degree();
+	return s_inputsignal->charger_module_temperature_x10degree;
 }
 
-void hy_set_voltagefb2_x10V(uint16_t value){
-	   //LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1",value);
-    hy_instance->inputsignal.voltagefb2_x10V = value;
+
+
+uint8_t hy_get_battery_connected(void){
+	return s_inputsignal->battery_module_connected;
 }
 
-void hy_set_currentfb2_x10A(uint16_t value){
 
-    hy_instance->inputsignal.currentfb2_x10A = value;
-}
-/*ADC TODO use more effecient method !!!!*/
-uint16_t hy_get_voltagefb_x10V(void){
-	  //LOG_INFO_TAG(HY_LOG_TAG,"get voltage [%d]x0.1 ",hy_instance->inputsignal.voltagefb_x10V);
-		hy_can_query_YRKcharger();
-    return hy_instance->inputsignal.voltagefb_x10V;
-}
 
-uint16_t hy_get_currentfb_x10A(void){
 
-	  //hy_instance->inputsignal.currentfb_x10A = hy_instance->inputsignal.currentfb1_x10A+hy_instance->inputsignal.currentfb2_x10A;
-    return hy_instance->inputsignal.currentfb_x10A;
-}
+
 
 
 
