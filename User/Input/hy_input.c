@@ -84,16 +84,69 @@ uint16_t hy_get_charger_module_temperatur_x10degree(void){
 }
 
 
-
+int16_t battery_voltage_last=0;
+int16_t battery_voltage_diff=0;
+uint32_t battery_check_time = 0;
+uint32_t battery_check_flag = 0;
 uint8_t hy_get_battery_connected(void){
 	//LOG_DEBUG_TAG(HY_LOG_TAG, "GET BATTERY [%d]\r\n",s_inputsignal->battery_voltage_x10V);
-	if(s_inputsignal->battery_module_connected==HY_FALSE&&s_inputsignal->battery_voltage_x10V>=50){
-			s_inputsignal->battery_module_connected=HY_TRUE;
+
+	if(s_inputsignal->battery_module_connected==HY_FALSE&&s_inputsignal->battery_voltage_x10V>150){
+		s_inputsignal->battery_module_connected = HY_TRUE;
 	}
-	if (s_inputsignal->battery_module_connected==HY_TRUE&&s_inputsignal->battery_voltage_x10V<50){
-			s_inputsignal->battery_module_connected=HY_FALSE;
+	if (s_inputsignal->battery_module_connected==HY_TRUE&&s_inputsignal->battery_voltage_x10V<=150){
+		s_inputsignal->battery_module_connected = HY_FALSE;
 	}
 	return s_inputsignal->battery_module_connected;
+
+
+
+//	if(s_inputsignal->battery_module_connected==HY_FALSE&&s_inputsignal->battery_voltage_x10V>50){
+//		if(battery_check_flag==0){
+//			battery_check_flag=1;
+//			battery_check_time=hy_time_now_ms();
+//			battery_voltage_diff = 0;
+//			battery_voltage_last = (int16_t)s_inputsignal->battery_voltage_x10V;
+//		}
+//		if(battery_check_flag==1){
+//			battery_voltage_diff += (int16_t)s_inputsignal->battery_voltage_x10V-battery_voltage_last;
+//			battery_voltage_last = (int16_t)s_inputsignal->battery_voltage_x10V;
+//			LOG_DEBUG_TAG(HY_LOG_TAG, "check battery [%d]", battery_voltage_diff);
+//			if (systime_elapse_ms(battery_check_time)>=5000){
+//				if(battery_voltage_diff>=-5){
+//					s_inputsignal->battery_module_connected=HY_TRUE;
+//					battery_check_flag=0;
+//					return HY_TRUE;
+//				}else{
+//					battery_check_flag=0;
+//				}
+//			}
+//		}
+//	}
+//	if (s_inputsignal->battery_module_connected==HY_TRUE){
+//		if(battery_check_flag==0){
+//			battery_check_flag=1;
+//			battery_check_time=hy_time_now_ms();
+//			battery_voltage_diff = 0;
+//			battery_voltage_last = (int16_t)s_inputsignal->battery_voltage_x10V;
+//		}
+//		if(battery_check_flag==1){
+//			battery_voltage_diff += (int16_t)s_inputsignal->battery_voltage_x10V-battery_voltage_last;
+//			battery_voltage_last = (int16_t)s_inputsignal->battery_voltage_x10V;
+//			if (systime_elapse_ms(battery_check_time)>=5000){
+//				if(battery_voltage_diff>=-5){
+//					s_inputsignal->battery_module_connected=HY_TRUE;
+//					battery_check_flag=0;
+//					return HY_TRUE;
+//				}else{
+//					battery_check_flag=0;
+//					s_inputsignal->battery_module_connected=HY_FALSE;
+//					return HY_FALSE;
+//				}
+//			}
+//		}
+//	}
+//	return s_inputsignal->battery_module_connected;
 }
 
 

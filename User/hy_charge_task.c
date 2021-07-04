@@ -226,7 +226,7 @@ void hy_chargetask_local_turntostate(hy_chargetask_state state)
 			s_chargetask->statestarttime_ms = hy_time_now_ms();
 		break;
 		case CHARGETASK_LOCAL_TWO:
-			hy_chargetask_setaim(hy_instance->config.chargecurrent_2*10,hy_instance->config.limitvoltage_2*10);
+			hy_chargetask_setaim(hy_instance->config.chargecurrent_2*10,s_chargetask->output_voltage_x10V+100);
 			s_chargetask->max_voltage_x10V = (hy_instance->config.limitvoltage_2*10);
 			s_chargetask->max_current_x10A = (hy_instance->config.currentrange*10);
 			s_chargetask->max_chargetimeout_ms = (hy_instance->config.chargetimeout_2_min*60*1000);
@@ -251,7 +251,8 @@ void hy_chargetask_local_turntostate(hy_chargetask_state state)
 void hy_chargetask_main()
 {
 	static uint32_t monitortime_ms;
-
+	static uint32_t state_two_aim_voltage=0;
+	
 	/*use CHARGETASK_CONTROL_INTERVAL to control chargetask regulate*/
 	if((systime_elapse_ms(s_chargetask->lastcontrol_time_ms)%CHARGETASK_CONTROL_INTERVAL)){
 		return;
@@ -260,11 +261,14 @@ void hy_chargetask_main()
 	
 	s_chargetask->output_voltage_x10V = hy_get_output_voltage_x10V();
 	s_chargetask->output_current_x10A = hy_get_output_current_x10A();
+
+
 	
 	LOG_DEBUG_TAG(HY_LOG_TAG, "chargertask battercheck [%d] [%d]\r\n",hy_get_battery_connected(),s_chargetask->battery_flag);
 	if(hy_get_battery_connected()&&s_chargetask->battery_flag == HY_BATTERY_DISCONNECT){//电池未连接状态下检测到电池
 		hy_chargetask_start(HY_CONTROLSTYLE_LOCAL,NULL);//yrk 本地充电版本		
 		s_chargetask->battery_flag = HY_BATTERY_CONNECT;
+		s_chargetask->gui_msg.state |= HY_GUI_BATTERY_ON_MASK;
 	}else if(!hy_get_battery_connected()&&s_chargetask->battery_flag == HY_BATTERY_CONNECT){//电池连接状态下检测到电池断开
 		hy_chargetask_stop(CHARGETASK_BATTERY_DISCONNECT_STOP_CODE,NULL);
 		s_chargetask->battery_flag = HY_BATTERY_DISCONNECT;
@@ -313,7 +317,13 @@ void hy_chargetask_main()
 
 	  case CHARGETASK_LOCAL_TWO://第二阶段
 			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
-	  		hy_chargetask_setaim(hy_instance->config.chargecurrent_2*10,hy_instance->config.limitvoltage_2*10);
+			if (s_chargetask->output_voltage_x10V <= hy_instance->config.limitvoltage_2 - 50)
+			{
+				state_two_aim_voltage = s_chargetask->output_voltage_x10V+40;
+			}else{
+				state_two_aim_voltage = hy_instance->config.limitvoltage_2*10;
+			}
+	  		hy_chargetask_setaim(hy_instance->config.chargecurrent_2*10,state_two_aim_voltage);
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
 				LOG_INFO_TAG(HY_LOG_TAG,
 				"***chargetask local [two] get voltage [%d]x0.1V current [%d]x0.1A",
@@ -326,6 +336,7 @@ void hy_chargetask_main()
 				s_chargetask->state = CHARGETASK_LOCAL_THREE;
 				hy_chargetask_local_turntostate(CHARGETASK_LOCAL_THREE);
 			}
+			
 			break;
 
 		case CHARGETASK_LOCAL_THREE://第三阶段
@@ -344,6 +355,7 @@ void hy_chargetask_main()
 				|| systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){/*change to local [two]*/
 				LOG_INFO_TAG(HY_LOG_TAG,"[three is end ,change to idle]");
 				hy_chargetask_stop(CHARGETASK_LOCAL_NORMAL_STOP_CODE,NULL);
+				s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_END_MASK;
 				s_chargetask->state = CHARGETASK_IDLE;
 			}
 			break;
@@ -359,6 +371,8 @@ void hy_chargetask_main()
 		default:
 			break;
 	}
+
+	
 	s_chargetask->gui_msg.chargetime_min = hy_chargetask_getchargetime_min();
 	s_chargetask->gui_msg.currentx10A = hy_chargetask_getoutputcur_x10A();
 	s_chargetask->gui_msg.voltagex10V = hy_chargetask_getoutputvol_x10V();
@@ -366,6 +380,7 @@ void hy_chargetask_main()
 	s_chargetask->gui_msg.charger_statu2 = hy_get_charger_module_statu2();
 	if(s_chargetask->gui_msg.charger_statu2&0xfa||s_chargetask->gui_msg.charger_statu1&0x03){
 		s_chargetask->gui_msg.state |= HY_GUI_ERR_MASK;
+		hy_set_stop_output();
 	}
 	hy_emit_gui_msg(CHARGETASK_MSG,&s_chargetask->gui_msg);
 

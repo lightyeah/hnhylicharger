@@ -331,7 +331,7 @@ PAGE displaypage1(uint32_t state,
 			lcd_display_chinese(wei);
 			lcd_display_chinese(lianjie);
 		}else if((state & HY_GUI_BATTERY_ON_MASK)
-					&&(state & HY_GUI_CHARGETASK_ON_MASK)
+					&& !(state & HY_GUI_CHARGETASK_END_MASK)
 					&&((state & HY_GUI_ERR_MASK)==0)){/*normal charge*/
 			hy_led_control(led_running);
 			if (s_gui->controlstyle == HY_CONTROLSTYLE_CAN)
