@@ -322,6 +322,7 @@ PAGE displaypage1(uint32_t state,
 		lcd_display_chinese_at(0,3,zt);
 		lcd_display_colon();
 
+
 		//LOG_INFO_TAG(HY_LOG_TAG,"====[][%d][%d][%d]",gwcharger_statu1,gwcharger_statu2,(state & HY_GUI_ERR_MASK));
 		if (!(state&HY_GUI_BATTERY_ON_MASK))/*no battery*/{
 			hy_led_control(led_offall);
@@ -1361,7 +1362,7 @@ PAGE settingpage4(PAGE father_page){
 				case button_set://0x01
 					switch(index){
 						case 2:
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								dataname = controlstyle;
 								LOG_INFO_TAG(HY_LOG_TAG,"settingpage4 set controlstyle");
 								return datasettingpage(dataname,SettingPage4);
@@ -1378,7 +1379,7 @@ PAGE settingpage4(PAGE father_page){
 							LOG_INFO_TAG(HY_LOG_TAG,"settingpage4 set currentrange");
 							return datasettingpage(dataname,SettingPage4);
 						case 3:
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								dataname = communicaterate;
 								LOG_INFO_TAG(HY_LOG_TAG,"settingpage4 set communicationrate");
 								return datasettingpage(dataname,SettingPage4);
@@ -1573,7 +1574,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num_index = 0;
 			lcd_display_num4_forset(data,'V');
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -1592,7 +1593,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->voltagerange = data/10;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage set voltagerange  [%d]x0.1V ",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writevoltagerange(config_data->voltagerange);
 								Config_DataWriting();
 							}
@@ -1662,7 +1663,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num_index = 0;
 			lcd_display_num4_forset(data,'A');
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -1681,7 +1682,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->currentrange = data/10;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage set currentrange  [%d]x0.1A ",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writecurrentrange(config_data->currentrange);
 								hy_config_datawriting();
 							}
@@ -1750,7 +1751,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num_index = 0;
 			lcd_display_num4_forset(data,'A');
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -1769,7 +1770,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->balancecurrent = data/10;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage set balancecurrent  [%d]x0.1A ",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writebalancecurrent(config_data->balancecurrent);
 								hy_config_datawriting();
 							}
@@ -1833,7 +1834,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			lcd_display_chinese(tx);
 			lcd_display_chinese(ms);
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(3,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -1861,7 +1862,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 								config_data->controlstyle = 0;
 							}
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage controlstyle set [%d] 0 for can 1 for local",config_data->controlstyle);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writectrlstyle(config_data->controlstyle);
 								hy_config_datawriting();
 							}
@@ -1916,7 +1917,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num_index = 0;
 			lcd_display_num4_forset(data,'A');
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -1935,7 +1936,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->chargecurrent_1 = data/10;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage set chargecurrent_1 [%d]x0.1A",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writechargecurrent_1(config_data->chargecurrent_1);
 								hy_config_datawriting();
 							}
@@ -2004,7 +2005,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num_index = 0;
 			lcd_display_num4_forset(data,'V');
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -2023,7 +2024,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->limitvoltage_1 = data/10;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage limitvoltage_1 set [%d]x0.1V",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writelimitvoltage_1(config_data->limitvoltage_1);
 								hy_config_datawriting();
 							}
@@ -2093,7 +2094,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num_index = 0;
 			lcd_display_time4_forset(data);
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -2112,7 +2113,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[3];
 							config_data->chargetimeout_1_min = data;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage chargetimeout_1_min set [%d] min",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writechargetimeout_1(config_data->chargetimeout_1_min);
 								hy_config_datawriting();
 							}
@@ -2179,7 +2180,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num_index = 0;
 			lcd_display_num4_forset(data,'V');
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -2198,7 +2199,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->switchvoltage_1 = data/10;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage switchvoltage_1 set [%d]x0.1V",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writeswitchvoltage_1(config_data->switchvoltage_1);
 								hy_config_datawriting();
 							}
@@ -2268,7 +2269,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			lcd_display_num4_forset(data,'A');
 
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -2287,7 +2288,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->chargecurrent_2 = data/10;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage chargecurrent_2 set [%d]x0.1A",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writechargecurrent_2(config_data->chargecurrent_2);
 								hy_config_datawriting();
 							}
@@ -2356,7 +2357,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num_index = 0;
 			lcd_display_num4_forset(data,'V');
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -2375,7 +2376,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->limitvoltage_2 = data/10;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage limitvoltage_2 set [%d]x0.1V",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writelimitvoltage_2(config_data->limitvoltage_2);
 								hy_config_datawriting();
 							}
@@ -2445,7 +2446,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num_index = 0;
 			lcd_display_time4_forset(data);
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -2464,7 +2465,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[3];
 							config_data->chargetimeout_2_min = data;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage chargetimeout_2_min set [%d] min",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writechargetimeout_2(config_data->chargetimeout_2_min);
 								hy_config_datawriting();
 							}
@@ -2529,7 +2530,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num_index = 0;
 			lcd_display_num4_forset(data,'V');
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -2548,7 +2549,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->switchvoltage_2 = data/10;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage switchvoltage_2 set [%d]x0.1V",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writeswitchvoltage_2(config_data->switchvoltage_2);
 								hy_config_datawriting();
 							}
@@ -2617,7 +2618,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num_index = 0;
 			lcd_display_num4_forset(data,'V');
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -2636,7 +2637,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->chargevoltage_3 = data/10;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage chargevoltage_3 set [%d]x0.1V",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writechargevoltage_3(config_data->chargevoltage_3);
 								hy_config_datawriting();
 							}
@@ -2704,7 +2705,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num_index = 0;
 			lcd_display_num4_forset(data,'A');
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -2723,7 +2724,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->limitcurrent_3 = data/10;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage limitcurrent_3 set [%d]x0.1A",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writelimitcurrent_3(config_data->limitcurrent_3);
 								hy_config_datawriting();
 							}
@@ -2793,7 +2794,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num[3] = data%10;
 			num_index = 0;
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -2812,7 +2813,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[3];
 							config_data->chargetimeout_3_min = data;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage chargetimeout_3_min set [%d] min",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writechargetimeout_3(config_data->chargetimeout_3_min);
 								hy_config_datawriting();
 							}
@@ -2877,7 +2878,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 			num_index = 0;
 			lcd_display_num4_forset(data,'A');
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(2,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -2896,7 +2897,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 							data = num[0]*1000+num[1]*100+num[2]*10+num[4];
 							config_data->switchcurrent_3 = data/10;
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage switchcurrent_3 set [%d]x0.1A",data);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writeswitchcurrent_3(config_data->switchcurrent_3);
 								hy_config_datawriting();
 							}
@@ -3002,7 +3003,7 @@ communicaterate_page1:
 								break;
 							}
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage communicaterate [%d]",config_data->communicaterate);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writecommunicaterate(config_data->communicaterate);
 								hy_config_datawriting();
 							}
@@ -3050,7 +3051,7 @@ communicaterate_page2:
 			lcd_display_index(5);
 			lcd_display_botelv4(800);
 
-			if(s_gui->set_in_flash){
+			if(HY_TRUE){
 				lcd_goto_pos(3,0);
 				lcd_display_chinese(sz);
 				lcd_display_chinese(cc);
@@ -3080,7 +3081,7 @@ communicaterate_page2:
 								break;
 							}
 							LOG_INFO_TAG(HY_LOG_TAG,"datasettingpage communicaterate [%d]",config_data->communicaterate);
-							if (s_gui->set_in_flash){
+							if (HY_TRUE){
 								hy_config_writecommunicaterate(config_data->communicaterate);
 								hy_config_datawriting();
 							}

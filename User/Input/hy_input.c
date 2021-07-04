@@ -86,11 +86,11 @@ uint16_t hy_get_charger_module_temperatur_x10degree(void){
 
 
 uint8_t hy_get_battery_connected(void){
-	LOG_DEBUG_TAG(HY_LOG_TAG, "GET BATTERY [%d]\r\n",s_inputsignal->battery_voltage_x10V);
-	if(s_inputsignal->battery_module_connected==HY_FALSE&&s_inputsignal->battery_voltage_x10V>=10){
+	//LOG_DEBUG_TAG(HY_LOG_TAG, "GET BATTERY [%d]\r\n",s_inputsignal->battery_voltage_x10V);
+	if(s_inputsignal->battery_module_connected==HY_FALSE&&s_inputsignal->battery_voltage_x10V>=50){
 			s_inputsignal->battery_module_connected=HY_TRUE;
 	}
-	if (s_inputsignal->battery_module_connected==HY_TRUE&&s_inputsignal->battery_voltage_x10V<10){
+	if (s_inputsignal->battery_module_connected==HY_TRUE&&s_inputsignal->battery_voltage_x10V<50){
 			s_inputsignal->battery_module_connected=HY_FALSE;
 	}
 	return s_inputsignal->battery_module_connected;

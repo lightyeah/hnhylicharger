@@ -32,13 +32,13 @@ int hy_chargetask_start(int controltype, void* ctx)
 {
 	int ret = HY_OK;
 
-	if (s_chargetask->gui_msg.state & HY_GUI_CHARGETASK_END_MASK){//充电完成，不能启动
-		return HY_OK;
-	}
-
-	if(s_chargetask->start_flag == HY_TRUE){//充电中不能启动
-		return HY_OK;
-	}
+//	if (s_chargetask->gui_msg.state & HY_GUI_CHARGETASK_END_MASK){//充电完成，不能启动
+//		return HY_OK;
+//	}
+//
+//	if(s_chargetask->start_flag == HY_TRUE){//充电中不能启动
+//		return HY_OK;
+//	}
 
 	LOG_INFO_TAG(HY_LOG_TAG,"*********************");
 	LOG_INFO_TAG(HY_LOG_TAG,"chargetask start....");
