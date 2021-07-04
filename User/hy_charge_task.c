@@ -261,7 +261,7 @@ void hy_chargetask_main()
 	s_chargetask->output_voltage_x10V = hy_get_output_voltage_x10V();
 	s_chargetask->output_current_x10A = hy_get_output_current_x10A();
 	
-	
+	LOG_DEBUG_TAG(HY_LOG_TAG, "chargertask battercheck [%d] [%d]\r\n",hy_get_battery_connected(),s_chargetask->battery_flag);
 	if(hy_get_battery_connected()&&s_chargetask->battery_flag == HY_BATTERY_DISCONNECT){//电池未连接状态下检测到电池
 		hy_chargetask_start(HY_CONTROLSTYLE_LOCAL,NULL);//yrk 本地充电版本		
 		s_chargetask->battery_flag = HY_BATTERY_CONNECT;
@@ -286,8 +286,8 @@ void hy_chargetask_main()
 			
 			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
 				LOG_INFO_TAG(HY_LOG_TAG,
-				"***chargetask idle state ******get voltage [%d]x0.1V current [%d]x0.1A",
-				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
+				"***chargetask idle state [%d]******get voltage [%d]x0.1V current [%d]x0.1A",
+				s_chargetask->battery_flag,s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
 				monitortime_ms = hy_time_now_ms();
 			}
 			
@@ -362,9 +362,11 @@ void hy_chargetask_main()
 	s_chargetask->gui_msg.chargetime_min = hy_chargetask_getchargetime_min();
 	s_chargetask->gui_msg.currentx10A = hy_chargetask_getoutputcur_x10A();
 	s_chargetask->gui_msg.voltagex10V = hy_chargetask_getoutputvol_x10V();
-	s_chargetask->gui_msg.gwcharger_statu1 = hy_get_charger_module_statu1();
-	s_chargetask->gui_msg.gwcharger_statu2 = hy_get_charger_module_statu2();
-	
+	s_chargetask->gui_msg.charger_statu1 = hy_get_charger_module_statu1();
+	s_chargetask->gui_msg.charger_statu2 = hy_get_charger_module_statu2();
+	if(s_chargetask->gui_msg.charger_statu2&0xfa||s_chargetask->gui_msg.charger_statu1&0x03){
+		s_chargetask->gui_msg.state |= HY_GUI_ERR_MASK;
+	}
 	hy_emit_gui_msg(CHARGETASK_MSG,&s_chargetask->gui_msg);
 
 	

@@ -278,11 +278,11 @@ PAGE welcomepage(){
 	return DisplayPage1;
 }
 
-uint8_t gwcharger_statu1;
-uint8_t gwcharger_statu2;
+uint8_t charger_statu1;
+uint8_t charger_statu2;
 void set_gwcharger_status(uint8_t statu1,uint8_t statu2){
-	gwcharger_statu1 = statu1;
-	gwcharger_statu2 = statu2;
+	charger_statu1 = statu1;
+	charger_statu2 = statu2;
 }
 /*main page
 *  充电电压：xxxV
@@ -322,12 +322,6 @@ PAGE displaypage1(uint32_t state,
 		lcd_display_chinese_at(0,3,zt);
 		lcd_display_colon();
 
-		if ((gwcharger_statu1&0xff)||(gwcharger_statu2&0xfe))//gw充电故障
-		{
-			
-			state = state|HY_GUI_ERR_MASK;
-			
-		}
 		//LOG_INFO_TAG(HY_LOG_TAG,"====[][%d][%d][%d]",gwcharger_statu1,gwcharger_statu2,(state & HY_GUI_ERR_MASK));
 		if (!(state&HY_GUI_BATTERY_ON_MASK))/*no battery*/{
 			hy_led_control(led_offall);
@@ -361,79 +355,55 @@ PAGE displaypage1(uint32_t state,
 				lcd_display_space();
 		}else if(state & HY_GUI_ERR_MASK){//错误处理
 			hy_led_control(led_err);
-			if(gwcharger_statu1&(1<<0))//交流欠压 电压故障1
+			if(charger_statu2&(1<<5))//交流欠压 电压故障1
 			{
 				lcd_display_chinese(dian);
 				lcd_display_chinese(ya);
 				lcd_display_chinese(gz);
 				lcd_display_ascii("1");
 				lcd_display_space();
-			}else if(gwcharger_statu1&(1<<1)){//交流过压 电压故障2
+			}else if(charger_statu2&(1<<4)){//交流过压 电压故障2
 				lcd_display_chinese(dian);
 				lcd_display_chinese(ya);
 				lcd_display_chinese(gz);
 				lcd_display_ascii("2");
 				lcd_display_space();
-			}else if(gwcharger_statu1&(1<<2)){//输出欠压 电压故障3
+			}else if(charger_statu2&(1<<6)){//输出过压 电压故障3
 				lcd_display_chinese(dian);
 				lcd_display_chinese(ya);
 				lcd_display_chinese(gz);
 				lcd_display_ascii("3");
 				lcd_display_space();
-			}else if(gwcharger_statu1&(1<<3)){//输出欠压 电压故障4
+			}else if(charger_statu2&(1<<7)){//输出欠压 电压故障4
 				lcd_display_chinese(dian);
 				lcd_display_chinese(ya);
 				lcd_display_chinese(gz);
 				lcd_display_ascii("4");
 				lcd_display_space();
-			}else if(gwcharger_statu1&(1<<4)){//输出过流 电流故障1
-				lcd_display_chinese(dian);
-				lcd_display_chinese(liu);
-				lcd_display_chinese(gz);
-				lcd_display_ascii("1");
-				lcd_display_space();
-			}else if(gwcharger_statu1&(1<<5)){//输出短接 电流故障2
-				lcd_display_chinese(dian);
-				lcd_display_chinese(liu);
-				lcd_display_chinese(gz);
-				lcd_display_ascii("2");
-				lcd_display_space();
-			}else if(gwcharger_statu1&(1<<6)){//过温关机 高温状态1
+			}else if(charger_statu2&(1<<3)){//风扇故障 高温状态4
 				lcd_display_chinese(gw);
 				lcd_display_chinese(zt);
-				lcd_display_ascii("1");
+				lcd_display_ascii("4");
 				lcd_display_space();
-			}else if(gwcharger_statu1&(1<<7)){//硬件故障 本地错误
+			}else if(charger_statu2&(1<<1)){//硬件故障 本地错误
 				lcd_display_chinese(bd);
 				lcd_display_chinese(cw);
 				lcd_display_space();
 				lcd_display_space();
 			}
 
-			if(gwcharger_statu2&(1<<1))//输出反接 电压故障5
+			if(charger_statu1&(1<<0))//过流保护 电流故障5
 			{
 				lcd_display_chinese(dian);
-				lcd_display_chinese(ya);
+				lcd_display_chinese(liu);
 				lcd_display_chinese(gz);
 				lcd_display_ascii("5");
 				lcd_display_space();
-			}else if(gwcharger_statu2&(1<<2))//原边过温故障 高温状态2
+			}else if(charger_statu2&(1<<1))//过温保护 高温状态2
 			{
 				lcd_display_chinese(gw);
 				lcd_display_chinese(zt);
 				lcd_display_ascii("2");
-				lcd_display_space();
-			}else if(gwcharger_statu2&(1<<3))//风扇故障 高温状态3
-			{
-				lcd_display_chinese(gw);
-				lcd_display_chinese(zt);
-				lcd_display_ascii("3");
-				lcd_display_space();
-			}else if(gwcharger_statu2&(1<<4))//风扇故障 高温状态4
-			{
-				lcd_display_chinese(gw);
-				lcd_display_chinese(zt);
-				lcd_display_ascii("4");
 				lcd_display_space();
 			}				
 		}

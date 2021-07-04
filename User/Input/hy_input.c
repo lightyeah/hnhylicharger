@@ -46,6 +46,7 @@ int hy_input_init(void* hy_instance_handle)
 uint16_t hy_get_output_voltage_x10V(void){
 	hy_can_control_query_YRKcharger();//需要先获取
 	s_inputsignal->output_voltage_x10V = hy_can_get_output_voltage_x10V();
+	s_inputsignal->battery_voltage_x10V = s_inputsignal->output_voltage_x10V;
 	return s_inputsignal->output_voltage_x10V;
 }
 
@@ -85,6 +86,7 @@ uint16_t hy_get_charger_module_temperatur_x10degree(void){
 
 
 uint8_t hy_get_battery_connected(void){
+	LOG_DEBUG_TAG(HY_LOG_TAG, "GET BATTERY [%d]\r\n",s_inputsignal->battery_voltage_x10V);
 	if(s_inputsignal->battery_module_connected==HY_FALSE&&s_inputsignal->battery_voltage_x10V>=10){
 			s_inputsignal->battery_module_connected=HY_TRUE;
 	}

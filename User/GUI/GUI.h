@@ -75,8 +75,8 @@ typedef struct Chargetask_Gui_Msg{
 	uint32_t currentx10A;
 	uint32_t chargetime_min;
 	uint32_t state;
-	uint8_t gwcharger_statu1;
-	uint8_t gwcharger_statu2;
+	uint8_t charger_statu1;
+	uint8_t charger_statu2;
 }chargetask_gui_msg;
 
 typedef struct Button_Gui_Msg

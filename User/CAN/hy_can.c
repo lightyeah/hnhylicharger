@@ -62,7 +62,7 @@ int hy_can_getmsg()
 	int ret = HY_OK;
 
 	if(s_cancom->charger_module_canmsg.updateflag){//更新充电模块信息
-		// LOG_DEBUG_TAG(HY_LOG_TAG, "can update new msg ");
+		LOG_DEBUG_TAG(HY_LOG_TAG, "can update new msg ");
 		s_cancom->charger_module_canmsg.updateflag = HY_FALSE;/*clear flag*/
 		s_cancom->charger_module_timeout = 0;//计时清零
 	
@@ -176,6 +176,34 @@ void CAN_IRQHandler()
 				case HY_YRK_READ_TEMPERATURE_BACK_FRAMD_ID:
 					updatemodule(charger);
 					s_cancom->charger_msg.temperature_x10degree = INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]);
+					break;
+				case HY_CHARGE_MSG_TEST_FRAME_ID:
+					switch (RXMsg.dataA[0]){
+						case 0:
+							hy_can_query_220V_yrkcharger();
+							break;
+						case 1:
+							hy_can_control_query_YRKcharger();
+							break;
+						case 2:
+							hy_can_query_temperature_yrkcharger();
+							break;
+						case 3:
+							hy_can_query_setting_voltage_yrkcharger();
+							break;
+						case 4:
+							hy_can_query_setting_current_yrkcharger();
+							break;
+						case 5:
+							hy_can_control_set_yrkcharger(50000, 50000);
+							break;
+						case 6:
+							hy_can_start_YRKcharger();
+							break;
+						case 7:
+							hy_can_stop_YRKcharger();
+							break;
+					}
 					break;
 				//end YRK
 				default:
