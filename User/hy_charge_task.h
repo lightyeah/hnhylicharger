@@ -37,6 +37,7 @@ typedef enum Hy_Chargetask_State{
 	CHARGETASK_LOCAL_TWO,
 	CHARGETASK_LOCAL_THREE,
 	CHARGETASK_CAN,
+	CHARGETASK_PAUSE,
 	CHARGETASK_ERR
 }hy_chargetask_state;
 
@@ -56,7 +57,7 @@ typedef struct HY_ChargeTask_T{
 	int32_t aim_current_x10A;
 	int32_t output_voltage_x10V;
 	int32_t output_current_x10A;
-	int32_t output_dac_value;
+
 	uint32_t statestarttime_ms;
 
 	uint32_t max_voltage_x10V;
@@ -68,6 +69,8 @@ typedef struct HY_ChargeTask_T{
 	uint32_t average_powerrate_x10w;
 
 	hy_chargetask_state state;
+	hy_chargetask_state pause_state;
+	
 	int8_t battery_flag;
 	
 	int8_t machine_start_flag;
@@ -90,12 +93,15 @@ int hy_chargetask_init(void* hy_instance_handle);
 int hy_chargetask_start(int controltype, void* ctx);
 int hy_chargetask_stop(int stop_code,void* ctx);
 
-int hy_chargetask_end(void);
-int hy_chargetask_emergencystop(void);
+int hy_chargetask_pause(int stop_code,void* ctx);
+int hy_chargetask_continue(int stop_code,void* ctx);
+
 
 int hy_chargetask_setmaxvoltage_x10V(uint32_t voltage);
 int hy_chargetask_setmaxcurrent_x10A(uint32_t currnet);
-int hy_chargetask_setaim(uint8_t type, uint32_t value);
+
+int hy_chargetask_setaim(uint16_t current_x10A, uint16_t voltage_x10V);
+
 
 
 uint32_t hy_chargetask_getoutputvol_x10V(void);
@@ -103,19 +109,11 @@ uint32_t hy_chargetask_getoutputcur_x10A(void);
 uint32_t hy_chargetask_getchargetime_min(void);
 uint32_t hy_chargetask_gettotalpower_x10kwh(void);
 
-
-
 void hy_chargetask_local_turntostate(hy_chargetask_state state);
 
 void hy_chargetask_main(void);
 
-void hy_chargetask_setoverheat(void);
-void hy_chargetask_clearoverheat(void);
-int hy_chargetask_getoverheat(void);
 
-
-void hy_test_key_up(void);
-void hy_test_key_down(void);
 #endif
 
 

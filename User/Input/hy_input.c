@@ -20,7 +20,6 @@ hy_inputsignal_t *s_inputsignal;
 int hy_input_init(void* hy_instance_handle)
 {
 	int ret = HY_OK;
-	PINSEL_CFG_Type PinCfg;
 
 	hy_instance = (hy_instance_t*)hy_instance_handle;
 	s_inputsignal = &(hy_instance->inputsignal);
@@ -50,7 +49,7 @@ uint16_t hy_get_output_voltage_x10V(void){
 	return s_inputsignal->output_voltage_x10V;
 }
 
-uint16_t hy_get_output_currentfb_x10A(void){
+uint16_t hy_get_output_current_x10A(void){
 	s_inputsignal->output_current_x10A = hy_can_get_output_current_x10A();
 	return s_inputsignal->output_current_x10A;
 }
@@ -69,6 +68,7 @@ uint8_t hy_get_charger_module_statu2(void){
 
 
 uint16_t hy_get_output_battery_voltage_x10V(void){
+	s_inputsignal->battery_voltage_x10V = s_inputsignal->output_voltage_x10V;
 	return s_inputsignal->output_voltage_x10V;
 }
 
@@ -85,6 +85,12 @@ uint16_t hy_get_charger_module_temperatur_x10degree(void){
 
 
 uint8_t hy_get_battery_connected(void){
+	if(s_inputsignal->battery_module_connected==HY_FALSE&&s_inputsignal->battery_voltage_x10V>=10){
+			s_inputsignal->battery_module_connected=HY_TRUE;
+	}
+	if (s_inputsignal->battery_module_connected==HY_TRUE&&s_inputsignal->battery_voltage_x10V<10){
+			s_inputsignal->battery_module_connected=HY_FALSE;
+	}
 	return s_inputsignal->battery_module_connected;
 }
 

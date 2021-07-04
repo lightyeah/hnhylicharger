@@ -52,7 +52,7 @@ int hy_input_init(void* hy_instance_handle);
 
 
 uint16_t hy_get_output_voltage_x10V(void);
-uint16_t hy_get_output_currentfb_x10A(void);
+uint16_t hy_get_output_current_x10A(void);
 
 uint16_t hy_get_output_battery_voltage_x10V(void);
 
