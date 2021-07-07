@@ -68,18 +68,18 @@ int hy_output_init(void* hy_instance_handle)
 }
 
 int hy_set_start_output(void){
-	hy_can_start_YRKcharger();
+	hy_can_start_charger();
 	return 0;
 }
 
 int hy_set_stop_output(void)
 {
-	hy_can_stop_YRKcharger();
+	hy_can_stop_charger();
 	return 0;
 }
 
 int hy_set_charger_output(uint16_t current_x10A, uint16_t voltage_10V){
-	hy_can_control_set_yrkcharger((uint32_t)current_x10A*100, (uint32_t)voltage_10V*100);
+	hy_can_control_set_charger((uint32_t)current_x10A*100, (uint32_t)voltage_10V*100);
 	return 0;
 }
 

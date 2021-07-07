@@ -42,9 +42,8 @@ int hy_input_init(void* hy_instance_handle)
 }
 
 
-//YRK模块首先获取电压
+//模块首先获取电压
 uint16_t hy_get_output_voltage_x10V(void){
-	hy_can_control_query_YRKcharger();//需要先获取
 	s_inputsignal->output_voltage_x10V = hy_can_get_output_voltage_x10V();
 	s_inputsignal->battery_voltage_x10V = s_inputsignal->output_voltage_x10V;
 	return s_inputsignal->output_voltage_x10V;
@@ -78,7 +77,7 @@ uint16_t hy_get_output_battery_voltage_x10V(void){
 //uint16_t hy_get_input_voltage_x10V(void);
 
 uint16_t hy_get_charger_module_temperatur_x10degree(void){
-	hy_can_query_temperature_yrkcharger();
+	hy_can_query_temperature_charger();
 	s_inputsignal->charger_module_temperature_x10degree = hy_can_get_charger_module_temperature_x10degree();
 	return s_inputsignal->charger_module_temperature_x10degree;
 }
