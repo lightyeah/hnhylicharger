@@ -9,8 +9,6 @@
 
 #include "hy_instance.h"
 
-#include "gw_module.h"
-
 #define HY_LOG_TAG   "can"
 
 CAN_MSG_Type TXMsg, RXMsg; // messages for test Bypass mode
@@ -191,7 +189,26 @@ void CAN_IRQHandler()
 					break;
 
 				#endif
-				
+
+				//朗普达协议
+				case LPD_BMS_BROADCAST_ID1:
+					updatemodule(bms);
+					s_cancom->bms_msg.bms_max_voltage_x10V=INT8TO16(RXMsg.dataA[0], RXMsg.dataA[1]);
+					s_cancom->bms_msg.bms_max_current_x10A=INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
+					s_cancom->bms_msg.control_byte=RXMsg.dataB[0];
+					s_cancom->bms_msg.statu=RXMsg.dataB[1];
+					s_cancom->bms_msg.mode=RXMsg.dataB[2];
+					hy_can_broadcast_to_bms();
+					break;
+				case LPD_BMS_BROADCAST_ID2:
+					updatemodule(bms);
+					s_cancom->bms_msg.single_battery_max_x1000mV=INT8TO16(RXMsg.dataA[0], RXMsg.dataA[1]);
+					s_cancom->bms_msg.single_battery_min_x1000mA=INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
+					s_cancom->bms_msg.soc_byte=RXMsg.dataB[0];
+					s_cancom->bms_msg.temperatue_x1degree = RXMsg.dataB[1]-40;
+					s_cancom->bms_msg.battery_voltage_x10V=INT8TO16(RXMsg.dataB[2], RXMsg.dataB[3]);
+					break;
+				//end 朗普达协议
 				case HY_CHARGE_MSG_TEST_FRAME_ID:
 					switch (RXMsg.dataA[0]){
 						case 0:
@@ -440,21 +457,107 @@ uint8_t hy_can_charger_module_connected(void){
 	return s_cancom->charger_module_canconnected;
 }
 
-uint8_t hy_can_bms_connected(void){
-	return s_cancom->bms_module_connected;
-}
-
 
 int hy_can_detect_charger(void){
 	hy_can_stop_charger();
 	return 0;
+	
 }
 
-int hy_can_detect_bms(void){//tood
+
+//bms*********************************
+
+
+int hy_can_get_bms_set_voltage_10V(void)
+{
+	return s_cancom->bms_msg.bms_max_voltage_x10V;
+}
+int hy_can_get_bms_set_current_10A(void)
+{
+	return s_cancom->bms_msg.bms_max_current_x10A;
+}
+
+int hy_can_get_bms_temperature(void)
+{
+	return s_cancom->bms_msg.temperatue_x1degree;
+}
+
+int hy_can_get_bms_control(void){
+	return s_cancom->bms_msg.control_byte;
+}
+
+int hy_can_get_bms_status(void)
+{
+	return s_cancom->bms_msg.statu;
+}
+
+int hy_can_get_bms_mode(void)
+{
+	return s_cancom->bms_msg.mode;
+}
+
+int hy_can_get_bms_battery_voltage_x10V(void)
+{
+	return s_cancom->bms_msg.battery_voltage_x10V;
+}
+
+int hy_can_set_output_msg(uint16_t voltage_x10V, uint16_t current_x10A)
+{
+	s_cancom->charge_to_msg_msg.charge_output_current_x10A=current_x10A;
+	s_cancom->charge_to_msg_msg.charge_output_voltage_x10V=voltage_x10V;
 	return 0;
 }
 
 
+int hy_can_set_status_msg(uint8_t status)
+{
+	s_cancom->charge_to_msg_msg.status=status;
+	return 0;
+}
+
+
+
+
+
+int hy_can_broadcast_to_bms(void){
+	
+    TXMsg.format = HY_CHARGE_ID_FORMAT;
+    TXMsg.len = 8;
+    TXMsg.id = CHARGER_TO_LPD_ID;
+	
+
+	
+	*((uint8_t *) &TXMsg.dataA[0])= INT16TO8_2(s_cancom->charge_to_msg_msg.charge_output_voltage_x10V);
+	*((uint8_t *) &TXMsg.dataA[1])= INT16TO8_1(s_cancom->charge_to_msg_msg.charge_output_voltage_x10V);
+	*((uint8_t *) &TXMsg.dataA[2])= INT16TO8_2(s_cancom->charge_to_msg_msg.charge_output_current_x10A);
+	*((uint8_t *) &TXMsg.dataA[3])= INT16TO8_1(s_cancom->charge_to_msg_msg.charge_output_current_x10A);
+	*((uint8_t *) &TXMsg.dataB[0])= s_cancom->charge_to_msg_msg.status;
+	*((uint8_t *) &TXMsg.dataB[1])= 0x00;
+	*((uint8_t *) &TXMsg.dataB[2])= 0x00;
+	*((uint8_t *) &TXMsg.dataB[3])= 0x00;
+
+
+	CAN_SendMsg(CHARGER_CAN_TUNNEL_X, &TXMsg);
+		
+    return 0;		
+
+
+}
+
+
+int hy_can_detect_bms(void){//tood
+	hy_can_broadcast_to_bms();
+	return 0;
+}
+
+uint8_t hy_can_bms_connected(void){
+	if(systime_elapse_ms(s_cancom->bms_module_timeout)>=LPD_TIMEOUT_TIME){
+		s_cancom->bms_module_canconnected=HY_FALSE;
+	}else{
+		s_cancom->bms_module_canconnected=HY_TRUE;
+	}
+	return s_cancom->bms_module_canconnected;
+}
 
 
 

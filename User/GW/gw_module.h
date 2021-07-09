@@ -5,6 +5,8 @@
 
 #define GW_MOUDLE_NUM                     1
 
+#define GW_TIME_OUT                       5000//ms
+
 #define GW_CONTROL_FRAME_ID               0x200
 
 #define GW_MODULE_1_MSG_100MS_MSG_FRAME_ID  0x201

@@ -14,7 +14,8 @@
 #include "dataprocess.h"
 #include "debug_frmwrk.h"
 
-
+#include "gw_module.h"
+#include "langpuda_protocol.h"
 
 /*config can*/
 #define CHARGER_CAN_TUNNEL_X      LPC_CAN1
@@ -84,9 +85,7 @@ typedef struct CHARGER_MSG{
 	
 }charger_msg;
 
-typedef struct BMS_MSG{
-	int dddd;
-}bms_msg;
+
 
 typedef struct CanComStrcut{
 
@@ -97,12 +96,12 @@ typedef struct CanComStrcut{
 	hy_canmsg bms_module_canmsg;//bms充电机信息
 	
 	char charger_module_canconnected;//充电模块连接状态
-	char bms_module_connected;//电池bms模块连接状态
+	char bms_module_canconnected;//电池bms模块连接状态
 
 	charger_msg get_charger_msg;
-
-	bms_msg no_msg;
 	
+	lpd_msg bms_msg;
+	charge_to_langpuda_msg charge_to_msg_msg;
 	hy_cantask_state state;
 }hy_cancom_t;
 
@@ -114,6 +113,7 @@ int hy_can_init(void* hy_instance);
 int hy_can_getmsg(void);
 void hy_can_task_main(void);
 
+//CHARGER**********************************
 
 // 控制
 int hy_can_start_charger(void);
@@ -150,7 +150,31 @@ uint8_t hy_can_get_charger_module_statu2(void);
 
 
 int hy_can_detect_charger(void);
+
+
+//BMS***************************************
+
+int hy_can_get_bms_set_voltage_10V(void);
+int hy_can_get_bms_set_current_10A(void);
+
+int hy_can_get_bms_temperature(void);
+
+int hy_can_get_bms_control(void);
+
+int hy_can_get_bms_status(void);
+
+int hy_can_get_bms_mode(void);
+
+int hy_can_get_bms_battery_voltage_x10V(void);
+
+int hy_can_set_output_msg(uint16_t voltage_x10V, uint16_t current_x10A);
+int hy_can_set_status_msg(uint8_t status);
+
+int hy_can_broadcast_to_bms(void);
+
 int hy_can_detect_bms(void);
+
+
 
 
 #endif
