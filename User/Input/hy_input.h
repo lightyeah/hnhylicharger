@@ -67,5 +67,10 @@ uint8_t hy_get_charger_module_statu2(void);
 
 uint8_t hy_get_battery_connected(void);
 
+uint8_t hy_get_charger_module_connected(void);
+
+uint8_t hy_get_bms_connected(void);
+
+
 
 #endif

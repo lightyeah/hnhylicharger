@@ -15,14 +15,19 @@
 #define HY_GUI_REFRESH_INTERVAL     200/*unit ms*/
 
 #define HY_GUI_BATTERY_ON_MASK          (1)
-#define HY_GUI_CAN_ON_MASK              (1<<(2))
-#define HY_GUI_CHARGETASK_ON_MASK       (1<<(3))
-#define HY_GUI_CHARGETASK_END_MASK      (1<<(4)) 
 
-#define HY_GUI_ERR_MASK                 (1<<(12))
-#define HY_GUI_ERR_OVERHEAT_MASK        (1<<(13))
-#define HY_GUI_ERR_CURRENT_MASK         (1<<(14))
-#define HY_GUI_ERR_VOLTAGE_MASK         (1<<(15))
+
+#define HY_GUI_CAN_ON_MASK              1//通讯充电中
+#define HY_GUI_CHARGETASK_ON_MASK       2//本地充电中
+#define HY_GUI_CHARGETASK_END_MASK      3//充电完成
+#define HY_GUI_CHARGETASK_STOP_MASK     4//充电停止
+#define HY_GUI_CHARGETASK_IDLE          5//空闲状态
+
+
+#define HY_GUI_ERR_MASK                 12
+#define HY_GUI_ERR_OVERHEAT_MASK        13
+#define HY_GUI_ERR_CURRENT_MASK         14
+#define HY_GUI_ERR_VOLTAGE_MASK         15
 
 typedef enum Hy_Gui_Msg_Type{
 	NO_MSG = 0,
@@ -74,9 +79,18 @@ typedef struct Chargetask_Gui_Msg{
 	uint32_t voltagex10V;
 	uint32_t currentx10A;
 	uint32_t chargetime_min;
-	uint32_t state;
+	
+	uint32_t state;//deprecated
+
+	uint8_t workstate;
+	uint8_t errorstate;
+	
 	uint8_t charger_statu1;
 	uint8_t charger_statu2;
+	
+	uint8_t charge_module_connected;
+	uint8_t battery_connected;
+	uint8_t bms_connected;
 }chargetask_gui_msg;
 
 typedef struct Button_Gui_Msg

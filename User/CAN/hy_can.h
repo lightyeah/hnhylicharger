@@ -81,6 +81,8 @@ typedef struct CHARGER_MSG{
 
 	uint32_t setting_voltage_x10V;
 	uint32_t setting_current_10A;
+
+	
 	
 	
 }charger_msg;
@@ -97,6 +99,7 @@ typedef struct CanComStrcut{
 	
 	char charger_module_canconnected;//充电模块连接状态
 	char bms_module_canconnected;//电池bms模块连接状态
+	char battery_module_canconnected;
 
 	charger_msg get_charger_msg;
 	
@@ -131,7 +134,7 @@ int hy_can_query_220V_charger(void);
 
 
 //信息获取
-int hy_can_get_batterystate(void);//电池连接状态
+int hy_can_get_battery_connected(void);//电池连接状态
 uint32_t hy_can_get_battery_voltage(void);//电池电压
 	
 uint32_t hy_can_get_output_voltage_x10V(void);//输出电压
@@ -141,13 +144,11 @@ int hy_can_get_intput_voltage_x10V(uint32_t* vol1,uint32_t* vol2, uint32_t* vol3
 
 uint32_t hy_can_get_charger_module_temperature_x10degree(void);//充电模块温度
 
-uint8_t hy_can_charger_module_connected(void);
-uint8_t hy_can_bms_connected(void);
+uint8_t hy_can_get_charger_module_connected(void);
 
 uint8_t hy_can_get_charger_module_statu1(void);
 
 uint8_t hy_can_get_charger_module_statu2(void);
-
 
 int hy_can_detect_charger(void);
 
@@ -171,6 +172,8 @@ int hy_can_set_output_msg(uint16_t voltage_x10V, uint16_t current_x10A);
 int hy_can_set_status_msg(uint8_t status);
 
 int hy_can_broadcast_to_bms(void);
+
+uint8_t hy_can_get_bms_connected(void);
 
 int hy_can_detect_bms(void);
 

@@ -291,7 +291,7 @@ void set_gwcharger_status(uint8_t statu1,uint8_t statu2){
 *  状态： 电池错误/通讯错误/其他错误/
 		本地充电中/通讯充电中
 **/
-PAGE displaypage1(uint32_t state,
+PAGE displaypage1(chargetask_gui_msg* gui_msg,
 	uint32_t vol,
 	uint32_t cur,
 	uint32_t time)
@@ -324,103 +324,146 @@ PAGE displaypage1(uint32_t state,
 
 
 		//LOG_INFO_TAG(HY_LOG_TAG,"====[][%d][%d][%d]",gwcharger_statu1,gwcharger_statu2,(state & HY_GUI_ERR_MASK));
-		if (!(state&HY_GUI_BATTERY_ON_MASK))/*no battery*/{
-			hy_led_control(led_offall);
+		if (gui_msg->charge_module_connected == HY_FALSE){//模组没有连接
+			hy_led_control(led_err);
 			lcd_display_chinese(dian);
-			lcd_display_chinese(chi);
+			lcd_display_chinese(wei);
 			lcd_display_chinese(wei);
 			lcd_display_chinese(lianjie);
-		}else if((state & HY_GUI_BATTERY_ON_MASK)
-					&& !(state & HY_GUI_CHARGETASK_END_MASK)
-					&&((state & HY_GUI_ERR_MASK)==0)){/*normal charge*/
-			hy_led_control(led_running);
-			if (s_gui->controlstyle == HY_CONTROLSTYLE_CAN)
-			{
-				lcd_display_chinese(tx);
-				lcd_display_chinese(chong);
-				lcd_display_chinese(dian);
-				lcd_display_space();
-			}else{/*default / local*/
-				lcd_display_chinese(bd);
-				lcd_display_chinese(chong);
-				lcd_display_chinese(dian);
-				lcd_display_space();
-			}
-		}else if((state & HY_GUI_BATTERY_ON_MASK) 
-					&& (state & HY_GUI_CHARGETASK_END_MASK)
-					&&((state & HY_GUI_ERR_MASK)==0)){/*charge normal end*/
-				hy_led_control(led_fullcharge);
-				lcd_display_chinese(chong);
-				lcd_display_chinese(dian);
-				lcd_display_chinese(wancheng);
-				lcd_display_space();
-		}else if(state & HY_GUI_ERR_MASK){//错误处理
-			hy_led_control(led_err);
-			if(charger_statu2&(1<<5))//交流欠压 电压故障1
-			{
-				lcd_display_chinese(dian);
-				lcd_display_chinese(ya);
-				lcd_display_chinese(gz);
-				lcd_display_ascii("1");
-				lcd_display_space();
-			}else if(charger_statu2&(1<<4)){//交流过压 电压故障2
-				lcd_display_chinese(dian);
-				lcd_display_chinese(ya);
-				lcd_display_chinese(gz);
-				lcd_display_ascii("2");
-				lcd_display_space();
-			}else if(charger_statu2&(1<<6)){//输出过压 电压故障3
-				lcd_display_chinese(dian);
-				lcd_display_chinese(ya);
-				lcd_display_chinese(gz);
-				lcd_display_ascii("3");
-				lcd_display_space();
-			}else if(charger_statu2&(1<<7)){//输出欠压 电压故障4
-				lcd_display_chinese(dian);
-				lcd_display_chinese(ya);
-				lcd_display_chinese(gz);
-				lcd_display_ascii("4");
-				lcd_display_space();
-			}else if(charger_statu2&(1<<3)){//风扇故障 高温状态4
-				lcd_display_chinese(gw);
-				lcd_display_chinese(zt);
-				lcd_display_ascii("4");
-				lcd_display_space();
-			}else if(charger_statu2&(1<<1)){//硬件故障 本地错误
-				lcd_display_chinese(bd);
-				lcd_display_chinese(cw);
-				lcd_display_space();
-				lcd_display_space();
-			}
-
-			if(charger_statu1&(1<<0))//过流保护 电流故障5
-			{
-				lcd_display_chinese(dian);
-				lcd_display_chinese(liu);
-				lcd_display_chinese(gz);
-				lcd_display_ascii("5");
-				lcd_display_space();
-			}else if(charger_statu2&(1<<1))//过温保护 高温状态2
-			{
-				lcd_display_chinese(gw);
-				lcd_display_chinese(zt);
-				lcd_display_ascii("2");
-				lcd_display_space();
-			}				
+			goto display_button_check;
 		}
+		if(gui_msg->battery_connected == HY_FALSE){//电池没有连接
+			hy_led_control(led_offall);
+			lcd_display_chinese(dian);
+			lcd_display_chinese(wei);
+			lcd_display_chinese(chi);
+			lcd_display_chinese(lianjie);
+			goto display_button_check;
+
+		}
+		if(s_gui->controlstyle == HY_CONTROLSTYLE_CAN){
+			if (gui_msg->bms_connected == HY_FALSE){
+				hy_led_control(led_err);
+				lcd_display_chinese(dian);
+				lcd_display_chinese(wei);
+				lcd_display_chinese(chi);
+				lcd_display_chinese(wei);
+				goto display_button_check;					
+			}
+		}
+
+		if (gui_msg->errorstate == HY_TRUE)
+			{
+			//TODO
+			}
+		
+		switch(gui_msg->workstate)
+		{
+			case CHARGETASK_CAN_STOP_CODE:
+				break;
+			case CHARGETASK_LOCAL_NORMAL_STOP_CODE:
+				break;
+			case CHARGETASK_BATTERY_DISCONNECT_STOP_CODE:
+				break;
+			case CHARGETASK_ERR_STOP_CODE:
+				break;
+			case CHARGETASK_BUTTON_STOP_CODE:             
+				break;
+		}
+
+
+
+//
+//		{/*normal charge*/
+//			hy_led_control(led_running);
+//			if (s_gui->controlstyle == HY_CONTROLSTYLE_CAN)
+//			{
+//				lcd_display_chinese(tx);
+//				lcd_display_chinese(chong);
+//				lcd_display_chinese(dian);
+//				lcd_display_space();
+//			}else{/*default / local*/
+//				lcd_display_chinese(bd);
+//				lcd_display_chinese(chong);
+//				lcd_display_chinese(dian);
+//				lcd_display_space();
+//			}
+//		}else if((state & HY_GUI_BATTERY_ON_MASK) 
+//					&& (state & HY_GUI_CHARGETASK_END_MASK)
+//					&&((state & HY_GUI_ERR_MASK)==0)){/*charge normal end*/
+//				hy_led_control(led_fullcharge);
+//				lcd_display_chinese(chong);
+//				lcd_display_chinese(dian);
+//				lcd_display_chinese(wancheng);
+//				lcd_display_space();
+//		}else if(state & HY_GUI_ERR_MASK){//错误处理
+//			hy_led_control(led_err);
+//			if(charger_statu2&(1<<5))//交流欠压 电压故障1
+//			{
+//				lcd_display_chinese(dian);
+//				lcd_display_chinese(ya);
+//				lcd_display_chinese(gz);
+//				lcd_display_ascii("1");
+//				lcd_display_space();
+//			}else if(charger_statu2&(1<<4)){//交流过压 电压故障2
+//				lcd_display_chinese(dian);
+//				lcd_display_chinese(ya);
+//				lcd_display_chinese(gz);
+//				lcd_display_ascii("2");
+//				lcd_display_space();
+//			}else if(charger_statu2&(1<<6)){//输出过压 电压故障3
+//				lcd_display_chinese(dian);
+//				lcd_display_chinese(ya);
+//				lcd_display_chinese(gz);
+//				lcd_display_ascii("3");
+//				lcd_display_space();
+//			}else if(charger_statu2&(1<<7)){//输出欠压 电压故障4
+//				lcd_display_chinese(dian);
+//				lcd_display_chinese(ya);
+//				lcd_display_chinese(gz);
+//				lcd_display_ascii("4");
+//				lcd_display_space();
+//			}else if(charger_statu2&(1<<3)){//风扇故障 高温状态4
+//				lcd_display_chinese(gw);
+//				lcd_display_chinese(zt);
+//				lcd_display_ascii("4");
+//				lcd_display_space();
+//			}else if(charger_statu2&(1<<1)){//硬件故障 本地错误
+//				lcd_display_chinese(bd);
+//				lcd_display_chinese(cw);
+//				lcd_display_space();
+//				lcd_display_space();
+//			}
+//
+//			if(charger_statu1&(1<<0))//过流保护 电流故障5
+//			{
+//				lcd_display_chinese(dian);
+//				lcd_display_chinese(liu);
+//				lcd_display_chinese(gz);
+//				lcd_display_ascii("5");
+//				lcd_display_space();
+//			}else if(charger_statu2&(1<<1))//过温保护 高温状态2
+//			{
+//				lcd_display_chinese(gw);
+//				lcd_display_chinese(zt);
+//				lcd_display_ascii("2");
+//				lcd_display_space();
+//			}				
+//		}
 		/*todo errmsg display!!!*/
 
+display_button_check:		
 		if(s_gui->button_flag == BUTTON_MSG)
 		{
 			s_gui->button_flag = NO_MSG;
 			switch (s_gui->button_msg_queue[0].button_name){
 				case button_set://0x01
-					if ((state & HY_GUI_BATTERY_ON_MASK) && (state & HY_GUI_CHARGETASK_ON_MASK)){
-						return PassportPage1;
-					}else{
-						return PassportPage;
-					}
-
+//					if ((state & HY_GUI_BATTERY_ON_MASK) && (state & HY_GUI_CHARGETASK_ON_MASK)){
+//						return PassportPage1;
+//					}else{
+//						return PassportPage;
+//					}
+					break;
 				case button_off:/*stop charge*///0x06
 					LOG_INFO_TAG(HY_LOG_TAG,"machine stopped by button");
 					hy_chargetask_stop(CHARGETASK_BUTTON_STOP_CODE,NULL);
@@ -440,34 +483,13 @@ PAGE displaypage1(uint32_t state,
 			}
 		}	
 
-/*				
-		if(s_gui->button_flag == BUTTON_MSG)
-		{
-			s_gui->button_flag = NO_MSG;
-			updatetime_ms = hy_time_now_ms();
-			switch (s_gui->button_msg_queue[0].button_name){
-				case button_set://0x01
-					
-				break;
-				case button_off:stop charge//0x06
-				break;
-				case button_on://0x05
-				break;
-				case button_up://0x02
-				break;
-				case button_down://0x03
-				break;
-				case button_esc://0x04
-				break;
-			}
-		}	*/	
 
 		return DisplayPage1;
 }
 
 
 
-PAGE displaypage1_1(uint32_t state,
+PAGE displaypage1_1(chargetask_gui_msg* gui_msg,
 	uint32_t vol,
 	uint32_t cur,
 	uint32_t time)
@@ -499,35 +521,35 @@ PAGE displaypage1_1(uint32_t state,
 
 	hy_led_control(led_offall);	
 
-		if(s_gui->button_flag == BUTTON_MSG)
-		{
-			s_gui->button_flag = NO_MSG;
-			switch (s_gui->button_msg_queue[0].button_name){
-				case button_set://0x01
-					if ((state & HY_GUI_BATTERY_ON_MASK) && (state & HY_GUI_CHARGETASK_ON_MASK)){
-						return PassportPage1;
-					}else{
-						return PassportPage;
-					}
-
-				case button_off:/*stop charge*///0x06
-				break;
-				case button_on://0x05
-					flag = CHARGETASK_BUTTON_START_CODE;
-					LOG_INFO_TAG(HY_LOG_TAG,"machine startted by button");
-					s_gui->machine_stop_flag = HY_FALSE;
-					hy_chargetask_start(HY_CONTROLSTYLE_LOCAL,&flag);
-					return DisplayPage1_2;
-
-				case button_up://0x02
-				/*todo record of charge*/
-				break;
-				case button_down://0x03
-				break;
-				case button_esc://0x04
-				break;
-			}
-		}			
+//		if(s_gui->button_flag == BUTTON_MSG)
+//		{
+//			s_gui->button_flag = NO_MSG;
+//			switch (s_gui->button_msg_queue[0].button_name){
+//				case button_set://0x01
+//					if ((state & HY_GUI_BATTERY_ON_MASK) && (state & HY_GUI_CHARGETASK_ON_MASK)){
+//						return PassportPage1;
+//					}else{
+//						return PassportPage;
+//					}
+//
+//				case button_off:/*stop charge*///0x06
+//				break;
+//				case button_on://0x05
+//					flag = CHARGETASK_BUTTON_START_CODE;
+//					LOG_INFO_TAG(HY_LOG_TAG,"machine startted by button");
+//					s_gui->machine_stop_flag = HY_FALSE;
+//					hy_chargetask_start(HY_CONTROLSTYLE_LOCAL,&flag);
+//					return DisplayPage1_2;
+//
+//				case button_up://0x02
+//				/*todo record of charge*/
+//				break;
+//				case button_down://0x03
+//				break;
+//				case button_esc://0x04
+//				break;
+//			}
+//		}			
 		return DisplayPage1_1;
 	
 

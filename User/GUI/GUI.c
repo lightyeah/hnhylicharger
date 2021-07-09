@@ -237,8 +237,7 @@ int hy_emit_gui_msg(hy_gui_msg_type type, void* msg)
 						((chargetask_gui_msg*)msg)->voltagex10V;
 			s_gui->charge2gui_msg.chargetime_min = 
 						((chargetask_gui_msg*)msg)->chargetime_min;
-			s_gui->charge2gui_msg.state = 
-		        ((chargetask_gui_msg*)msg)->state;
+		
 		    s_gui->charge2gui_msg.charger_statu1 = 
 		        ((chargetask_gui_msg*)msg)->charger_statu1;
 		    s_gui->charge2gui_msg.charger_statu2 = 
@@ -303,7 +302,7 @@ void MainProcess(void){
 					s_gui->chargetask_flag = NO_MSG;
 				}
 
-				PageState = displaypage1(guichargetask_state,guivoltagex10V,guicurrentx10A,guichargetime_min);//conmunication state unknown
+				PageState = displaypage1(&s_gui->charge2gui_msg,guivoltagex10V,guicurrentx10A,guichargetime_min);//conmunication state unknown
 
 				hy_gui_refresh();
 				break;
@@ -316,7 +315,7 @@ void MainProcess(void){
 					s_gui->chargetask_flag = NO_MSG;
 				}
 
-				PageState = displaypage1_1(guichargetask_state,guivoltagex10V,guicurrentx10A,guichargetime_min);//conmunication state unknown
+				PageState = displaypage1_1(&s_gui->charge2gui_msg,guivoltagex10V,guicurrentx10A,guichargetime_min);//conmunication state unknown
 
 				hy_gui_refresh();
 				break;

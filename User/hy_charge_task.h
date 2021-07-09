@@ -52,6 +52,7 @@ typedef struct HY_ChargeTask_T{
 	uint32_t total_charge_time_ms;
 	
 	int32_t controltype;
+	
 	int32_t aim_type;
 	int32_t aim_voltage_x10V;
 	int32_t aim_current_x10A;

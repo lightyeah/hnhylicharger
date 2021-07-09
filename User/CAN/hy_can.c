@@ -362,10 +362,13 @@ int hy_can_query_220V_charger(void){
 }
 
 
-
-int hy_can_get_batterystate(void){
-	//todo
-	return 0;
+int hy_can_get_battery_connected(void){
+	if(s_cancom->get_charger_msg.statu1_2&0x01){
+		s_cancom->battery_module_canconnected=HY_FALSE;
+	}else{
+		s_cancom->battery_module_canconnected=HY_TRUE;
+	}
+	return s_cancom->battery_module_canconnected;
 }
 
 uint32_t hy_can_get_output_current_x10A(void){
@@ -448,13 +451,15 @@ uint8_t hy_can_get_charger_module_statu2(void){
 }
 
 
-uint8_t hy_can_charger_module_connected(void){
-	if(s_cancom->get_charger_msg.statu1_2&0x01){
+uint8_t hy_can_get_charger_module_connected(void)
+{
+	if(systime_elapse_ms(s_cancom->charger_module_timeout)>=LPD_TIMEOUT_TIME){
 		s_cancom->charger_module_canconnected=HY_FALSE;
 	}else{
 		s_cancom->charger_module_canconnected=HY_TRUE;
 	}
 	return s_cancom->charger_module_canconnected;
+
 }
 
 
@@ -550,7 +555,7 @@ int hy_can_detect_bms(void){//tood
 	return 0;
 }
 
-uint8_t hy_can_bms_connected(void){
+uint8_t hy_can_get_bms_connected(void){
 	if(systime_elapse_ms(s_cancom->bms_module_timeout)>=LPD_TIMEOUT_TIME){
 		s_cancom->bms_module_canconnected=HY_FALSE;
 	}else{

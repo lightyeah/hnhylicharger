@@ -3,7 +3,7 @@
 
 #include "stdint.h"
 
-
+#include "GUI.h"
 typedef enum PAGE
 {
 	WelcomePage = 1,
@@ -73,12 +73,12 @@ void show(void);
 
 PAGE welcomepage(void);
 
-PAGE displaypage1(uint32_t state,
+PAGE displaypage1(chargetask_gui_msg* gui_msg,
 	uint32_t vol,
 	uint32_t cur,
 	uint32_t time);
 
-PAGE displaypage1_1(uint32_t state,
+PAGE displaypage1_1(chargetask_gui_msg* gui_msg,
 	uint32_t vol,
 	uint32_t cur,
 	uint32_t time);

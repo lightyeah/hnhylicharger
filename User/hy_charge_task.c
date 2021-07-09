@@ -54,7 +54,7 @@ int hy_chargetask_start(int controltype, void* ctx)
 			s_chargetask->max_chargetimeout_ms = 600*60*1000;/*10 hours*/
 			s_chargetask->statestarttime_ms = hy_time_now_ms();
 			s_chargetask->controltype = HY_CONTROLSTYLE_CAN;
-			s_chargetask->gui_msg.state |= HY_GUI_CAN_ON_MASK;
+			s_chargetask->gui_msg.workstate = HY_GUI_CAN_ON_MASK;
 			break;
 		case HY_CONTROLSTYLE_LOCAL:
 			s_chargetask->state = CHARGETASK_LOCAL_ONE;
@@ -116,17 +116,10 @@ int hy_chargetask_stop(int stop_code,void* ctx)
 			break;
 				
 		case CHARGETASK_LOCAL_NORMAL_STOP_CODE:
-			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
-			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_END_MASK;		
-			break;
-		case CHARGETASK_BATTERY_DISCONNECT_STOP_CODE:
-			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
-			break;
-		case CHARGETASK_ERR_STOP_CODE:
+			s_chargetask->gui_msg.workstate = HY_GUI_CHARGETASK_END_MASK;		
 			break;
 		case CHARGETASK_BUTTON_STOP_CODE:
-			s_chargetask->machine_start_flag = HY_FALSE;
-			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;			 
+			s_chargetask->gui_msg.workstate = HY_GUI_CHARGETASK_STOP_MASK;			 
 			break;
 		default:
 			break;
@@ -262,116 +255,142 @@ void hy_chargetask_main()
 	s_chargetask->output_voltage_x10V = hy_get_output_voltage_x10V();
 	s_chargetask->output_current_x10A = hy_get_output_current_x10A();
 
-
-	
 	LOG_DEBUG_TAG(HY_LOG_TAG, "chargertask battercheck [%d] [%d]\r\n",hy_get_battery_connected(),s_chargetask->battery_flag);
-	if(hy_get_battery_connected()&&s_chargetask->battery_flag == HY_BATTERY_DISCONNECT){//电池未连接状态下检测到电池
-		hy_chargetask_start(HY_CONTROLSTYLE_LOCAL,NULL);//yrk 本地充电版本		
-		s_chargetask->battery_flag = HY_BATTERY_CONNECT;
-		s_chargetask->gui_msg.state |= HY_GUI_BATTERY_ON_MASK;
-	}else if(!hy_get_battery_connected()&&s_chargetask->battery_flag == HY_BATTERY_CONNECT){//电池连接状态下检测到电池断开
-		hy_chargetask_stop(CHARGETASK_BATTERY_DISCONNECT_STOP_CODE,NULL);
-		s_chargetask->battery_flag = HY_BATTERY_DISCONNECT;
-		s_chargetask->gui_msg.state &= ~HY_GUI_BATTERY_ON_MASK;
-	}
-	
 
-	if(s_chargetask->start_flag){
-		s_chargetask->total_chargepower_mj +=s_chargetask->output_current_x10A*s_chargetask->output_voltage_x10V*CHARGETASK_CONTROL_INTERVAL/100;
-		s_chargetask->total_chargepower_x10kwh = s_chargetask->total_chargepower_mj/(1000*360);
-	}
-	
-	
-	switch (s_chargetask->state){
-		case 	CHARGETASK_IDLE://空闲状态
-			s_chargetask->gui_msg.state &= ~HY_GUI_CHARGETASK_ON_MASK;
-			LOG_DEBUG_TAG(HY_LOG_TAG,"idletest");
-			hy_set_stop_output();
-			
-			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
-				LOG_INFO_TAG(HY_LOG_TAG,
-				"***chargetask idle state [%d]******get voltage [%d]x0.1V current [%d]x0.1A",
-				s_chargetask->battery_flag,s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
-				monitortime_ms = hy_time_now_ms();
-			}
-			
-			break;
+	if(s_chargetask->controltype == HY_CONTROLSTYLE_LOCAL){
 
-	  case CHARGETASK_LOCAL_ONE://第一阶段
-			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
-			hy_chargetask_setaim(hy_instance->config.chargecurrent_1*10,hy_instance->config.limitvoltage_1*10);
-			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
-				LOG_INFO_TAG(HY_LOG_TAG,
-				"***chargetask local [one] get voltage [%d]x0.1V current [%d]x0.1A",
-				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
-				monitortime_ms = hy_time_now_ms();
-			}
-			if(s_chargetask->output_voltage_x10V >= (hy_instance->config.switchvoltage_1 *10)//跳转电压
-				|| systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){
-				/*change to local [two]*/
-				LOG_INFO_TAG(HY_LOG_TAG,"switch to local state [two]");
-				s_chargetask->state = CHARGETASK_LOCAL_TWO;
-				hy_chargetask_local_turntostate(CHARGETASK_LOCAL_TWO);
-			}
-			break;
-
-	  case CHARGETASK_LOCAL_TWO://第二阶段
-			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
-			if (s_chargetask->output_voltage_x10V <= hy_instance->config.limitvoltage_2 - 50)
+		if (hy_get_charger_module_connected()==HY_FALSE)
 			{
-				state_two_aim_voltage = s_chargetask->output_voltage_x10V+40;
-			}else{
-				state_two_aim_voltage = hy_instance->config.limitvoltage_2*10;
+				goto chargetask_exit;
 			}
-	  		hy_chargetask_setaim(hy_instance->config.chargecurrent_2*10,state_two_aim_voltage);
-			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
-				LOG_INFO_TAG(HY_LOG_TAG,
-				"***chargetask local [two] get voltage [%d]x0.1V current [%d]x0.1A",
-				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
-				monitortime_ms = hy_time_now_ms();
-			}
-			if(s_chargetask->output_voltage_x10V >= (hy_instance->config.switchvoltage_2 *10)//跳转电压
-				|| systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){/*change to local [two]*/
-				LOG_INFO_TAG(HY_LOG_TAG,"switch to local state [three]");
-				s_chargetask->state = CHARGETASK_LOCAL_THREE;
-				hy_chargetask_local_turntostate(CHARGETASK_LOCAL_THREE);
-			}
-			
-			break;
+	
+		if(hy_get_battery_connected()&&s_chargetask->battery_flag == HY_BATTERY_DISCONNECT){//电池未连接状态下检测到电池
+			hy_chargetask_start(HY_CONTROLSTYLE_LOCAL,NULL);//本地充电
+			s_chargetask->battery_flag = HY_BATTERY_CONNECT;
+		}else if(!hy_get_battery_connected()&&s_chargetask->battery_flag == HY_BATTERY_CONNECT){//电池连接状态下检测到电池断开
+			hy_chargetask_stop(CHARGETASK_BATTERY_DISCONNECT_STOP_CODE,NULL);
+			s_chargetask->battery_flag = HY_BATTERY_DISCONNECT;
+		}
+		
 
-		case CHARGETASK_LOCAL_THREE://第三阶段
-			s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_ON_MASK;
-			hy_chargetask_setaim(hy_instance->config.limitcurrent_3*10,hy_instance->config.chargevoltage_3*10);
-			if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
-				LOG_INFO_TAG(HY_LOG_TAG,
-				"***chargetask local [three]  get voltage [%d]x0.1V current [%d]x0.1A",
-				s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
-				monitortime_ms = hy_time_now_ms();
-			}
-			/*attention !!! 
-			* local_state_three switch condition is smaller!!!
-			*/
-			if(s_chargetask->output_current_x10A <= (hy_instance->config.switchcurrent_3 *10)//跳转电流
-				|| systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){/*change to local [two]*/
-				LOG_INFO_TAG(HY_LOG_TAG,"[three is end ,change to idle]");
-				hy_chargetask_stop(CHARGETASK_LOCAL_NORMAL_STOP_CODE,NULL);
-				s_chargetask->gui_msg.state |= HY_GUI_CHARGETASK_END_MASK;
-				s_chargetask->state = CHARGETASK_IDLE;
-			}
-			break;
+		if(s_chargetask->start_flag){
+			s_chargetask->total_chargepower_mj +=s_chargetask->output_current_x10A*s_chargetask->output_voltage_x10V*CHARGETASK_CONTROL_INTERVAL/100;
+			s_chargetask->total_chargepower_x10kwh = s_chargetask->total_chargepower_mj/(1000*360);
+		}
+		
+		
+		switch (s_chargetask->state){
+			case 	CHARGETASK_IDLE://空闲状态
+				s_chargetask->gui_msg.workstate = HY_GUI_CHARGETASK_IDLE;
+				LOG_DEBUG_TAG(HY_LOG_TAG,"idletest");
+				hy_set_stop_output();
+				
+				if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
+					LOG_INFO_TAG(HY_LOG_TAG,
+					"***chargetask idle state [%d]******get voltage [%d]x0.1V current [%d]x0.1A",
+					s_chargetask->battery_flag,s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
+					monitortime_ms = hy_time_now_ms();
+				}
+				
+				break;
 
-		case CHARGETASK_CAN://通讯控制模式
-			break;	
-		case CHARGETASK_PAUSE://暂停状态
-			hy_set_stop_output();
-			break;
-		case CHARGETASK_ERR:
-			break;
+		  case CHARGETASK_LOCAL_ONE://第一阶段
+				s_chargetask->gui_msg.workstate = HY_GUI_CHARGETASK_ON_MASK;
+				hy_chargetask_setaim(hy_instance->config.chargecurrent_1*10,hy_instance->config.limitvoltage_1*10);
+				if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
+					LOG_INFO_TAG(HY_LOG_TAG,
+					"***chargetask local [one] get voltage [%d]x0.1V current [%d]x0.1A",
+					s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
+					monitortime_ms = hy_time_now_ms();
+				}
+				if(s_chargetask->output_voltage_x10V >= (hy_instance->config.switchvoltage_1 *10)//跳转电压
+					|| systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){
+					/*change to local [two]*/
+					LOG_INFO_TAG(HY_LOG_TAG,"switch to local state [two]");
+					s_chargetask->state = CHARGETASK_LOCAL_TWO;
+					hy_chargetask_local_turntostate(CHARGETASK_LOCAL_TWO);
+				}
+				break;
 
-		default:
-			break;
+		  case CHARGETASK_LOCAL_TWO://第二阶段
+				s_chargetask->gui_msg.workstate = HY_GUI_CHARGETASK_ON_MASK;
+				if (s_chargetask->output_voltage_x10V <= hy_instance->config.limitvoltage_2 - 50)
+				{
+					state_two_aim_voltage = s_chargetask->output_voltage_x10V+40;
+				}else{
+					state_two_aim_voltage = hy_instance->config.limitvoltage_2*10;
+				}
+		  		hy_chargetask_setaim(hy_instance->config.chargecurrent_2*10,state_two_aim_voltage);
+				if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
+					LOG_INFO_TAG(HY_LOG_TAG,
+					"***chargetask local [two] get voltage [%d]x0.1V current [%d]x0.1A",
+					s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
+					monitortime_ms = hy_time_now_ms();
+				}
+				if(s_chargetask->output_voltage_x10V >= (hy_instance->config.switchvoltage_2 *10)//跳转电压
+					|| systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){/*change to local [two]*/
+					LOG_INFO_TAG(HY_LOG_TAG,"switch to local state [three]");
+					s_chargetask->state = CHARGETASK_LOCAL_THREE;
+					hy_chargetask_local_turntostate(CHARGETASK_LOCAL_THREE);
+				}
+				
+				break;
+
+			case CHARGETASK_LOCAL_THREE://第三阶段
+				s_chargetask->gui_msg.workstate = HY_GUI_CHARGETASK_ON_MASK;
+				hy_chargetask_setaim(hy_instance->config.limitcurrent_3*10,hy_instance->config.chargevoltage_3*10);
+				if(systime_elapse_ms(monitortime_ms)>=CHARGETASK_MONITOR_INTERVAL){
+					LOG_INFO_TAG(HY_LOG_TAG,
+					"***chargetask local [three]  get voltage [%d]x0.1V current [%d]x0.1A",
+					s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
+					monitortime_ms = hy_time_now_ms();
+				}
+				/*attention !!! 
+				* local_state_three switch condition is smaller!!!
+				*/
+				if(s_chargetask->output_current_x10A <= (hy_instance->config.switchcurrent_3 *10)//跳转电流
+					|| systime_elapse_ms(s_chargetask->statestarttime_ms) >= s_chargetask->max_chargetimeout_ms){/*change to local [two]*/
+					LOG_INFO_TAG(HY_LOG_TAG,"[three is end ,change to idle]");
+					hy_chargetask_stop(CHARGETASK_LOCAL_NORMAL_STOP_CODE,NULL);
+					s_chargetask->gui_msg.workstate = HY_GUI_CHARGETASK_END_MASK;
+					s_chargetask->state = CHARGETASK_IDLE;
+				}
+				break;
+
+			case CHARGETASK_CAN://通讯控制模式
+				break;	
+			case CHARGETASK_PAUSE://暂停状态
+				hy_set_stop_output();
+				break;
+			case CHARGETASK_ERR:
+				break;
+
+			default:
+				break;
+		}
+
+
+		
+	}else if(s_chargetask->controltype == HY_CONTROLSTYLE_CAN){
+
+
+		// can control
+		if(hy_get_charger_module_connected()==HY_FALSE){
+			goto chargetask_exit;
+			}
+		if(hy_get_battery_connected()==HY_FALSE){
+			goto chargetask_exit;
+			}
+		if(hy_get_bms_connected()==HY_FALSE){
+			}
+
 	}
 
+
+chargetask_exit:
+	s_chargetask->gui_msg.charge_module_connected = hy_get_charger_module_connected();
+	s_chargetask->gui_msg.battery_connected = hy_get_battery_connected();
+	s_chargetask->gui_msg.bms_connected = hy_get_bms_connected();
 	
 	s_chargetask->gui_msg.chargetime_min = hy_chargetask_getchargetime_min();
 	s_chargetask->gui_msg.currentx10A = hy_chargetask_getoutputcur_x10A();
@@ -379,7 +398,7 @@ void hy_chargetask_main()
 	s_chargetask->gui_msg.charger_statu1 = hy_get_charger_module_statu1();
 	s_chargetask->gui_msg.charger_statu2 = hy_get_charger_module_statu2();
 	if(s_chargetask->gui_msg.charger_statu2&0xfa||s_chargetask->gui_msg.charger_statu1&0x03){
-		s_chargetask->gui_msg.state |= HY_GUI_ERR_MASK;
+		s_chargetask->gui_msg.errorstate = HY_GUI_ERR_MASK;
 		hy_set_stop_output();
 	}
 	hy_emit_gui_msg(CHARGETASK_MSG,&s_chargetask->gui_msg);
