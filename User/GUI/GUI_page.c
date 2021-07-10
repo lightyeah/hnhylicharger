@@ -468,24 +468,28 @@ PAGE displaypage1(chargetask_gui_msg* gui_msg,
 		switch(gui_msg->workstate)
 		{
 			case HY_GUI_CAN_ON_MASK: //通讯充电中
+				hy_led_control(led_running);
 				lcd_display_chinese(tongxin);
 				lcd_display_chinese(chong);
 				lcd_display_chinese(dian);
 				lcd_display_space();
 			break;
 			case HY_GUI_CHARGETASK_ON_MASK:       //本地充电
+				hy_led_control(led_running);
 				lcd_display_chinese(bd);
 				lcd_display_chinese(chong);
 				lcd_display_chinese(dian);
 				lcd_display_space();
 			break;
 			case HY_GUI_CHARGETASK_END_MASK:      //充电完成
+				hy_led_control(led_fullcharge);
 				lcd_display_chinese(chong);
 				lcd_display_chinese(dian);
 				lcd_display_chinese(wancheng);
 				lcd_display_space();
 			break;
 			case HY_GUI_CHARGETASK_STOP_MASK:     //充电停止
+				hy_led_control(led_running);
 				lcd_display_chinese(chong);
 				lcd_display_chinese(dian);
 				lcd_display_chinese(tingzhi);
@@ -512,8 +516,7 @@ display_button_check:
 					break;
 				case button_off:/*stop charge*///0x06
 					LOG_INFO_TAG(HY_LOG_TAG,"machine stopped by button");
-					hy_chargetask_stop(CHARGETASK_BUTTON_STOP_CODE,NULL);
-					s_gui->machine_stop_flag = HY_TRUE;
+					hy_chargetask_pause(CHARGETASK_BUTTON_STOP_CODE,NULL);
 					return DisplayPage1_1;
 
 				case button_on://0x05
@@ -581,10 +584,8 @@ PAGE displaypage1_1(chargetask_gui_msg* gui_msg,
 				case button_off:/*stop charge*///0x06
 				break;
 				case button_on://0x05
-					flag = CHARGETASK_BUTTON_START_CODE;
 					LOG_INFO_TAG(HY_LOG_TAG,"machine startted by button");
-					s_gui->machine_stop_flag = HY_FALSE;
-					hy_chargetask_start(HY_CONTROLSTYLE_CAN,&flag);
+					hy_chargetask_continue(HY_CONTROLSTYLE_CAN,NULL);
 					return DisplayPage1_2;
 
 				case button_up://0x02
