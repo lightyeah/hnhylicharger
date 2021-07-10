@@ -117,7 +117,7 @@ uint8_t hy_get_bms_status(void)
 		}else{
 			status = hy_can_get_bms_status();
 			}
-	return status;
+	return (status&~(uint8_t)(1<<5));
 }
 
 

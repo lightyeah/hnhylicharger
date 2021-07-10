@@ -135,7 +135,7 @@ uint8_t fengshan[5] = {0xb7,0xe7,0xc9,0xc8,0x00};//风扇
 
 uint8_t badiao[5] = {0xb0,0xce,0xb5,0xf4,0x00};//拔掉
 
-uint8_t jueyuan[5] = {0xb4,0xf8,0xd4,0xb5,0x00};//绝缘
+uint8_t jueyuan[5] = {0xbe,0xf8,0xd4,0xb5,0x00};//绝缘
 
 uint8_t diwen[5] = {0xb5,0xcd,0xce,0xc2,0x00};//低温
 
@@ -384,9 +384,10 @@ PAGE displaypage1(chargetask_gui_msg* gui_msg,
 			}
 		}
 
-		if (gui_msg->errorstate == HY_TRUE)
+		if (gui_msg->errorstate == HY_GUI_ERR_MASK)
 		{
 			hy_led_control(led_err);
+			LOG_DEBUG_TAG("gui -- ", "status1 [%d] 2 [%d] b [%d]", charger_statu1,charger_statu2,gui_msg->bms_status);
 			if(charger_statu1&(1<<0))//交流欠压 电压故障1
 			{
 				lcd_display_chinese(jiaoliu);

@@ -377,12 +377,15 @@ void hy_chargetask_main()
 
 		// can control
 		if(hy_get_charger_module_connected()==HY_FALSE){
+			hy_set_stop_output();
 			goto chargetask_exit;
 			}
 		if(hy_get_battery_connected()==HY_FALSE){
+			hy_set_stop_output();
 			goto chargetask_exit;
 			}
 		if(hy_get_bms_connected()==HY_FALSE){
+			hy_set_stop_output();
 			goto chargetask_exit;
 			}
 		LOG_DEBUG_TAG(HY_LOG_TAG, "statte [%d]  pause [%d]\r\n",s_chargetask->state,CHARGETASK_PAUSE);
