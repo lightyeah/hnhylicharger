@@ -48,8 +48,11 @@ int hy_can_init(void* hy_instance_handle)
     NVIC_EnableIRQ(CAN_IRQn);
     //NVIC_SetPriority(CAN_IRQn, 10);
     CAN_SetAFMode(LPC_CANAF,CAN_AccBP);	
-		LOG_INFO_TAG(HY_LOG_TAG,"hy can init done!!");
-		return ret;
+	LOG_INFO_TAG(HY_LOG_TAG,"hy can init done!!");
+
+	hy_can_stop_charger();
+	
+	return ret;
 }
 
 
@@ -261,7 +264,7 @@ int hy_can_start_charger(void){
     TXMsg.id = GW_CONTROL_FRAME_ID;
 	
     *((uint8_t *) &TXMsg.dataA[0])= 0xff;//gw 广播地址 
-    *((uint8_t *) &TXMsg.dataA[1])= 0x01;// 开机
+    *((uint8_t *) &TXMsg.dataA[1])= 0x03;// 开机
     *((uint8_t *) &TXMsg.dataA[2])= 0x00;
     *((uint8_t *) &TXMsg.dataA[3])= 0x00;
     *((uint8_t *) &TXMsg.dataB[0])= 0x00;
@@ -282,7 +285,7 @@ int hy_can_stop_charger(void){
     TXMsg.id = GW_CONTROL_FRAME_ID;
 					
     *((uint8_t *) &TXMsg.dataA[0])= 0xff;
-    *((uint8_t *) &TXMsg.dataA[1])= 0x00;
+    *((uint8_t *) &TXMsg.dataA[1])= 0x02;
     *((uint8_t *) &TXMsg.dataA[2])= 0x00;
     *((uint8_t *) &TXMsg.dataA[3])= 0x00;
     *((uint8_t *) &TXMsg.dataB[0])= 0x00;
@@ -458,7 +461,7 @@ uint8_t hy_can_get_charger_module_connected(void)
 	}else{
 		s_cancom->charger_module_canconnected=HY_TRUE;
 	}
-	LOG_DEBUG_TAG("HY_CAN", "charger module connected [%d]", s_cancom->charger_module_canconnected);
+	//LOG_DEBUG_TAG("HY_CAN", "charger module connected [%d]", s_cancom->charger_module_canconnected);
 	return s_cancom->charger_module_canconnected;
 
 }

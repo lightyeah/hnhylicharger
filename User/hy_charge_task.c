@@ -22,7 +22,7 @@ int hy_chargetask_init(void* hy_instance_handle)
 
 	s_chargetask->controltype = HY_CONTROLSTYLE_CAN;//hy_instance->config.controlstyle;
 	s_chargetask->machine_start_flag = HY_TRUE;
-
+	
 	LOG_INFO_TAG(HY_LOG_TAG,"chargetask init done....");
 
 	return ret;
@@ -429,7 +429,6 @@ chargetask_exit:
 		hy_set_stop_output();
 	}else{
 		s_chargetask->gui_msg.errorstate = 0;
-		//hy_set_start_output();
 	}
 	hy_emit_gui_msg(CHARGETASK_MSG,&s_chargetask->gui_msg);
 
