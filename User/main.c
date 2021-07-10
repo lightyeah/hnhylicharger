@@ -154,7 +154,7 @@ int main(void)
 
 	
 	/*for test api*/
-	s_hy_instance.config.controlstyle = HY_CONTROLSTYLE_LOCAL;
+//	s_hy_instance.config.controlstyle = HY_CONTROLSTYLE_LOCAL;
 	
 // 	//第一阶段
 // 	s_hy_instance.config.chargecurrent_1 = 10;//充电电流

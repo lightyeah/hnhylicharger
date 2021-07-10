@@ -32,7 +32,7 @@ int hy_gui_init(void* hy_instance_handle)
 	s_gui->end_flag = NO_MSG;
 	s_gui->err_flag = NO_MSG;
 	
-	s_gui->controlstyle = hy_instance->config.controlstyle;
+	s_gui->controlstyle = HY_CONTROLSTYLE_CAN;//hy_instance->config.controlstyle;
 	s_gui->lastfreshtime_ms = 0;
 	s_gui->set_in_flash = HY_FALSE;
 	s_gui->machine_stop_flag = HY_FALSE;
@@ -242,6 +242,21 @@ int hy_emit_gui_msg(hy_gui_msg_type type, void* msg)
 		        ((chargetask_gui_msg*)msg)->charger_statu1;
 		    s_gui->charge2gui_msg.charger_statu2 = 
 		        ((chargetask_gui_msg*)msg)->charger_statu2;
+
+			s_gui->charge2gui_msg.charge_module_connected = 
+		        ((chargetask_gui_msg*)msg)->charge_module_connected;
+		    s_gui->charge2gui_msg.battery_connected = 
+		        ((chargetask_gui_msg*)msg)->battery_connected;
+			s_gui->charge2gui_msg.bms_connected = 
+		        ((chargetask_gui_msg*)msg)->bms_connected;
+
+			
+			s_gui->charge2gui_msg.errorstate = 
+						   ((chargetask_gui_msg*)msg)->errorstate;
+			s_gui->charge2gui_msg.workstate = 
+						   ((chargetask_gui_msg*)msg)->workstate;
+
+				
 			break;
 		case BUTTON_MSG:
 			s_gui->button_flag = BUTTON_MSG;

@@ -78,11 +78,30 @@ int hy_set_stop_output(void)
 	return 0;
 }
 
-int hy_set_charger_output(uint16_t current_x10A, uint16_t voltage_10V){
-	hy_can_control_set_charger((uint32_t)current_x10A*100, (uint32_t)voltage_10V*100);
+int hy_set_charger_output(uint16_t voltage_x10V, uint16_t current_x10A){
+	hy_can_control_set_charger((uint32_t)voltage_x10V*100, (uint32_t)current_x10A*100);
 	return 0;
 }
 
+int hy_set_data_broadcast_to_bms(uint16_t voltage_x10V, uint16_t current_x10A)
+{
+	uint8_t status=0;
+	hy_can_set_output_msg(voltage_x10V, current_x10A);
+	if(hy_get_charger_module_statu1()&0x80){//硬件故障
+		status |= (1<<0);
+		}
+	if(hy_get_charger_module_statu1()&(1<<6)){//过温关机
+		status |= (1<<1);
+		}
+	if(hy_get_charger_module_statu1()&(1<<0)){//输入欠压
+		status != (1<<2);
+		}
+	if(hy_get_bms_connected()==HY_FALSE){//BMS 通信超时
+		status |= (1<<4);
+		}
+	hy_can_set_status_msg(status);
+	return 0;
+}
 
 
 

@@ -87,6 +87,8 @@ typedef struct Chargetask_Gui_Msg{
 	
 	uint8_t charger_statu1;
 	uint8_t charger_statu2;
+
+	uint8_t bms_status;
 	
 	uint8_t charge_module_connected;
 	uint8_t battery_connected;

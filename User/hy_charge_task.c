@@ -20,7 +20,7 @@ int hy_chargetask_init(void* hy_instance_handle)
 	memset(s_chargetask,0,sizeof(hy_chargetask_t));
 	memset(&(hy_instance->hy_data),0,HY_CHARGETASK_DATA_NUM*sizeof(hy_chargetask_data));
 
-	s_chargetask->controltype = hy_instance->config.controlstyle;
+	s_chargetask->controltype = HY_CONTROLSTYLE_CAN;//hy_instance->config.controlstyle;
 	s_chargetask->machine_start_flag = HY_TRUE;
 
 	LOG_INFO_TAG(HY_LOG_TAG,"chargetask init done....");
@@ -255,8 +255,12 @@ void hy_chargetask_main()
 	s_chargetask->output_voltage_x10V = hy_get_output_voltage_x10V();
 	s_chargetask->output_current_x10A = hy_get_output_current_x10A();
 
-	LOG_DEBUG_TAG(HY_LOG_TAG, "chargertask battercheck [%d] [%d]\r\n",hy_get_battery_connected(),s_chargetask->battery_flag);
+	//LOG_DEBUG_TAG(HY_LOG_TAG, "chargertask battercheck [%d] [%d]\r\n",hy_get_battery_connected(),s_chargetask->battery_flag);
+	//LOG_DEBUG_TAG(HY_LOG_TAG, "chargertask sytle [%d]\r\n",s_chargetask->controltype);
 
+
+
+	//LOCAL
 	if(s_chargetask->controltype == HY_CONTROLSTYLE_LOCAL){
 
 		if (hy_get_charger_module_connected()==HY_FALSE)
@@ -382,7 +386,24 @@ void hy_chargetask_main()
 			goto chargetask_exit;
 			}
 		if(hy_get_bms_connected()==HY_FALSE){
+			goto chargetask_exit;
 			}
+		
+		LOG_DEBUG_TAG(HY_LOG_TAG, "bms control [%d]  status [%d]\r\n",hy_get_bms_control(),hy_get_bms_status());
+		if (hy_get_bms_control()==1 && 
+				hy_get_bms_status() == 0 ){//充电完成
+				s_chargetask->gui_msg.workstate = HY_GUI_CHARGETASK_END_MASK;
+				hy_set_stop_output();
+		}else if(hy_get_bms_status() != 0){//bms 充电异常
+				s_chargetask->gui_msg.workstate = HY_GUI_CHARGETASK_STOP_MASK;
+				hy_set_stop_output();
+				goto chargetask_exit;
+		}else if(hy_get_bms_status()==0 && hy_get_bms_control()==0){//正常通信充电
+			s_chargetask->gui_msg.workstate = HY_GUI_CAN_ON_MASK;
+			LOG_DEBUG_TAG(HY_LOG_TAG, "bms control [%d]  status [%d]\r\n",hy_get_bms_request_voltage_x10V(),hy_get_bms_request_current_x10A());
+			hy_set_charger_output(hy_get_bms_request_voltage_x10V(), hy_get_bms_request_current_x10A());
+		}
+		hy_set_data_broadcast_to_bms(s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
 
 	}
 
@@ -395,11 +416,20 @@ chargetask_exit:
 	s_chargetask->gui_msg.chargetime_min = hy_chargetask_getchargetime_min();
 	s_chargetask->gui_msg.currentx10A = hy_chargetask_getoutputcur_x10A();
 	s_chargetask->gui_msg.voltagex10V = hy_chargetask_getoutputvol_x10V();
+	
 	s_chargetask->gui_msg.charger_statu1 = hy_get_charger_module_statu1();
 	s_chargetask->gui_msg.charger_statu2 = hy_get_charger_module_statu2();
-	if(s_chargetask->gui_msg.charger_statu2&0xfa||s_chargetask->gui_msg.charger_statu1&0x03){
+	
+	s_chargetask->gui_msg.bms_status = hy_get_bms_status();
+	if(s_chargetask->gui_msg.charger_statu2&0xfa
+		||s_chargetask->gui_msg.charger_statu1&0x03
+		||s_chargetask->gui_msg.bms_status != 0 ){
+		LOG_DEBUG_TAG(HY_LOG_TAG, "EMIT GUI ERROR");
 		s_chargetask->gui_msg.errorstate = HY_GUI_ERR_MASK;
 		hy_set_stop_output();
+	}else{
+		s_chargetask->gui_msg.errorstate = 0;
+		//hy_set_start_output();
 	}
 	hy_emit_gui_msg(CHARGETASK_MSG,&s_chargetask->gui_msg);
 

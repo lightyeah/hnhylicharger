@@ -114,7 +114,7 @@ void hy_can_task_main()
 
 }
 
-#define updatemodule(x) s_cancom->##x##_module_canconnected=HY_TRUE;s_cancom->##x##_module_timeout=0
+#define updatemodule(x) s_cancom->##x##_module_canconnected=HY_TRUE;s_cancom->##x##_module_timeout=hy_time_now_ms();
 
 void CAN_IRQHandler()
 {
@@ -297,9 +297,9 @@ int hy_can_stop_charger(void){
 
 
 //设置充电器
-int hy_can_control_set_charger(uint32_t current_x1000mA, uint32_t voltage_x1000mV){
+int hy_can_control_set_charger(uint32_t voltage_x1000mV, uint32_t current_x1000mA){
 	
-		uint32_t current_x10A = current_x1000mA/100;
+	uint32_t current_x10A = current_x1000mA/100;
 	uint32_t voltage_x10V = voltage_x1000mV/100;
 	
     TXMsg.format = HY_CHARGE_ID_FORMAT;
@@ -310,10 +310,10 @@ int hy_can_control_set_charger(uint32_t current_x1000mA, uint32_t voltage_x1000m
 	
 	*((uint8_t *) &TXMsg.dataA[0])= 0xff;
 	*((uint8_t *) &TXMsg.dataA[1])= 0x03;
-	*((uint8_t *) &TXMsg.dataA[2])= INT32TO8_2((current_x10A));
-	*((uint8_t *) &TXMsg.dataA[3])= INT32TO8_1((current_x10A));
-	*((uint8_t *) &TXMsg.dataB[0])= INT32TO8_2((voltage_x10V));
-	*((uint8_t *) &TXMsg.dataB[1])= INT32TO8_1((voltage_x10V));
+	*((uint8_t *) &TXMsg.dataA[2])= INT32TO8_2((voltage_x10V));
+	*((uint8_t *) &TXMsg.dataA[3])= INT32TO8_1((voltage_x10V));
+	*((uint8_t *) &TXMsg.dataB[0])= INT32TO8_2((current_x10A));
+	*((uint8_t *) &TXMsg.dataB[1])= INT32TO8_1((current_x10A));
 	*((uint8_t *) &TXMsg.dataB[2])= 0x00;
 	*((uint8_t *) &TXMsg.dataB[3])= 0x00;
 
@@ -458,6 +458,7 @@ uint8_t hy_can_get_charger_module_connected(void)
 	}else{
 		s_cancom->charger_module_canconnected=HY_TRUE;
 	}
+	LOG_DEBUG_TAG("HY_CAN", "charger module connected [%d]", s_cancom->charger_module_canconnected);
 	return s_cancom->charger_module_canconnected;
 
 }

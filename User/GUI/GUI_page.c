@@ -22,13 +22,14 @@ static hy_config* config_data = NULL;
 
 uint8_t hysy[9] = {0xbb,0xb6,0xd3,0xad,0xca,0xb9,0xd3,0xc3,0x00};//欢迎使用
 uint8_t hypcdj[13] = {0xea,0xbb,0xd1,0xc7,0xc5,0xc6,0xb3,0xe4,0xb5,0xe7,0xbb,0xfa,0x00};//昊亚牌充电机
+uint8_t anchixinnengyuan[11] = {0xb0,0xb2,0xb3,0xdb,0xd0,0xc2,0xc4,0xdc,0xd4,0xb4,0x00};
 uint8_t dian[3] = {0xb5,0xe7,0x00};//电
 uint8_t liu[3] ={0xc1,0xf7,0x00};//流
 uint8_t ya[3] = {0xd1,0xb9,0x00};//压
 uint8_t sj[5] = {0xca,0xb1,0xbc,0xe4,0x00};//时间
 uint8_t kz[5] = {0xbf,0xd8,0xd6,0xc6,0x00};//控制
 uint8_t fs[5] = {0xb7,0xbd,0xca,0xbd,0x00};//方式
-uint8_t tx[5] = {0xcd,0xa8,0xd0,0xc5,0x00};//通信
+uint8_t tongxin[5] = {0xcd,0xa8,0xd0,0xc5,0x00};//通信
 uint8_t bd[5] = {0xb1,0xbe,0xb5,0xd8,0x00};//本地
 uint8_t zc[5] = {0xd5,0xfd,0xb3,0xa3,0x00};//正常
 uint8_t cw[5] = {0xb4,0xed,0xce,0xf3,0x00};//错误
@@ -104,6 +105,39 @@ uint8_t duqu[5] = {0xb6,0xc1,0xc8,0xa1,0x00};//读取
 uint8_t lianxi[5] = {0xc1,0xaa,0xcf,0xb5,0x00};//联系
 uint8_t zai_2[3] = {0xd4,0xda,0x00};//在
 
+uint8_t mozu[5] = {0xc4,0xa3,0xd7,0xe9,0x00};//模组
+
+uint8_t jiaoliu[5] = {0xbd,0xbb,0xc1,0xf7,0x00};//交流
+uint8_t guoya[5] = {0xb9,0xfd,0xd1,0xb9,0x00};//过压
+uint8_t qianya[5] = {0xc7,0xb7,0xd1,0xb9,0x00};//欠压
+
+uint8_t shuchu[5] = {0xca,0xe4,0xb3,0xf6,0x00};//输出
+
+uint8_t guoliu[5] = {0xb9,0xfd,0xc1,0xf7,0x00};//过流
+
+uint8_t duanlu[5] = {0xb6,0xcc,0xc2,0xb7,0x00};//短路
+
+uint8_t guowen[5] = {0xb9,0xfd,0xce,0xc2,0x00};//过温
+
+uint8_t guanji[5] = {0xb9,0xd8,0xbb,0xfa,0x00};//关机
+
+uint8_t yingjian[5] = {0xd3,0xb3,0xbc,0xfe,0x00};//硬件
+
+uint8_t guzhang[5] = {0xb9,0xca,0xd5,0xcf,0x00};//故障
+
+uint8_t fanjie[5] = {0xb7,0xb4,0xbd,0xd3,0x00};//反接
+
+uint8_t yuanbian[5] = {0xd4,0xad,0xb1,0xdf,0x00};//原边
+
+uint8_t jiange[5] = {0xbd,0xb5,0xb6,0xee,0x00};//降额
+
+uint8_t fengshan[5] = {0xb7,0xe7,0xc9,0xc8,0x00};//风扇
+
+uint8_t badiao[5] = {0xb0,0xce,0xb5,0xf4,0x00};//拔掉
+
+uint8_t jueyuan[5] = {0xb4,0xf8,0xd4,0xb5,0x00};//绝缘
+
+uint8_t diwen[5] = {0xb5,0xcd,0xce,0xc2,0x00};//低温
 
 uint8_t pass[6] ={2,2,2,3,3,3};
 uint8_t unit[17] = {'A','V','M','V','A','V','M','V','V','A','M','A',' ','V','A','K','%'};
@@ -273,7 +307,7 @@ void showsettingitem(uint8_t page,uint8_t no){
 PAGE welcomepage(){
 	lcd_clear();
     lcd_display_chinese_at(2,1,hysy);
-    lcd_display_chinese_at(1,2,hypcdj);
+    lcd_display_chinese_at(2,2,anchixinnengyuan);
 	hy_gui_delay_ms(2200);
 	return DisplayPage1;
 }
@@ -323,11 +357,10 @@ PAGE displaypage1(chargetask_gui_msg* gui_msg,
 		lcd_display_colon();
 
 
-		//LOG_INFO_TAG(HY_LOG_TAG,"====[][%d][%d][%d]",gwcharger_statu1,gwcharger_statu2,(state & HY_GUI_ERR_MASK));
+		//LOG_INFO_TAG(HY_LOG_TAG,"gui get charge_module_connected [%d]",gui_msg->charge_module_connected);
 		if (gui_msg->charge_module_connected == HY_FALSE){//模组没有连接
 			hy_led_control(led_err);
-			lcd_display_chinese(dian);
-			lcd_display_chinese(wei);
+			lcd_display_chinese(mozu);
 			lcd_display_chinese(wei);
 			lcd_display_chinese(lianjie);
 			goto display_button_check;
@@ -335,8 +368,8 @@ PAGE displaypage1(chargetask_gui_msg* gui_msg,
 		if(gui_msg->battery_connected == HY_FALSE){//电池没有连接
 			hy_led_control(led_offall);
 			lcd_display_chinese(dian);
-			lcd_display_chinese(wei);
 			lcd_display_chinese(chi);
+			lcd_display_chinese(wei);
 			lcd_display_chinese(lianjie);
 			goto display_button_check;
 
@@ -344,112 +377,125 @@ PAGE displaypage1(chargetask_gui_msg* gui_msg,
 		if(s_gui->controlstyle == HY_CONTROLSTYLE_CAN){
 			if (gui_msg->bms_connected == HY_FALSE){
 				hy_led_control(led_err);
-				lcd_display_chinese(dian);
-				lcd_display_chinese(wei);
-				lcd_display_chinese(chi);
-				lcd_display_chinese(wei);
+				lcd_display_chinese(tongxin);
+				lcd_display_chinese(cw);
+				lcd_display_space();
 				goto display_button_check;					
 			}
 		}
 
 		if (gui_msg->errorstate == HY_TRUE)
+		{
+			hy_led_control(led_err);
+			if(charger_statu1&(1<<0))//交流欠压 电压故障1
 			{
-			//TODO
+				lcd_display_chinese(jiaoliu);
+				lcd_display_chinese(qianya);
+				lcd_display_space();
+			}else if(charger_statu1&(1<<1)){//交流过压 电压故障2
+				lcd_display_chinese(jiaoliu);
+				lcd_display_chinese(guoya);
+				lcd_display_space();
+			}else if(charger_statu1&(1<<2)){//输出欠压 电压故障3
+				lcd_display_chinese(shuchu);
+				lcd_display_chinese(qianya);
+				lcd_display_space();
+			}else if(charger_statu1&(1<<3)){//输出过压 电压故障4
+				lcd_display_chinese(shuchu);
+				lcd_display_chinese(guoya);
+				lcd_display_space();
+			}else if(charger_statu1&(1<<4)){//输出过流 高温状态4
+				lcd_display_chinese(shuchu);
+				lcd_display_chinese(guoliu);
+				lcd_display_space();
+			}else if(charger_statu1&(1<<5)){//硬件故障 本地错误
+				lcd_display_chinese(shuchu);
+				lcd_display_chinese(duanlu);
+				lcd_display_space();
+			}else if(charger_statu1&(1<<6)){//过温关机
+				lcd_display_chinese(guowen);
+				lcd_display_chinese(guanji);
+				lcd_display_space();
+			}else if(charger_statu1&(1<<7)){//硬件故障
+				lcd_display_chinese(yingjian);
+				lcd_display_chinese(guzhang);
+				lcd_display_space();
+			}else if(charger_statu2&(1<<1)){//输出反接
+				lcd_display_chinese(shuchu);
+				lcd_display_chinese(fanjie);
+				lcd_display_space();
+			}else if(charger_statu2&(1<<2)){//原边降额
+				lcd_display_chinese(yuanbian);
+				lcd_display_chinese(jiange);
+				lcd_display_space();
+			}else if(charger_statu2&(1<<3)){//风扇故障
+				lcd_display_chinese(fengshan);
+				lcd_display_chinese(guzhang);
+				lcd_display_space();
+			}else if(charger_statu2&(1<<4)){//输出反接
+				lcd_display_chinese(guowen);
+				lcd_display_chinese(jiange);
+				lcd_display_space();
+			}else if(gui_msg->bms_status&(1<<1)){//bms 故障 电池过温
+				lcd_display_chinese(dian);
+				lcd_display_chinese(chi);
+				lcd_display_chinese(guowen);
+				lcd_display_space();
+			}else if(gui_msg->bms_status&(1<<2)){//bms 故障 电池低温
+				lcd_display_chinese(dian);
+				lcd_display_chinese(chi);
+				lcd_display_chinese(diwen);
+				lcd_display_space();
+			}else if(gui_msg->bms_status&(1<<3)){//bms 故障 充电过流
+				lcd_display_chinese(chong);
+				lcd_display_chinese(dian);
+				lcd_display_chinese(guoliu);
+				lcd_display_space();
+			}else if(gui_msg->bms_status&(1<<4)){//bms 故障 绝缘故障
+				lcd_display_chinese(jueyuan);
+				lcd_display_chinese(guzhang);
+				lcd_display_space();
+			}else if(gui_msg->bms_status&(1<<6)){//bms 电池故障
+				lcd_display_chinese(dian);
+				lcd_display_chinese(chi);
+				lcd_display_chinese(guzhang);
+				lcd_display_space();
 			}
+			goto display_button_check;
+			
+		}
 		
 		switch(gui_msg->workstate)
 		{
-			case CHARGETASK_CAN_STOP_CODE:
-				break;
-			case CHARGETASK_LOCAL_NORMAL_STOP_CODE:
-				break;
-			case CHARGETASK_BATTERY_DISCONNECT_STOP_CODE:
-				break;
-			case CHARGETASK_ERR_STOP_CODE:
-				break;
-			case CHARGETASK_BUTTON_STOP_CODE:             
-				break;
+			case HY_GUI_CAN_ON_MASK: //通讯充电中
+				lcd_display_chinese(tongxin);
+				lcd_display_chinese(chong);
+				lcd_display_chinese(dian);
+				lcd_display_space();
+			break;
+			case HY_GUI_CHARGETASK_ON_MASK:       //本地充电
+				lcd_display_chinese(bd);
+				lcd_display_chinese(chong);
+				lcd_display_chinese(dian);
+				lcd_display_space();
+			break;
+			case HY_GUI_CHARGETASK_END_MASK:      //充电完成
+				lcd_display_chinese(chong);
+				lcd_display_chinese(dian);
+				lcd_display_chinese(wancheng);
+				lcd_display_space();
+			break;
+			case HY_GUI_CHARGETASK_STOP_MASK:     //充电停止
+				lcd_display_chinese(chong);
+				lcd_display_chinese(dian);
+				lcd_display_chinese(tingzhi);
+				lcd_display_space();
+			break;
+			case HY_GUI_CHARGETASK_IDLE:          //空闲状态
+			break;
+
 		}
 
-
-
-//
-//		{/*normal charge*/
-//			hy_led_control(led_running);
-//			if (s_gui->controlstyle == HY_CONTROLSTYLE_CAN)
-//			{
-//				lcd_display_chinese(tx);
-//				lcd_display_chinese(chong);
-//				lcd_display_chinese(dian);
-//				lcd_display_space();
-//			}else{/*default / local*/
-//				lcd_display_chinese(bd);
-//				lcd_display_chinese(chong);
-//				lcd_display_chinese(dian);
-//				lcd_display_space();
-//			}
-//		}else if((state & HY_GUI_BATTERY_ON_MASK) 
-//					&& (state & HY_GUI_CHARGETASK_END_MASK)
-//					&&((state & HY_GUI_ERR_MASK)==0)){/*charge normal end*/
-//				hy_led_control(led_fullcharge);
-//				lcd_display_chinese(chong);
-//				lcd_display_chinese(dian);
-//				lcd_display_chinese(wancheng);
-//				lcd_display_space();
-//		}else if(state & HY_GUI_ERR_MASK){//错误处理
-//			hy_led_control(led_err);
-//			if(charger_statu2&(1<<5))//交流欠压 电压故障1
-//			{
-//				lcd_display_chinese(dian);
-//				lcd_display_chinese(ya);
-//				lcd_display_chinese(gz);
-//				lcd_display_ascii("1");
-//				lcd_display_space();
-//			}else if(charger_statu2&(1<<4)){//交流过压 电压故障2
-//				lcd_display_chinese(dian);
-//				lcd_display_chinese(ya);
-//				lcd_display_chinese(gz);
-//				lcd_display_ascii("2");
-//				lcd_display_space();
-//			}else if(charger_statu2&(1<<6)){//输出过压 电压故障3
-//				lcd_display_chinese(dian);
-//				lcd_display_chinese(ya);
-//				lcd_display_chinese(gz);
-//				lcd_display_ascii("3");
-//				lcd_display_space();
-//			}else if(charger_statu2&(1<<7)){//输出欠压 电压故障4
-//				lcd_display_chinese(dian);
-//				lcd_display_chinese(ya);
-//				lcd_display_chinese(gz);
-//				lcd_display_ascii("4");
-//				lcd_display_space();
-//			}else if(charger_statu2&(1<<3)){//风扇故障 高温状态4
-//				lcd_display_chinese(gw);
-//				lcd_display_chinese(zt);
-//				lcd_display_ascii("4");
-//				lcd_display_space();
-//			}else if(charger_statu2&(1<<1)){//硬件故障 本地错误
-//				lcd_display_chinese(bd);
-//				lcd_display_chinese(cw);
-//				lcd_display_space();
-//				lcd_display_space();
-//			}
-//
-//			if(charger_statu1&(1<<0))//过流保护 电流故障5
-//			{
-//				lcd_display_chinese(dian);
-//				lcd_display_chinese(liu);
-//				lcd_display_chinese(gz);
-//				lcd_display_ascii("5");
-//				lcd_display_space();
-//			}else if(charger_statu2&(1<<1))//过温保护 高温状态2
-//			{
-//				lcd_display_chinese(gw);
-//				lcd_display_chinese(zt);
-//				lcd_display_ascii("2");
-//				lcd_display_space();
-//			}				
-//		}
 		/*todo errmsg display!!!*/
 
 display_button_check:		
@@ -458,11 +504,11 @@ display_button_check:
 			s_gui->button_flag = NO_MSG;
 			switch (s_gui->button_msg_queue[0].button_name){
 				case button_set://0x01
-//					if ((state & HY_GUI_BATTERY_ON_MASK) && (state & HY_GUI_CHARGETASK_ON_MASK)){
-//						return PassportPage1;
-//					}else{
-//						return PassportPage;
-//					}
+					if (gui_msg->battery_connected == HY_TRUE){//电池拔掉才允许设置
+						return PassportPage1;
+					}else{
+						return PassportPage;
+					}
 					break;
 				case button_off:/*stop charge*///0x06
 					LOG_INFO_TAG(HY_LOG_TAG,"machine stopped by button");
@@ -521,35 +567,35 @@ PAGE displaypage1_1(chargetask_gui_msg* gui_msg,
 
 	hy_led_control(led_offall);	
 
-//		if(s_gui->button_flag == BUTTON_MSG)
-//		{
-//			s_gui->button_flag = NO_MSG;
-//			switch (s_gui->button_msg_queue[0].button_name){
-//				case button_set://0x01
-//					if ((state & HY_GUI_BATTERY_ON_MASK) && (state & HY_GUI_CHARGETASK_ON_MASK)){
-//						return PassportPage1;
-//					}else{
-//						return PassportPage;
-//					}
-//
-//				case button_off:/*stop charge*///0x06
-//				break;
-//				case button_on://0x05
-//					flag = CHARGETASK_BUTTON_START_CODE;
-//					LOG_INFO_TAG(HY_LOG_TAG,"machine startted by button");
-//					s_gui->machine_stop_flag = HY_FALSE;
-//					hy_chargetask_start(HY_CONTROLSTYLE_LOCAL,&flag);
-//					return DisplayPage1_2;
-//
-//				case button_up://0x02
-//				/*todo record of charge*/
-//				break;
-//				case button_down://0x03
-//				break;
-//				case button_esc://0x04
-//				break;
-//			}
-//		}			
+		if(s_gui->button_flag == BUTTON_MSG)
+		{
+			s_gui->button_flag = NO_MSG;
+			switch (s_gui->button_msg_queue[0].button_name){
+				case button_set://0x01
+					if (gui_msg->battery_connected == HY_TRUE){
+						return PassportPage1;
+					}else{
+						return PassportPage;
+					}
+
+				case button_off:/*stop charge*///0x06
+				break;
+				case button_on://0x05
+					flag = CHARGETASK_BUTTON_START_CODE;
+					LOG_INFO_TAG(HY_LOG_TAG,"machine startted by button");
+					s_gui->machine_stop_flag = HY_FALSE;
+					hy_chargetask_start(HY_CONTROLSTYLE_CAN,&flag);
+					return DisplayPage1_2;
+
+				case button_up://0x02
+				/*todo record of charge*/
+				break;
+				case button_down://0x03
+				break;
+				case button_esc://0x04
+				break;
+			}
+		}			
 		return DisplayPage1_1;
 	
 
@@ -718,9 +764,9 @@ PAGE passportpage1(void)
 
     lcd_display_chinese_at(0,0,qing);
     lcd_display_chinese(xian);
-    lcd_display_chinese(tingzhi);
-    lcd_display_chinese(chong);
+    lcd_display_chinese(badiao);
     lcd_display_chinese(dian);
+    lcd_display_chinese(chi);
 
     lcd_display_chinese_at(0,1,zai);
     lcd_display_chinese(jinxing);
@@ -1358,13 +1404,13 @@ PAGE settingpage4(PAGE father_page){
 	lcd_display_chinese(fs);//控制方式
 	lcd_display_colon();
 	if(config_data->controlstyle == HY_CONTROLSTYLE_CAN){
-		lcd_display_chinese(tx);
+		lcd_display_chinese(tongxin);
 	}else{
 		lcd_display_chinese(bd);
 	}
 
 	lcd_goto_pos(3,0);
-	lcd_display_chinese(tx);
+	lcd_display_chinese(tongxin);
 	lcd_display_chinese(sl);//通信速率
 	lcd_display_colon();
 	lcd_display_botelv4(config_data->communicaterate/1000);
@@ -1853,7 +1899,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 
 			lcd_goto_pos(2,0);
 			lcd_display_index(2);
-			lcd_display_chinese(tx);
+			lcd_display_chinese(tongxin);
 			lcd_display_chinese(ms);
 
 			if(HY_TRUE){
@@ -2971,7 +3017,7 @@ PAGE datasettingpage(data_name name,PAGE father_page){//0~16
 communicaterate_page1:	
 			lcd_clear();	
 	   		lcd_goto_pos(0,0);
-	   		lcd_display_chinese(tx);
+	   		lcd_display_chinese(tongxin);
 	    	lcd_display_chinese(botelv);	    	
 			lcd_display_colon();
 
@@ -3061,7 +3107,7 @@ communicaterate_page1:
 communicaterate_page2:
 			lcd_clear();
 	   		lcd_goto_pos(0,0);
-	   		lcd_display_chinese(tx);
+	   		lcd_display_chinese(tongxin);
 	    	lcd_display_chinese(botelv);	    	
 			lcd_display_colon();
 

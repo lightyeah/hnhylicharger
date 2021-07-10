@@ -69,6 +69,15 @@ uint8_t hy_get_battery_connected(void);
 
 uint8_t hy_get_charger_module_connected(void);
 
+
+uint16_t hy_get_bms_request_voltage_x10V(void);
+
+uint16_t hy_get_bms_request_current_x10A(void);
+
+uint8_t hy_get_bms_status(void);
+
+uint8_t hy_get_bms_control(void);
+
 uint8_t hy_get_bms_connected(void);
 
 

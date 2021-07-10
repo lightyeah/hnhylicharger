@@ -98,6 +98,36 @@ uint8_t hy_get_charger_module_connected(void)
 	return hy_can_get_charger_module_connected();
 }
 
+uint16_t hy_get_bms_request_voltage_x10V(void)
+{
+	return hy_can_get_bms_set_voltage_10V();
+}
+
+uint16_t hy_get_bms_request_current_x10A(void)
+{
+	return hy_can_get_bms_set_current_10A();
+}
+
+uint8_t hy_get_bms_status(void)
+{	
+	uint8_t status;
+	if(hy_can_get_bms_mode()!=0)//加热模式
+		{
+			status = hy_can_get_bms_status()&~(uint8_t)(1<<2);//忽略温度过低
+		}else{
+			status = hy_can_get_bms_status();
+			}
+	return status;
+}
+
+
+
+uint8_t hy_get_bms_control(void)
+{
+	return hy_can_get_bms_control();
+}
+
+
 uint8_t hy_get_bms_connected(void)
 {
 	return hy_can_get_bms_connected();

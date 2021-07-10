@@ -121,7 +121,7 @@ void hy_can_task_main(void);
 // 控制
 int hy_can_start_charger(void);
 int hy_can_stop_charger(void);
-int hy_can_control_set_charger(uint32_t current_x1000mA,uint32_t voltage_x1000mV);
+int hy_can_control_set_charger(uint32_t voltage_x1000mV,uint32_t current_x1000mA);
 
 
 // 询问信息 异步处理
