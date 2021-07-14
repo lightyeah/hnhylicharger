@@ -94,7 +94,7 @@ int hy_set_data_broadcast_to_bms(uint16_t voltage_x10V, uint16_t current_x10A)
 		status |= (1<<1);
 		}
 	if(hy_get_charger_module_statu1()&(1<<0)){//输入欠压
-		status != (1<<2);
+		status |= (1<<2);
 		}
 	if(hy_get_bms_connected()==HY_FALSE){//BMS 通信超时
 		status |= (1<<4);

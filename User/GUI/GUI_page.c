@@ -514,7 +514,6 @@ display_button_check:
 					}else{
 						return PassportPage;
 					}
-					break;
 				case button_off:/*stop charge*///0x06
 					LOG_INFO_TAG(HY_LOG_TAG,"machine stopped by button");
 					hy_chargetask_pause(CHARGETASK_BUTTON_STOP_CODE,NULL);
@@ -545,6 +544,7 @@ PAGE displaypage1_1(chargetask_gui_msg* gui_msg,
 	uint32_t time)
 {
 	uint32_t flag = 0;
+	flag=flag;
 	lcd_clear_5s();
 	
 

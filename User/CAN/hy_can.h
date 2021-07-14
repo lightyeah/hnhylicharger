@@ -15,7 +15,8 @@
 #include "debug_frmwrk.h"
 
 #include "gw_module.h"
-#include "langpuda_protocol.h"
+
+#include "ShengYang_Protocol.h"
 
 /*config can*/
 #define CHARGER_CAN_TUNNEL_X      LPC_CAN1
@@ -103,9 +104,14 @@ typedef struct CanComStrcut{
 
 	charger_msg get_charger_msg;
 	
-	lpd_msg bms_msg;
-	charge_to_langpuda_msg charge_to_msg_msg;
+	shengyang_msg bms_msg;
+	charge_to_shengyang_msg charge_to_msg_msg;
+	uint32_t sy_bam;
+	
 	hy_cantask_state state;
+
+	uint32_t charger_addr;
+	
 }hy_cancom_t;
 
 
@@ -177,7 +183,31 @@ uint8_t hy_can_get_bms_connected(void);
 
 int hy_can_detect_bms(void);
 
+///圣阳
 
+/**
+* 控制请求应答
+**/
+int hy_sy_control_response(uint32_t charger_addr);
 
+/**
+* 配置参数应答
+**/
+int hy_sy_config_response(uint32_t charger_addr);
+
+/**
+* 退出请求应答
+**/
+int hy_sy_exit_response(uint32_t charger_addr);
+
+/**
+* 广播请求应答 TODO
+**/
+int hy_sy_broadcast_response(uint32_t charger_addr);
+
+/**
+* 地址重置	请求
+**/
+int hy_sy_address_reset_response(uint32_t address);
 
 #endif
