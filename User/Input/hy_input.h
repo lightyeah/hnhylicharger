@@ -78,6 +78,8 @@ uint8_t hy_get_bms_status(void);
 
 uint8_t hy_get_bms_control(void);
 
+uint8_t hy_get_bms_soc(void);
+
 uint8_t hy_get_bms_connected(void);
 
 

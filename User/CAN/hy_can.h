@@ -15,7 +15,7 @@
 #include "debug_frmwrk.h"
 
 #include "gw_module.h"
-#include "langpuda_protocol.h"
+#include "QianHang_Protocol.h"
 
 /*config can*/
 #define CHARGER_CAN_TUNNEL_X      LPC_CAN1
@@ -55,29 +55,35 @@ typedef struct CHARGER_MSG{
 	uint32_t output1_voltage_x10V;
 	uint8_t statu1_1;
 	uint8_t statu1_2;
-	uint32_t temperature1_x10degree;	
+	uint32_t temperature1_x1degree;	
 	uint32_t battery1_voltage;
 	uint32_t input1_AC_voltage_x10V;
 	
-#if (GW_MOUDLE_NUM >= 2)
 	uint32_t output2_current_x10A;
 	uint32_t output2_voltage_x10V;
 	uint8_t statu2_1;
 	uint8_t statu2_2;
-	uint32_t temperature2_x10degree;	
+	uint32_t temperature2_x1degree;	
 	uint32_t battery2_voltage;
 	uint32_t input2_AC_voltage_x10V;
-#endif
 
-#if (GW_MOUDLE_NUM >= 3)
+
 	uint32_t output3_current_x10A;
 	uint32_t output3_voltage_x10V;
 	uint8_t statu3_1;
 	uint8_t statu3_2;
-	uint32_t temperature3_x10degree;	
+	uint32_t temperature3_x1degree;	
 	uint32_t battery3_voltage;
 	uint32_t input3_AC_voltage_x10V;
-#endif
+
+	uint32_t output4_current_x10A;
+	uint32_t output4_voltage_x10V;
+	uint8_t statu4_1;
+	uint8_t statu4_2;
+	uint32_t temperature4_x1degree;	
+	uint32_t battery4_voltage;
+	uint32_t input4_AC_voltage_x10V;
+
 
 	uint32_t setting_voltage_x10V;
 	uint32_t setting_current_10A;
@@ -103,8 +109,9 @@ typedef struct CanComStrcut{
 
 	charger_msg get_charger_msg;
 	
-	lpd_msg bms_msg;
-	charge_to_langpuda_msg charge_to_msg_msg;
+	qianhang_bms_msg bms_msg;
+	qianhang_charger_msg charge_to_bms_msg;
+	
 	hy_cantask_state state;
 }hy_cancom_t;
 
@@ -121,7 +128,7 @@ void hy_can_task_main(void);
 // 控制
 int hy_can_start_charger(void);
 int hy_can_stop_charger(void);
-int hy_can_control_set_charger(uint32_t voltage_x1000mV,uint32_t current_x1000mA);
+int hy_can_control_set_charger(uint32_t voltage_x10V,uint32_t current_x10A);
 
 
 // 询问信息 异步处理
@@ -162,6 +169,8 @@ int hy_can_get_bms_temperature(void);
 
 int hy_can_get_bms_control(void);
 
+int hy_can_get_bms_soc(void);
+
 int hy_can_get_bms_status(void);
 
 int hy_can_get_bms_mode(void);
@@ -169,6 +178,7 @@ int hy_can_get_bms_mode(void);
 int hy_can_get_bms_battery_voltage_x10V(void);
 
 int hy_can_set_output_msg(uint16_t voltage_x10V, uint16_t current_x10A);
+
 int hy_can_set_status_msg(uint8_t status);
 
 int hy_can_broadcast_to_bms(void);

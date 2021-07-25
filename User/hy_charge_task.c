@@ -398,18 +398,19 @@ void hy_chargetask_main()
 		}
 		LOG_DEBUG_TAG(HY_LOG_TAG, "bms control [%d]  status [%d]\r\n",hy_get_bms_control(),hy_get_bms_status());
 		if (hy_get_bms_control()==1 && 
-				hy_get_bms_status() == 0 ){//充电完成
+				hy_get_bms_soc() >= 95 ){//充电完成
 				s_chargetask->total_chargepower_mj=0;
 				s_chargetask->total_chargepower_x10kwh =0;
 				s_chargetask->gui_msg.workstate = HY_GUI_CHARGETASK_END_MASK;
 				s_chargetask->total_charge_time_ms=0;
 				hy_set_stop_output();
-		}else if(hy_get_bms_status() != 0){//bms 充电异常
+		}else if(hy_get_bms_control() == 1 && 
+				hy_get_bms_soc() < 95){//bms 充电异常
 				s_chargetask->gui_msg.workstate = HY_GUI_CHARGETASK_STOP_MASK;
 				s_chargetask->total_charge_time_ms=0;
 				hy_set_stop_output();
 				goto chargetask_exit;
-		}else if(hy_get_bms_status()==0 && hy_get_bms_control()==0){//正常通信充电
+		}else if(hy_get_bms_control()==0||hy_get_bms_control()==2){//正常通信充电
 			s_chargetask->state = CHARGETASK_CAN;
 			s_chargetask->gui_msg.workstate = HY_GUI_CAN_ON_MASK;
 

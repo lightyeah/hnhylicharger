@@ -437,29 +437,10 @@ PAGE displaypage1(chargetask_gui_msg* gui_msg,
 				lcd_display_chinese(guowen);
 				lcd_display_chinese(jiange);
 				lcd_display_space();
-			}else if(gui_msg->bms_status&(1<<1)){//bms 故障 电池过温
+			}else if(gui_msg->bms_status!=0){//bms 故障 电池保护
 				lcd_display_chinese(dian);
 				lcd_display_chinese(chi);
-				lcd_display_chinese(guowen);
-				lcd_display_space();
-			}else if(gui_msg->bms_status&(1<<2)){//bms 故障 电池低温
-				lcd_display_chinese(dian);
-				lcd_display_chinese(chi);
-				lcd_display_chinese(diwen);
-				lcd_display_space();
-			}else if(gui_msg->bms_status&(1<<3)){//bms 故障 充电过流
-				lcd_display_chinese(chong);
-				lcd_display_chinese(dian);
-				lcd_display_chinese(guoliu);
-				lcd_display_space();
-			}else if(gui_msg->bms_status&(1<<4)){//bms 故障 绝缘故障
-				lcd_display_chinese(jueyuan);
-				lcd_display_chinese(guzhang);
-				lcd_display_space();
-			}else if(gui_msg->bms_status&(1<<6)){//bms 电池故障
-				lcd_display_chinese(dian);
-				lcd_display_chinese(chi);
-				lcd_display_chinese(guzhang);
+				lcd_display_chinese(bh);
 				lcd_display_space();
 			}
 			goto display_button_check;
@@ -545,6 +526,7 @@ PAGE displaypage1_1(chargetask_gui_msg* gui_msg,
 	uint32_t time)
 {
 	uint32_t flag = 0;
+	flag=flag;
 	lcd_clear_5s();
 	
 

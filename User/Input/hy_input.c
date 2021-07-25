@@ -44,8 +44,10 @@ int hy_input_init(void* hy_instance_handle)
 
 //模块首先获取电压
 uint16_t hy_get_output_voltage_x10V(void){
+	
 	s_inputsignal->output_voltage_x10V = hy_can_get_output_voltage_x10V();
 	s_inputsignal->battery_voltage_x10V = s_inputsignal->output_voltage_x10V;
+	LOG_DEBUG_TAG("INPUT", "GET OUTPUT [%d]V", s_inputsignal->output_voltage_x10V);
 	return s_inputsignal->output_voltage_x10V;
 }
 
@@ -108,16 +110,12 @@ uint16_t hy_get_bms_request_current_x10A(void)
 	return hy_can_get_bms_set_current_10A();
 }
 
-uint8_t hy_get_bms_status(void)
+uint8_t hy_get_bms_status(void)//只有电池保护状态
 {	
-	uint8_t status;
-	if(hy_can_get_bms_mode()!=0)//加热模式
-		{
-			status = hy_can_get_bms_status()&~(uint8_t)(1<<2);//忽略温度过低
-		}else{
-			status = hy_can_get_bms_status();
-			}
-	return (status&~(uint8_t)(1<<5));
+	if(hy_can_get_bms_control()==1&&hy_can_get_bms_soc()<95){
+		return 1;
+	}
+	return 0;
 }
 
 
@@ -126,6 +124,12 @@ uint8_t hy_get_bms_control(void)
 {
 	return hy_can_get_bms_control();
 }
+
+uint8_t hy_get_bms_soc(void)
+{
+	return hy_can_get_bms_soc();
+}
+
 
 
 uint8_t hy_get_bms_connected(void)

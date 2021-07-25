@@ -88,10 +88,10 @@ static void timecounting(void){
 void SysTick_Handler(void)
 {
 	static int ctx;
-	static uint32_t overheat_time_ms;
+
 	//Clear System Tick counter flag
 	SYSTICK_ClearCounterFlag();
-	
+	ctx=ctx;
 	timecounting();
 	
 	if(!(hy_instance->initdone)){/*not initdone*/
