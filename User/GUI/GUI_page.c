@@ -121,7 +121,7 @@ uint8_t guowen[5] = {0xb9,0xfd,0xce,0xc2,0x00};//过温
 
 uint8_t guanji[5] = {0xb9,0xd8,0xbb,0xfa,0x00};//关机
 
-uint8_t yingjian[5] = {0xd3,0xb3,0xbc,0xfe,0x00};//硬件
+uint8_t yingjian[5] = {0xd3,0xb2,0xbc,0xfe,0x00};//硬件
 
 uint8_t guzhang[5] = {0xb9,0xca,0xd5,0xcf,0x00};//故障
 
@@ -308,6 +308,11 @@ PAGE welcomepage(){
 	lcd_clear();
     lcd_display_chinese_at(2,1,hysy);
     lcd_display_chinese_at(2,2,anchixinnengyuan);
+	lcd_goto_pos(3,2);
+	lcd_display_num3(48,'V');
+	lcd_display_num3(200,'A');
+	lcd_display_ascii("-");
+	lcd_display_ascii("qh");
 	hy_gui_delay_ms(2200);
 	return DisplayPage1;
 }
@@ -387,7 +392,7 @@ PAGE displaypage1(chargetask_gui_msg* gui_msg,
 		if (gui_msg->errorstate == HY_GUI_ERR_MASK)
 		{
 			hy_led_control(led_err);
-			LOG_DEBUG_TAG("gui -- ", "status1 [%d] 2 [%d] b [%d]", charger_statu1,charger_statu2,gui_msg->bms_status);
+			//LOG_DEBUG_TAG("gui -- ", "status1 [%d] 2 [%d] b [%d]", charger_statu1,charger_statu2,gui_msg->bms_status);
 			if(charger_statu1&(1<<0))//交流欠压 电压故障1
 			{
 				lcd_display_chinese(jiaoliu);
@@ -490,8 +495,10 @@ display_button_check:
 			s_gui->button_flag = NO_MSG;
 			switch (s_gui->button_msg_queue[0].button_name){
 				case button_set://0x01
-					if (gui_msg->battery_connected == HY_TRUE){//电池拔掉才允许设置
+					if (gui_msg->battery_connected == HY_TRUE && gui_msg->charge_module_connected == HY_TRUE){//电池拔掉才允许设置
 						return PassportPage1;
+					}else if(gui_msg->charge_module_connected == HY_FALSE){//模组未连接也可以设置
+						return PassportPage;
 					}else{
 						return PassportPage;
 					}

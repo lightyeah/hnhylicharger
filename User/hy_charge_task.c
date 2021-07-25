@@ -397,6 +397,13 @@ void hy_chargetask_main()
 			goto chargetask_exit;
 		}
 		LOG_DEBUG_TAG(HY_LOG_TAG, "bms control [%d]  status [%d]\r\n",hy_get_bms_control(),hy_get_bms_status());
+		if(hy_get_charger_module_statu2()&0xfe
+		||hy_get_charger_module_statu1()&0xff){//国威模块故障
+				s_chargetask->gui_msg.workstate = HY_GUI_CHARGETASK_STOP_MASK;
+				s_chargetask->total_charge_time_ms=0;
+				hy_set_stop_output();
+				goto chargetask_exit;			
+		}
 		if (hy_get_bms_control()==1 && 
 				hy_get_bms_soc() >= 95 ){//充电完成
 				s_chargetask->total_chargepower_mj=0;
@@ -422,12 +429,12 @@ void hy_chargetask_main()
 			LOG_DEBUG_TAG(HY_LOG_TAG, "bms control [%d]  status [%d]\r\n",hy_get_bms_request_voltage_x10V(),hy_get_bms_request_current_x10A());
 			hy_set_charger_output(hy_get_bms_request_voltage_x10V(), hy_get_bms_request_current_x10A());
 		}
-		hy_set_data_broadcast_to_bms(s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
-
+		
 	}
 
 
 chargetask_exit:
+	hy_set_data_broadcast_to_bms(s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
 	s_chargetask->gui_msg.charge_module_connected = hy_get_charger_module_connected();
 	s_chargetask->gui_msg.battery_connected = hy_get_battery_connected();
 	s_chargetask->gui_msg.bms_connected = hy_get_bms_connected();
@@ -441,8 +448,8 @@ chargetask_exit:
 	
 	s_chargetask->gui_msg.bms_status = hy_get_bms_status();
 	
-	if(s_chargetask->gui_msg.charger_statu2&0xfa
-		||s_chargetask->gui_msg.charger_statu1&0x03
+	if(s_chargetask->gui_msg.charger_statu2&0xfe
+		||s_chargetask->gui_msg.charger_statu1&0xff
 		||s_chargetask->gui_msg.bms_status != 0 ){
 		LOG_DEBUG_TAG(HY_LOG_TAG, "EMIT GUI ERROR");
 		s_chargetask->gui_msg.errorstate = HY_GUI_ERR_MASK;

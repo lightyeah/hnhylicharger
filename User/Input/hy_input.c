@@ -58,6 +58,7 @@ uint16_t hy_get_output_current_x10A(void){
 
 uint8_t hy_get_charger_module_statu1(void){
 	s_inputsignal->charger_module_statu1 = hy_can_get_charger_module_statu1();
+	//LOG_DEBUG_TAG("statu", "sssttt [0x%x]", s_inputsignal->charger_module_statu1);
 	return s_inputsignal->charger_module_statu1;
 }
 
