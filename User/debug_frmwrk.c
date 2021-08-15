@@ -348,7 +348,7 @@ void debug_frmwrk_init(void)
 	 */
 	UART_FIFOConfigStructInit(&UARTFIFOConfigStruct);		 
 	/* Enable UART line status interrupt */
-	UART_IntConfig((LPC_UART_TypeDef *)DEBUG_UART_PORT, UART_INTCFG_RLS, ENABLE);
+	UART_IntConfig((LPC_UART_TypeDef *)DEBUG_UART_PORT, UART_INTCFG_RBR, ENABLE);
     /* preemption = 1, sub-priority = 1 */
     NVIC_SetPriority(UARTx_IRQn, ((0x01<<3)|0x01));
 	/* Enable Interrupt for UART0 channel */
@@ -371,11 +371,76 @@ void debug_frmwrk_init(void)
  * @param[in]	None
  * @return 		None
  **********************************************************************/
+char command[10]={0};
+int commandIdx=0;
+char gtemp = 0;
 void UARTx_IRQHandler(void)
 {
 
-	  UART_SendByte(DEBUG_UART_PORT,UART_ReceiveByte(DEBUG_UART_PORT));
-
+	  //UART_SendByte(DEBUG_UART_PORT,UART_ReceiveByte(DEBUG_UART_PORT));
+	  if(LPC_UART0->LSR&0x01)
+	{
+		//modbus_command[index_of_modbus_command++] = LPC_UART0->RBR;
+		//command[commandIdx++]=LPC_UART0->RBR;
+		_printf("%c",LPC_UART0->RBR);
+		
+	}	
+//	if(commandIdx >=4){
+//		commandIdx = 0;
+//		_printf("%s",command);
+//	}
+//    _printf("1");  
+//    while ((LPC_UART0->IIR & 0x01) == 0){                               /*  判断是否有中断挂起          */
+//		_printf("2");
+//		switch (LPC_UART0->IIR & 0x0E){                                 /*  判断中断标志                */
+//        
+//            case 0x04:                                                  /*  接收数据中断                */
+//				_printf("3");
+//
+//					//GucRcvNew = 1;                                          /*  置接收新数据标志            */
+//                                 /*  连续接收8个字节             */
+//                	command[commandIdx++] = LPC_UART0->RBR;
+//                
+//                break;
+//            
+//            case 0x0C:                                                  /*  字符超时中断                */
+//				_printf("4");
+//                while ((LPC_UART0->LSR & 0x01) == 0x01)
+//                {                /*  判断数据是否接收完毕        */
+//                    if((LPC_UART0->LSR & 0x80) == 0x80){
+//                                                        /* 接收到的数据包含错误   */
+//                    	gtemp = LPC_UART0->RBR;          /* 丢弃接收到的错误字节   */
+//                    }else{
+//                   		command[commandIdx] = LPC_UART0->RBR;
+//                    	commandIdx++;
+//                    	}
+//                }
+//                break;
+//
+//               
+//            default:
+//                break;
+//        }
+//    }
+//				NVIC_ClearPendingIRQ(UART0_IRQn);
+//
+//				while ((LPC_UART0->LSR & 0x01) == 0x01)	
+//				 {				  /*  判断数据是否接收完毕		*/
+////				  NVIC_ClearPendingIRQ(UART0_IRQn);
+//					 if((LPC_UART0->LSR & 0x80) == 0x80){
+//														 /* 接收到的数据包含错误	 */
+//						 gtemp = LPC_UART0->RBR;		  /* 丢弃接收到的错误字节   */
+//					 }else{
+//						 command[commandIdx] = LPC_UART0->RBR;
+//						 commandIdx++;
+//						 }
+//				 }
+//
+//	_printf("5");
+//	if (commandIdx >= 8 ){
+//		commandIdx=0;
+//		_printf("%s",command);
+//		}
 }
 
 

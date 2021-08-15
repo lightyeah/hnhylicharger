@@ -25,7 +25,7 @@ void arch_dump_hex(const void *data, int len,const char *tips);
 #ifndef MIIO_LOG_LEVEL
 #define MIIO_LOG_LEVEL							LOG_LEVEL_VERBOSE
 #endif
-#define LOG_LEVEL 								MIIO_LOG_LEVEL
+#define LOG_LEVEL 								LOG_LEVEL_OFF
 
 #if MIIO_LOG_LEVEL <= LOG_LEVEL_INFO
 #define LOG_INFO(_fmt_, ...) \
