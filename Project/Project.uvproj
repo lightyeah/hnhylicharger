@@ -349,7 +349,7 @@
               <MiscControls></MiscControls>
               <Define>__BUILD_WITH_EXAMPLE__=1,__RAM_MODE__=0</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\LCP1768_StdPeriph_Driver\include;..\Libraries\CM3\CoreSupport;..\Libraries\CM3\DeviceSupport\NXP\LPC17xx;..\User;..\User\DataProcess;..\User\Input;..\User\Output;..\User\UART;..\User\Config;..\User\GUI;..\User\CAN;..\User\hy_instance;..\User\systime</IncludePath>
+              <IncludePath>..\Libraries\LCP1768_StdPeriph_Driver\include;..\Libraries\CM3\CoreSupport;..\Libraries\CM3\DeviceSupport\NXP\LPC17xx;..\User;..\User\DataProcess;..\User\Input;..\User\Output;..\User\UART;..\User\Config;..\User\GUI;..\User\CAN;..\User\hy_instance;..\User\systime;..\User\GW;..\User\QianHang</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>

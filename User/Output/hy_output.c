@@ -79,7 +79,7 @@ int hy_set_stop_output(void)
 }
 
 int hy_set_charger_output(uint16_t voltage_x10V, uint16_t current_x10A){
-	hy_can_control_set_charger((uint32_t)voltage_x10V, (uint32_t)current_x10A/4);//4台设备
+	hy_can_control_set_charger((uint32_t)voltage_x10V, (uint32_t)current_x10A);
 	return 0;
 }
 
@@ -94,10 +94,10 @@ int hy_set_data_broadcast_to_bms(uint16_t voltage_x10V, uint16_t current_x10A)
 		status |= (1<<1);
 		}
 	if(hy_get_charger_module_statu1()&(1<<0)){//输入欠压
-		status != (1<<2);
+		status |= (1<<2);
 		}
 	if(hy_get_charger_module_statu2()&(1<<1)){//电池接反
-		status != (1<<3);
+		status |= (1<<3);
 		}
 	if(hy_get_bms_connected()==HY_FALSE){//BMS 通信超时
 		status |= (1<<4);
