@@ -145,6 +145,8 @@ uint16_t max[17] = {300,300,999,300,300,300,999,300,300,300,999,300,1,300,300,4,
 uint16_t min[17] = {  1,  1,  1,	1,	1,	1,	1,	1,	1,	1,	1,	1,0,	1,	1,0, 0};
 uint16_t communicationrate[5] = {50,125,250,500,800};
 
+uint16_t needrestartflag=0;//重启标志
+
 int hy_gui_page_init(void* gui_handle, void* config_handle)
 {
 	if(gui_handle==NULL){
@@ -306,9 +308,12 @@ void showsettingitem(uint8_t page,uint8_t no){
 
 PAGE welcomepage(){
 	lcd_clear();
-    lcd_display_chinese_at(2,1,hysy);
-    lcd_display_chinese_at(2,2,anchixinnengyuan);
+    lcd_display_chinese_at(0,0,hysy);
+    lcd_display_chinese_at(0,1,anchixinnengyuan);
+	lcd_goto_pos(3, 0);
+	lcd_display_ascii("GW24V100A");
 	hy_gui_delay_ms(2200);
+	
 	return DisplayPage1;
 }
 
@@ -509,10 +514,10 @@ display_button_check:
 			s_gui->button_flag = NO_MSG;
 			switch (s_gui->button_msg_queue[0].button_name){
 				case button_set://0x01
-					if (gui_msg->battery_connected == HY_TRUE){//电池拔掉才允许设置
-						return PassportPage1;
-					}else{
+					if (gui_msg->battery_connected == HY_FALSE||gui_msg->charge_module_connected == HY_FALSE){//电池拔掉才允许设置
 						return PassportPage;
+					}else{
+						return PassportPage1;
 					}
 					break;
 				case button_off:/*stop charge*///0x06
@@ -586,7 +591,7 @@ PAGE displaypage1_1(chargetask_gui_msg* gui_msg,
 				break;
 				case button_on://0x05
 					LOG_INFO_TAG(HY_LOG_TAG,"machine startted by button");
-					hy_chargetask_continue(HY_CONTROLSTYLE_CAN,NULL);
+					hy_chargetask_continue(s_gui->controlstyle,NULL);
 					return DisplayPage1_2;
 
 				case button_up://0x02
@@ -785,6 +790,10 @@ PAGE passportpage1(void)
 
 }
 
+
+/*****
+设置主界面
+*****/
 PAGE settingmainpage(uint8_t page,uint8_t cursor)
 {//0,1;0,1,2,3
 	
@@ -845,6 +854,9 @@ PAGE settingmainpage(uint8_t page,uint8_t cursor)
 				break;
 				case button_esc://0x04
 					lcd_cursor_close();
+					if(needrestartflag==1){
+						return DisplayPage1_3;
+					}
 					return DisplayPage1;	
 			
 			}
@@ -942,6 +954,7 @@ PAGE settingpage11(PAGE father_page)
 			updatetime_ms = hy_time_now_ms();
 			switch (s_gui->button_msg_queue[0].button_name){
 				case button_set://0x01
+					needrestartflag=1;
 					switch(index){
 						case 1:
 							dataname = chargecurrent_1;
@@ -1030,6 +1043,7 @@ PAGE settingpage12(PAGE father_page)
 			updatetime_ms = hy_time_now_ms();
 			switch (s_gui->button_msg_queue[0].button_name){
 				case button_set://0x01
+					needrestartflag=1;
 					dataname = chargetimeout_1_min;
 					LOG_INFO_TAG(HY_LOG_TAG,"gui settingpage12 index chargetimeout_1_min");
 					return datasettingpage(dataname,SettingPage12);
@@ -1106,6 +1120,7 @@ PAGE settingpage21(PAGE father_page)
 			updatetime_ms = hy_time_now_ms();
 			switch (s_gui->button_msg_queue[0].button_name){
 				case button_set://0x01
+					needrestartflag=1;
 					switch(index){
 						case 1:
 							dataname = chargecurrent_2;
@@ -1193,6 +1208,7 @@ PAGE settingpage22(PAGE father_page)
 			updatetime_ms = hy_time_now_ms();
 			switch (s_gui->button_msg_queue[0].button_name){
 				case button_set://0x01
+					needrestartflag=1;
 					dataname = chargetimeout_2_min;
 					LOG_INFO_TAG(HY_LOG_TAG,"gui settingpage22 index chargetimeout_2_min");
 					return datasettingpage(dataname,SettingPage22);
@@ -1267,6 +1283,7 @@ PAGE settingpage31(PAGE father_page)
 			updatetime_ms = hy_time_now_ms();
 			switch (s_gui->button_msg_queue[0].button_name){
 				case button_set://0x01
+					needrestartflag=1;
 					switch(index){
 						case 1:
 							dataname = chargevoltage_3;
@@ -1354,6 +1371,7 @@ PAGE settingpage32(PAGE father_page)
 			updatetime_ms = hy_time_now_ms();
 			switch (s_gui->button_msg_queue[0].button_name){
 				case button_set://0x01
+					needrestartflag=1;
 					dataname = chargetimeout_3_min;
 					LOG_INFO_TAG(HY_LOG_TAG,"gui settingpage32 index chargetimeout_3_min");
 					return datasettingpage(dataname,SettingPage32);
@@ -1430,6 +1448,7 @@ PAGE settingpage4(PAGE father_page){
 			updatetime_ms = hy_time_now_ms();
 			switch (s_gui->button_msg_queue[0].button_name){
 				case button_set://0x01
+					needrestartflag=1;
 					switch(index){
 						case 2:
 							if (HY_TRUE){
@@ -1586,12 +1605,12 @@ PAGE settingpage7(PAGE father_page){
 	lcd_display_chinese(cp);
 	lcd_display_chinese(xh);
 	lcd_display_colon();
-	lcd_display_ascii("BC2000");
+	lcd_display_ascii("GW");
 	lcd_goto_pos(1,0);
 	lcd_display_chinese(rj);
 	lcd_display_chinese(bb);
 	lcd_display_colon();
-	lcd_display_ascii("V2.0.1");
+	lcd_display_ascii("24100");
 	lcd_goto_pos(2,0);
 	lcd_display_chinese(cj);
 	lcd_display_colon();

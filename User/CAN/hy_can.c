@@ -101,7 +101,7 @@ void hy_can_task_main()
 	hy_can_getmsg();
 	if(systime_elapse_ms(canmonitortime_ms)>=HY_CAN_TASK_MONITOR_INTERVAL){
 		canmonitortime_ms = hy_time_now_ms();
-		LOG_INFO_TAG(HY_LOG_TAG,"can monitor on cancom.state = [%d]",s_cancom->state);
+//		LOG_INFO_TAG(HY_LOG_TAG,"can monitor on cancom.state = [%d]",s_cancom->state);
 	}
 	
 	switch (s_cancom->state){
