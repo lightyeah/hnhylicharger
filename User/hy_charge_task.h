@@ -69,6 +69,9 @@ typedef struct HY_ChargeTask_T{
 	uint32_t total_chargepower_mj;
 	uint32_t average_powerrate_x10w;
 
+	uint32_t total_chargepower_x10AmS;
+	uint32_t total_chargepower_x10Ah;
+	
 	hy_chargetask_state state;
 	hy_chargetask_state pause_state;
 	

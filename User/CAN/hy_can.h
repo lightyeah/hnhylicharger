@@ -56,7 +56,7 @@ typedef struct CHARGER_MSG{
 	uint32_t output1_voltage_x10V;
 	uint8_t statu1_1;
 	uint8_t statu1_2;
-	uint32_t temperature1_x10degree;	
+	uint32_t temperature1_x1degree;	
 	uint32_t battery1_voltage;
 	uint32_t input1_AC_voltage_x10V;
 	
@@ -65,7 +65,7 @@ typedef struct CHARGER_MSG{
 	uint32_t output2_voltage_x10V;
 	uint8_t statu2_1;
 	uint8_t statu2_2;
-	uint32_t temperature2_x10degree;	
+	uint32_t temperature2_x1degree;	
 	uint32_t battery2_voltage;
 	uint32_t input2_AC_voltage_x10V;
 #endif
@@ -75,7 +75,7 @@ typedef struct CHARGER_MSG{
 	uint32_t output3_voltage_x10V;
 	uint8_t statu3_1;
 	uint8_t statu3_2;
-	uint32_t temperature3_x10degree;	
+	uint32_t temperature3_x1degree;	
 	uint32_t battery3_voltage;
 	uint32_t input3_AC_voltage_x10V;
 #endif
@@ -130,13 +130,6 @@ int hy_can_stop_charger(void);
 int hy_can_control_set_charger(uint32_t voltage_x1000mV,uint32_t current_x1000mA);
 
 
-// 询问信息 异步处理
-int hy_can_control_query_charger(void);// 获取充电器状态数据
-int hy_can_query_setting_voltage_charger(void);
-int hy_can_query_setting_current_charger(void);
-int hy_can_query_temperature_charger(void);
-int hy_can_query_220V_charger(void);
-
 
 
 //信息获取
@@ -161,27 +154,42 @@ int hy_can_detect_charger(void);
 
 //BMS***************************************
 
+
 int hy_can_get_bms_set_voltage_10V(void);
+
 int hy_can_get_bms_set_current_10A(void);
 
 int hy_can_get_bms_temperature(void);
 
-int hy_can_get_bms_control(void);
+int hy_can_get_bms_battery_status(void);
 
-int hy_can_get_bms_status(void);
+int hy_can_get_bms_soc(void);
 
-int hy_can_get_bms_mode(void);
+int hy_can_get_bms_soh(void);
 
-int hy_can_get_bms_battery_voltage_x10V(void);
+int hy_can_get_bms_warnning(void);
+
+int hy_can_get_bms_charge_percent(void);
+
 
 int hy_can_set_output_msg(uint16_t voltage_x10V, uint16_t current_x10A);
-int hy_can_set_status_msg(uint8_t status);
 
-int hy_can_broadcast_to_bms(void);
+int hy_can_set_output_energy(uint16_t energy_x10Ah);
+
+int hy_can_set_charger_errorcode(uint8_t error);
+
+int hy_can_set_charger_stage(uint8_t stage);
+
+
+int hy_can_set_charger_AC_voltage(uint32_t voltage_x10V);
+
+
+int hy_can_set_charger_machine_type(uint16_t machine_type);
+
+int hy_can_set_charger_control_status(uint8_t status);
 
 uint8_t hy_can_get_bms_connected(void);
 
-int hy_can_detect_bms(void);
 
 ///圣阳
 

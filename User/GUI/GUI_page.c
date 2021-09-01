@@ -139,6 +139,12 @@ uint8_t jueyuan[5] = {0xbe,0xf8,0xd4,0xb5,0x00};//绝缘
 
 uint8_t diwen[5] = {0xb5,0xcd,0xce,0xc2,0x00};//低温
 
+uint8_t danti[5] = {0xb5,0xa5,0xcc,0xe5,0x00};//单体
+ 
+uint8_t fangdian[5] = {0xb7,0xc5,0xb5,0xe7,0x00};//放电
+
+uint8_t chaoshi[5] = {0xb3,0xac,0xca,0xb1,0x00};//超时
+
 uint8_t pass[6] ={2,2,2,3,3,3};
 uint8_t unit[17] = {'A','V','M','V','A','V','M','V','V','A','M','A',' ','V','A','K','%'};
 uint16_t max[17] = {300,300,999,300,300,300,999,300,300,300,999,300,1,300,300,4,60};
@@ -378,7 +384,7 @@ PAGE displaypage1(chargetask_gui_msg* gui_msg,
 			if (gui_msg->bms_connected == HY_FALSE){
 				hy_led_control(led_err);
 				lcd_display_chinese(tongxin);
-				lcd_display_chinese(cw);
+				lcd_display_chinese(chaoshi);
 				lcd_display_space();
 				goto display_button_check;					
 			}
@@ -387,7 +393,7 @@ PAGE displaypage1(chargetask_gui_msg* gui_msg,
 		if (gui_msg->errorstate == HY_GUI_ERR_MASK)
 		{
 			hy_led_control(led_err);
-			LOG_DEBUG_TAG("gui -- ", "status1 [%d] 2 [%d] b [%d]", charger_statu1,charger_statu2,gui_msg->bms_status);
+			LOG_DEBUG_TAG("gui -- ", "status1 [%d] 2 [%d] b [%d]", charger_statu1,charger_statu2,gui_msg->bms_warnning);
 			if(charger_statu1&(1<<0))//交流欠压 电压故障1
 			{
 				lcd_display_chinese(jiaoliu);
@@ -409,7 +415,7 @@ PAGE displaypage1(chargetask_gui_msg* gui_msg,
 				lcd_display_chinese(shuchu);
 				lcd_display_chinese(guoliu);
 				lcd_display_space();
-			}else if(charger_statu1&(1<<5)){//硬件故障 本地错误
+			}else if(charger_statu1&(1<<5)){//输出短路
 				lcd_display_chinese(shuchu);
 				lcd_display_chinese(duanlu);
 				lcd_display_space();
@@ -437,30 +443,45 @@ PAGE displaypage1(chargetask_gui_msg* gui_msg,
 				lcd_display_chinese(guowen);
 				lcd_display_chinese(jiange);
 				lcd_display_space();
-			}else if(gui_msg->bms_status&(1<<1)){//bms 故障 电池过温
-				lcd_display_chinese(dian);
-				lcd_display_chinese(chi);
-				lcd_display_chinese(guowen);
-				lcd_display_space();
-			}else if(gui_msg->bms_status&(1<<2)){//bms 故障 电池低温
-				lcd_display_chinese(dian);
-				lcd_display_chinese(chi);
-				lcd_display_chinese(diwen);
-				lcd_display_space();
-			}else if(gui_msg->bms_status&(1<<3)){//bms 故障 充电过流
+			}else if(gui_msg->bms_warnning == 0x01){//bms 故障 充电过流
 				lcd_display_chinese(chong);
 				lcd_display_chinese(dian);
 				lcd_display_chinese(guoliu);
 				lcd_display_space();
-			}else if(gui_msg->bms_status&(1<<4)){//bms 故障 绝缘故障
-				lcd_display_chinese(jueyuan);
-				lcd_display_chinese(guzhang);
+			}else if(gui_msg->bms_warnning == 0x02){//bms 故障 欠压保护
+				lcd_display_chinese(qianya);
+				lcd_display_chinese(bh);
 				lcd_display_space();
-			}else if(gui_msg->bms_status&(1<<6)){//bms 电池故障
+			}else if(gui_msg->bms_warnning == 0x03){//bms 故障 过压保护
+				lcd_display_chinese(guoya);
+				lcd_display_chinese(bh);
+				lcd_display_space();
+			}else if(gui_msg->bms_warnning == 0x04){//bms 故障 单体欠压
+				lcd_display_chinese(danti);
+				lcd_display_chinese(qianya);
+				lcd_display_space();
+			}else if(gui_msg->bms_warnning == 0x05){//bms 单体过压
+				lcd_display_chinese(danti);
+				lcd_display_chinese(guoya);
+				lcd_display_space();
+			}else if(gui_msg->bms_warnning == 0x06){//bms 电池过温
 				lcd_display_chinese(dian);
 				lcd_display_chinese(chi);
-				lcd_display_chinese(guzhang);
+				lcd_display_chinese(guowen);
 				lcd_display_space();
+			}else if(gui_msg->bms_warnning == 0x07){//bms 单体过压
+				lcd_display_chinese(fangdian);
+				lcd_display_chinese(guoliu);
+				lcd_display_space();
+			}else if(gui_msg->bms_battery_status == 0x02){
+				lcd_display_chinese(dian);
+				lcd_display_chinese(chi);
+				lcd_display_chinese(fangdian);
+				lcd_display_space();
+			}else if(gui_msg->bms_battery_status == 0x03){
+				lcd_display_chinese(dian);
+				lcd_display_chinese(chi);
+				lcd_display_chinese(gz);
 			}
 			goto display_button_check;
 			
@@ -495,8 +516,6 @@ PAGE displaypage1(chargetask_gui_msg* gui_msg,
 				lcd_display_chinese(dian);
 				lcd_display_chinese(tingzhi);
 				lcd_display_space();
-			break;
-			case HY_GUI_CHARGETASK_IDLE:          //空闲状态
 			break;
 
 		}

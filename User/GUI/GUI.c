@@ -242,8 +242,10 @@ int hy_emit_gui_msg(hy_gui_msg_type type, void* msg)
 		        ((chargetask_gui_msg*)msg)->charger_statu1;
 		    s_gui->charge2gui_msg.charger_statu2 = 
 		        ((chargetask_gui_msg*)msg)->charger_statu2;
-			s_gui->charge2gui_msg.bms_status = 
-		        ((chargetask_gui_msg*)msg)->bms_status;
+			s_gui->charge2gui_msg.bms_warnning = 
+		        ((chargetask_gui_msg*)msg)->bms_warnning;
+			s_gui->charge2gui_msg.bms_battery_status = 
+		        ((chargetask_gui_msg*)msg)->bms_battery_status;
 
 			s_gui->charge2gui_msg.charge_module_connected = 
 		        ((chargetask_gui_msg*)msg)->charge_module_connected;

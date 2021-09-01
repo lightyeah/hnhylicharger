@@ -77,7 +77,6 @@ uint16_t hy_get_output_battery_voltage_x10V(void){
 //uint16_t hy_get_input_voltage_x10V(void);
 
 uint16_t hy_get_charger_module_temperatur_x10degree(void){
-	hy_can_query_temperature_charger();
 	s_inputsignal->charger_module_temperature_x10degree = hy_can_get_charger_module_temperature_x10degree();
 	return s_inputsignal->charger_module_temperature_x10degree;
 }
@@ -106,25 +105,6 @@ uint16_t hy_get_bms_request_voltage_x10V(void)
 uint16_t hy_get_bms_request_current_x10A(void)
 {
 	return hy_can_get_bms_set_current_10A();
-}
-
-uint8_t hy_get_bms_status(void)
-{	
-	uint8_t status;
-	if(hy_can_get_bms_mode()!=0)//加热模式
-		{
-			status = hy_can_get_bms_status()&~(uint8_t)(1<<2);//忽略温度过低
-		}else{
-			status = hy_can_get_bms_status();
-			}
-	return (status&~(uint8_t)(1<<5));
-}
-
-
-
-uint8_t hy_get_bms_control(void)
-{
-	return hy_can_get_bms_control();
 }
 
 

@@ -76,7 +76,7 @@ typedef struct{
 	
 	uint8_t error_code;//00正常 01 没有检测到电池 02 市电异常 03 机器高温保护 04 电池高温保护 05 机器内部故障 06 输出过压 07 地址声明错误
 
-	uint8_t charge_status;// 02 bulk stage 03 
+	uint8_t charge_stage;// 02 bulk stage 03 
 
 	uint8_t battery_temperature;
 

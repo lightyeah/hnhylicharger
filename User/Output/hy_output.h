@@ -32,6 +32,6 @@ int hy_set_stop_output(void);
 
 int hy_set_charger_output(uint16_t voltage_x10V, uint16_t current_x10A);
 
-int hy_set_data_broadcast_to_bms(uint16_t voltage_x10V, uint16_t current_x10A);
+int hy_set_data_broadcast_to_bms(uint16_t voltage_x10V, uint16_t current_x10A, uint16_t energy_x10Ah);
 
 #endif
