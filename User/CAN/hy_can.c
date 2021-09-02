@@ -155,47 +155,7 @@ void CAN_IRQHandler()
 					s_cancom->get_charger_msg.input1_AC_voltage_x10V = INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
 					s_cancom->charge_to_msg_msg.input_220V_voltage_x100V = s_cancom->get_charger_msg.input1_AC_voltage_x10V*10;
 					break;
-#if (GW_MOUDLE_NUM >= 2)					
-				case GW_MODULE_2_MSG_100MS_MSG_FRAME_ID://返回电压电流和状态
-					updatemodule(charger);
-				
-					s_cancom->get_charger_msg.output2_current_x10A = INT8TO16(RXMsg.dataB[2],RXMsg.dataB[3]);
-					s_cancom->get_charger_msg.output2_voltage_x10V = INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]);
-					s_cancom->get_charger_msg.statu2_1 = RXMsg.dataA[0];
-					s_cancom->get_charger_msg.statu2_2 = RXMsg.dataA[1];
-					s_cancom->get_charger_msg.temperature2_x1degree = RXMsg.dataA[3]-40;
-					
-					break;
-				case GW_MODULE_2_MSG_500MS_MSG_FRAME_ID:
-					updatemodule(charger);
 
-					s_cancom->get_charger_msg.battery2_voltage = INT8TO16(RXMsg.dataA[0], RXMsg.dataA[1]);
-					s_cancom->get_charger_msg.input2_AC_voltage_x10V = INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3])
-
-					break;
-
-#endif
-
-#if (GW_MOUDLE_NUM >= 3)
-				case GW_MODULE_3_MSG_100MS_MSG_FRAME_ID://返回电压电流和状态
-					updatemodule(charger);
-				
-					s_cancom->get_charger_msg.output3_current_x10A = INT8TO16(RXMsg.dataB[2],RXMsg.dataB[3]);
-					s_cancom->get_charger_msg.output3_voltage_x10V = INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]);
-					s_cancom->get_charger_msg.statu3_1 = RXMsg.dataA[0];
-					s_cancom->get_charger_msg.statu3_2 = RXMsg.dataA[1];
-					s_cancom->get_charger_msg.temperature3_x1degree = RXMsg.dataA[3]-40;
-					
-					break;
-				case GW_MODULE_3_MSG_500MS_MSG_FRAME_ID:
-					updatemodule(charger);
-
-					s_cancom->get_charger_msg.battery3_voltage = INT8TO16(RXMsg.dataA[0], RXMsg.dataA[1]);
-					s_cancom->get_charger_msg.input3_AC_voltage_x10V = INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3])
-
-					break;
-
-#endif
 
 				//圣阳协议
 				case TP_BAM_CONTROLER_ID:
@@ -323,6 +283,7 @@ int hy_sy_control_response(uint32_t charger_addr){
     *((uint8_t *) &TXMsg.dataB[3])= 0x01;//
 
 	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+	delay_ms(1);
 
 	if(charger_addr == 0){
     	TXMsg.id = TP_DP_CHARGER_DEFAULT_ID;
@@ -368,6 +329,7 @@ int hy_sy_config_response(uint32_t charger_addr){
     *((uint8_t *) &TXMsg.dataB[3])= 0x02;//
 
 	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
+	delay_ms(1);
 
 	if(charger_addr == 0){
     	TXMsg.id = TP_DP_CHARGER_DEFAULT_ID;
@@ -413,7 +375,7 @@ int hy_sy_exit_response(uint32_t charger_addr){
     *((uint8_t *) &TXMsg.dataB[3])= 0x03;//
 
 	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
-
+	delay_ms(1);
 	if(charger_addr == 0){
     	TXMsg.id = TP_DP_CHARGER_DEFAULT_ID;
 	}else{
@@ -458,7 +420,7 @@ int hy_sy_broadcast_response(uint32_t charger_addr){
     *((uint8_t *) &TXMsg.dataB[3])= 0x04;//
 
 	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
-
+	delay_ms(1);
 	if(charger_addr == 0){
     	TXMsg.id = TP_DP_CHARGER_DEFAULT_ID;
 	}else{
@@ -475,7 +437,7 @@ int hy_sy_broadcast_response(uint32_t charger_addr){
     *((uint8_t *) &TXMsg.dataB[3])= s_cancom->charge_to_msg_msg.error_code;
 
 	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
-
+	delay_ms(1);
 	*((uint8_t *) &TXMsg.dataA[0])= 0x02;
     *((uint8_t *) &TXMsg.dataA[1])= s_cancom->charge_to_msg_msg.charge_stage;
     *((uint8_t *) &TXMsg.dataA[2])= s_cancom->charge_to_msg_msg.battery_temperature+10;
@@ -486,7 +448,7 @@ int hy_sy_broadcast_response(uint32_t charger_addr){
     *((uint8_t *) &TXMsg.dataB[3])= INT32TO8_1(s_cancom->charge_to_msg_msg.machine_type);
 
 	CAN_SendMsg(BMS_CAN_TUNNEL_X, &TXMsg);
-
+	delay_ms(1);
 	*((uint8_t *) &TXMsg.dataA[0])= 0x03;
     *((uint8_t *) &TXMsg.dataA[1])= INT32TO8_2(s_cancom->charge_to_msg_msg.machine_type);
     *((uint8_t *) &TXMsg.dataA[2])= s_cancom->charge_to_msg_msg.control_status;

@@ -312,9 +312,12 @@ void showsettingitem(uint8_t page,uint8_t no){
 
 PAGE welcomepage(){
 	lcd_clear();
-    lcd_display_chinese_at(2,1,hysy);
-    lcd_display_chinese_at(2,2,anchixinnengyuan);
+    lcd_display_chinese_at(0,0,hysy);
+    lcd_display_chinese_at(0,1,anchixinnengyuan);
+	lcd_goto_pos(3, 0);
+	lcd_display_ascii("GW24V100A-SY");
 	hy_gui_delay_ms(2200);
+
 	return DisplayPage1;
 }
 
@@ -528,10 +531,10 @@ display_button_check:
 			s_gui->button_flag = NO_MSG;
 			switch (s_gui->button_msg_queue[0].button_name){
 				case button_set://0x01
-					if (gui_msg->battery_connected == HY_TRUE){//电池拔掉才允许设置
-						return PassportPage1;
-					}else{
+					if (gui_msg->battery_connected == HY_FALSE | gui_msg->charge_module_connected == FALSE){//电池拔掉才允许设置或者模组未连接
 						return PassportPage;
+					}else{
+						return PassportPage1;
 					}
 				case button_off:/*stop charge*///0x06
 					LOG_INFO_TAG(HY_LOG_TAG,"machine stopped by button");
@@ -605,7 +608,7 @@ PAGE displaypage1_1(chargetask_gui_msg* gui_msg,
 				break;
 				case button_on://0x05
 					LOG_INFO_TAG(HY_LOG_TAG,"machine startted by button");
-					hy_chargetask_continue(HY_CONTROLSTYLE_CAN,NULL);
+					hy_chargetask_continue(s_gui->controlstyle,NULL);
 					return DisplayPage1_2;
 
 				case button_up://0x02

@@ -20,7 +20,7 @@ int hy_chargetask_init(void* hy_instance_handle)
 	memset(s_chargetask,0,sizeof(hy_chargetask_t));
 	memset(&(hy_instance->hy_data),0,HY_CHARGETASK_DATA_NUM*sizeof(hy_chargetask_data));
 
-	s_chargetask->controltype = HY_CONTROLSTYLE_CAN;//hy_instance->config.controlstyle;
+	s_chargetask->controltype = hy_instance->config.controlstyle;
 	s_chargetask->machine_start_flag = HY_TRUE;
 	
 	LOG_INFO_TAG(HY_LOG_TAG,"chargetask init done....");

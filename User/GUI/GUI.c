@@ -32,7 +32,7 @@ int hy_gui_init(void* hy_instance_handle)
 	s_gui->end_flag = NO_MSG;
 	s_gui->err_flag = NO_MSG;
 	
-	s_gui->controlstyle = HY_CONTROLSTYLE_CAN;//hy_instance->config.controlstyle;
+	s_gui->controlstyle = hy_instance->config.controlstyle;
 	s_gui->lastfreshtime_ms = 0;
 	s_gui->set_in_flash = HY_FALSE;
 	s_gui->machine_stop_flag = HY_FALSE;
