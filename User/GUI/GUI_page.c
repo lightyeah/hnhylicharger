@@ -311,7 +311,7 @@ PAGE welcomepage(){
     lcd_display_chinese_at(0,0,hysy);
     lcd_display_chinese_at(0,1,anchixinnengyuan);
 	lcd_goto_pos(3, 0);
-	lcd_display_ascii("GW24V100A");
+	lcd_display_ascii("GW24V100A-LPD");
 	hy_gui_delay_ms(2200);
 	
 	return DisplayPage1;

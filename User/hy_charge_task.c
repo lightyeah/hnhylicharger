@@ -173,7 +173,7 @@ int hy_chargetask_setaim(uint16_t current_x10A, uint16_t voltage_x10V)
 {
 	LOG_INFO_TAG(HY_LOG_TAG,"chargettask set current [%d] voltage [%d]",current_x10A,voltage_x10V);
 	
-	hy_set_charger_output(current_x10A, voltage_x10V);
+	hy_set_charger_output(voltage_x10V,current_x10A);
 	
 	return HY_OK;
 }
@@ -217,7 +217,7 @@ void hy_chargetask_local_turntostate(hy_chargetask_state state)
 			s_chargetask->statestarttime_ms = hy_time_now_ms();
 		break;
 		case CHARGETASK_LOCAL_TWO:
-			hy_chargetask_setaim(hy_instance->config.chargecurrent_2*10,s_chargetask->output_voltage_x10V+100);
+			hy_chargetask_setaim(hy_instance->config.chargecurrent_2*10,s_chargetask->output_voltage_x10V);
 			s_chargetask->max_voltage_x10V = (hy_instance->config.limitvoltage_2*10);
 			s_chargetask->max_current_x10A = (hy_instance->config.currentrange*10);
 			s_chargetask->max_chargetimeout_ms = (hy_instance->config.chargetimeout_2_min*60*1000);
