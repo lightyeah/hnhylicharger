@@ -238,6 +238,7 @@ void hy_chargetask_local_turntostate(hy_chargetask_state state)
 	LOG_INFO_TAG(HY_LOG_TAG,"set state start time [%d] ms",s_chargetask->statestarttime_ms);
 }
 
+int broadcastCount=0;
 //充电控制主循环
 void hy_chargetask_main()
 {
@@ -380,6 +381,12 @@ void hy_chargetask_main()
 
 
 		// can control
+		hy_set_data_broadcast_to_bms(s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
+		if(broadcastCount>=3){
+			broadcastCount=0;
+			hy_can_broadcast_to_bms();
+		}
+		broadcastCount++;
 		if(hy_get_charger_module_connected()==HY_FALSE){
 			hy_set_stop_output();
 			goto chargetask_exit;
@@ -427,7 +434,7 @@ void hy_chargetask_main()
 			LOG_DEBUG_TAG(HY_LOG_TAG, "bms control [%d]  status [%d]\r\n",hy_get_bms_request_voltage_x10V(),hy_get_bms_request_current_x10A());
 			hy_set_charger_output(hy_get_bms_request_voltage_x10V(), hy_get_bms_request_current_x10A());
 		}
-		hy_set_data_broadcast_to_bms(s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
+		//hy_set_data_broadcast_to_bms(s_chargetask->output_voltage_x10V,s_chargetask->output_current_x10A);
 
 	}
 
