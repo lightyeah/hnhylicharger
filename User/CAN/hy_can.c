@@ -388,7 +388,7 @@ uint8_t hy_can_get_charger_module_connected(void)
 	    //NVIC_SetPriority(CAN_IRQn, 10);
 	    CAN_SetAFMode(LPC_CANAF,CAN_AccBP);	
 		delay_ms(10);
-		hy_can_broadcast_to_bms();
+//		hy_can_broadcast_to_bms();
 	}
 	if(systime_elapse_ms(s_cancom->charger_module_timeout)>=QH_TIMEOUT_TIME){
 		s_cancom->charger_module_canconnected=HY_FALSE;
