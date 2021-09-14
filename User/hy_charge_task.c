@@ -460,8 +460,8 @@ chargetask_exit:
 	
 	s_chargetask->gui_msg.bms_status = hy_get_bms_status();
 	
-	if(s_chargetask->gui_msg.charger_statu2&0xfe
-		||s_chargetask->gui_msg.charger_statu1&0xff
+	if(s_chargetask->gui_msg.charger_statu2&0xfa
+		||s_chargetask->gui_msg.charger_statu1&0x03
 		||s_chargetask->gui_msg.bms_status != 0 ){
 		LOG_DEBUG_TAG(HY_LOG_TAG, "EMIT GUI ERROR");
 		s_chargetask->gui_msg.errorstate = HY_GUI_ERR_MASK;

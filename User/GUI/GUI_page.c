@@ -306,14 +306,12 @@ void showsettingitem(uint8_t page,uint8_t no){
 
 PAGE welcomepage(){
 	lcd_clear();
-    lcd_display_chinese_at(2,1,hysy);
-    lcd_display_chinese_at(2,2,anchixinnengyuan);
-	lcd_goto_pos(3,2);
-	lcd_display_num3(48,'V');
-	lcd_display_num3(200,'A');
-	lcd_display_ascii("-");
-	lcd_display_ascii("qh");
+    lcd_display_chinese_at(0,0,hysy);
+    lcd_display_chinese_at(0,1,anchixinnengyuan);
+	lcd_goto_pos(3, 0);
+	lcd_display_ascii("YRK80V100A-SMT");
 	hy_gui_delay_ms(2200);
+
 	return DisplayPage1;
 }
 
@@ -393,61 +391,58 @@ PAGE displaypage1(chargetask_gui_msg* gui_msg,
 		{
 			hy_led_control(led_err);
 			//LOG_DEBUG_TAG("gui -- ", "status1 [%d] 2 [%d] b [%d]", charger_statu1,charger_statu2,gui_msg->bms_status);
-			if(charger_statu1&(1<<0))//交流欠压 电压故障1
+			if(charger_statu2&(1<<5))//交流欠压 电压故障1
 			{
-				lcd_display_chinese(jiaoliu);
-				lcd_display_chinese(qianya);
-				lcd_display_space();
-			}else if(charger_statu1&(1<<1)){//交流过压 电压故障2
-				lcd_display_chinese(jiaoliu);
-				lcd_display_chinese(guoya);
-				lcd_display_space();
-			}else if(charger_statu1&(1<<2)){//输出欠压 电压故障3
-				lcd_display_chinese(shuchu);
-				lcd_display_chinese(qianya);
-				lcd_display_space();
-			}else if(charger_statu1&(1<<3)){//输出过压 电压故障4
-				lcd_display_chinese(shuchu);
-				lcd_display_chinese(guoya);
-				lcd_display_space();
-			}else if(charger_statu1&(1<<4)){//输出过流 高温状态4
-				lcd_display_chinese(shuchu);
-				lcd_display_chinese(guoliu);
-				lcd_display_space();
-			}else if(charger_statu1&(1<<5)){//硬件故障 本地错误
-				lcd_display_chinese(shuchu);
-				lcd_display_chinese(duanlu);
-				lcd_display_space();
-			}else if(charger_statu1&(1<<6)){//过温关机
-				lcd_display_chinese(guowen);
-				lcd_display_chinese(guanji);
-				lcd_display_space();
-			}else if(charger_statu1&(1<<7)){//硬件故障
-				lcd_display_chinese(yingjian);
-				lcd_display_chinese(guzhang);
-				lcd_display_space();
-			}else if(charger_statu2&(1<<1)){//输出反接
-				lcd_display_chinese(shuchu);
-				lcd_display_chinese(fanjie);
-				lcd_display_space();
-			}else if(charger_statu2&(1<<2)){//原边降额
-				lcd_display_chinese(yuanbian);
-				lcd_display_chinese(jiange);
-				lcd_display_space();
-			}else if(charger_statu2&(1<<3)){//风扇故障
-				lcd_display_chinese(fengshan);
-				lcd_display_chinese(guzhang);
-				lcd_display_space();
-			}else if(charger_statu2&(1<<4)){//输出反接
-				lcd_display_chinese(guowen);
-				lcd_display_chinese(jiange);
-				lcd_display_space();
-			}else if(gui_msg->bms_status!=0){//bms 故障 电池保护
 				lcd_display_chinese(dian);
-				lcd_display_chinese(chi);
-				lcd_display_chinese(bh);
+				lcd_display_chinese(ya);
+				lcd_display_chinese(gz);
+				lcd_display_ascii("1");
+				lcd_display_space();
+			}else if(charger_statu2&(1<<4)){//交流过压 电压故障2
+				lcd_display_chinese(dian);
+				lcd_display_chinese(ya);
+				lcd_display_chinese(gz);
+				lcd_display_ascii("2");
+				lcd_display_space();
+			}else if(charger_statu2&(1<<6)){//输出过压 电压故障3
+				lcd_display_chinese(dian);
+				lcd_display_chinese(ya);
+				lcd_display_chinese(gz);
+				lcd_display_ascii("3");
+				lcd_display_space();
+			}else if(charger_statu2&(1<<7)){//输出欠压 电压故障4
+				lcd_display_chinese(dian);
+				lcd_display_chinese(ya);
+				lcd_display_chinese(gz);
+				lcd_display_ascii("4");
+				lcd_display_space();
+			}else if(charger_statu2&(1<<3)){//风扇故障 高温状态4
+				lcd_display_chinese(gw);
+				lcd_display_chinese(zt);
+				lcd_display_ascii("4");
+				lcd_display_space();
+			}else if(charger_statu2&(1<<1)){//硬件故障 本地错误
+				lcd_display_chinese(bd);
+				lcd_display_chinese(cw);
+				lcd_display_space();
 				lcd_display_space();
 			}
+
+			if(charger_statu1&(1<<0))//过流保护 电流故障5
+			{
+				lcd_display_chinese(dian);
+				lcd_display_chinese(liu);
+				lcd_display_chinese(gz);
+				lcd_display_ascii("5");
+				lcd_display_space();
+			}else if(charger_statu2&(1<<1))//过温保护 高温状态2
+			{
+				lcd_display_chinese(gw);
+				lcd_display_chinese(zt);
+				lcd_display_ascii("2");
+				lcd_display_space();
+			}	
+
 			goto display_button_check;
 			
 		}

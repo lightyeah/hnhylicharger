@@ -44,11 +44,11 @@ int hy_input_init(void* hy_instance_handle)
 
 //模块首先获取电压
 uint16_t hy_get_output_voltage_x10V(void){
-	
+	hy_can_control_query_charger();//需要先获取
 	s_inputsignal->output_voltage_x10V = hy_can_get_output_voltage_x10V();
 	s_inputsignal->battery_voltage_x10V = s_inputsignal->output_voltage_x10V;
-	LOG_DEBUG_TAG("INPUT", "GET OUTPUT [%d]V", s_inputsignal->output_voltage_x10V);
 	return s_inputsignal->output_voltage_x10V;
+
 }
 
 uint16_t hy_get_output_current_x10A(void){
@@ -92,7 +92,14 @@ uint32_t battery_check_time = 0;
 uint32_t battery_check_flag = 0;
 
 uint8_t hy_get_battery_connected(void){
-	return hy_can_get_battery_connected();
+	if(s_inputsignal->battery_module_connected==HY_FALSE&&s_inputsignal->battery_voltage_x10V>150){
+		s_inputsignal->battery_module_connected = HY_TRUE;
+	}
+	if (s_inputsignal->battery_module_connected==HY_TRUE&&s_inputsignal->battery_voltage_x10V<=150){
+		s_inputsignal->battery_module_connected = HY_FALSE;
+	}
+	return s_inputsignal->battery_module_connected;
+
 }
 
 

@@ -79,6 +79,8 @@ int hy_set_stop_output(void)
 }
 
 int hy_set_charger_output(uint16_t voltage_x10V, uint16_t current_x10A){
+	if(voltage_x10V>900)voltage_x10V=900;
+	if(current_x10A>1010)current_x10A=1000;
 	hy_can_control_set_charger((uint32_t)voltage_x10V, (uint32_t)current_x10A);
 	return 0;
 }

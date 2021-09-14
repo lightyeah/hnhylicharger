@@ -144,23 +144,54 @@ void CAN_IRQHandler()
 			//LOG_DEBUG_TAG("HY_CAN", "irq [%x]", RXMsg.id);
 			switch (RXMsg.id){
 				//gw模块
-				case GW_MODULE_1_MSG_100MS_MSG_FRAME_ID://返回电压电流和状态
+//				case GW_MODULE_1_MSG_100MS_MSG_FRAME_ID://返回电压电流和状态
+//					updatemodule(charger);
+//				
+//					s_cancom->get_charger_msg.output1_current_x10A = INT8TO16(RXMsg.dataB[2],RXMsg.dataB[3]);
+//					s_cancom->get_charger_msg.output1_voltage_x10V = INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]);
+//					s_cancom->get_charger_msg.statu1_1 = RXMsg.dataA[0];
+//					s_cancom->get_charger_msg.statu1_2 = RXMsg.dataA[1];
+//					s_cancom->get_charger_msg.temperature1_x1degree = RXMsg.dataA[3]-40;
+//					
+//					break;
+//				case GW_MODULE_1_MSG_500MS_MSG_FRAME_ID:
+//					updatemodule(charger);
+//
+//					s_cancom->get_charger_msg.battery1_voltage = INT8TO16(RXMsg.dataA[0], RXMsg.dataA[1]);
+//					s_cancom->get_charger_msg.input1_AC_voltage_x10V = INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
+//
+//					break;
+
+				//YRK 模块
+				case HY_YRK_CONTROL_BACK_FRAME_ID://返回电压电流和状态
 					updatemodule(charger);
-				
-					s_cancom->get_charger_msg.output1_current_x10A = INT8TO16(RXMsg.dataB[2],RXMsg.dataB[3]);
-					s_cancom->get_charger_msg.output1_voltage_x10V = INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]);
-					s_cancom->get_charger_msg.statu1_1 = RXMsg.dataA[0];
-					s_cancom->get_charger_msg.statu1_2 = RXMsg.dataA[1];
-					s_cancom->get_charger_msg.temperature1_x1degree = RXMsg.dataA[3]-40;
+					switch (RXMsg.dataA[0]){
+						case 1://模块返回状态信息
+							s_cancom->get_charger_msg.output1_current_x10A = INT8TO16(RXMsg.dataA[2],RXMsg.dataA[3]);
+							s_cancom->get_charger_msg.output1_voltage_x10V = INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]);
+							s_cancom->get_charger_msg.statu1_1 = RXMsg.dataB[2];
+							s_cancom->get_charger_msg.statu1_2 = RXMsg.dataB[3];
+							break;
+					}
+					break;
 					
-					break;
-				case GW_MODULE_1_MSG_500MS_MSG_FRAME_ID:
+				case HY_YRK_READ_SETTING_CURRENT_BACK_FRAMD_ID://TODO
 					updatemodule(charger);
-
-					s_cancom->get_charger_msg.battery1_voltage = INT8TO16(RXMsg.dataA[0], RXMsg.dataA[1]);
-					s_cancom->get_charger_msg.input1_AC_voltage_x10V = INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
-
 					break;
+
+				case HY_YRK_READ_SETTING_VOLTAGE_BACK_FRAMD_ID://TODO
+					updatemodule(charger);
+					break;
+
+				case HY_YRK_READ_INPUT_VOLTAGE_BACK_FRAMD_ID://TODO
+					updatemodule(charger);
+					break;
+				case HY_YRK_READ_TEMPERATURE_BACK_FRAMD_ID:
+					updatemodule(charger);
+					s_cancom->get_charger_msg.temperature1_x1degree = INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1])/10;
+					break;
+
+				
 					
 
 				//千航
@@ -173,7 +204,7 @@ void CAN_IRQHandler()
 					s_cancom->bms_msg.bms_max_voltage_x10V=INT8TO16(RXMsg.dataA[0], RXMsg.dataA[1]);
 					s_cancom->bms_msg.bms_max_current_x10A=INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
 					s_cancom->bms_msg.control_byte=RXMsg.dataB[0];
-					s_cancom->bms_msg.soc=RXMsg.dataB[1];
+					s_cancom->bms_msg.soc=0;//RXMsg.dataB[1];
 					//hy_can_broadcast_to_bms();
 					break;
 
@@ -197,18 +228,18 @@ void CAN_IRQHandler()
 //报文控制开始充电机输出, 
 int hy_can_start_charger(void){
 	int i = 0;
-    TXMsg.format = HY_CHARGE_ID_FORMAT;
+    TXMsg.format = HY_CHARGE_ID_EXT_FORMAT;
     TXMsg.len = 8;
-    TXMsg.id = GW_CONTROL_FRAME_ID;
+    TXMsg.id = HY_YRK_CONTROL_FRAME_ID;
 	
-    *((uint8_t *) &TXMsg.dataA[0])= 0xff;//gw 广播地址 
-    *((uint8_t *) &TXMsg.dataA[1])= 0x03;// 开机
+    *((uint8_t *) &TXMsg.dataA[0])= 0x02;//控制指令2 
+    *((uint8_t *) &TXMsg.dataA[1])= 0x00;
     *((uint8_t *) &TXMsg.dataA[2])= 0x00;
     *((uint8_t *) &TXMsg.dataA[3])= 0x00;
     *((uint8_t *) &TXMsg.dataB[0])= 0x00;
     *((uint8_t *) &TXMsg.dataB[1])= 0x00;
     *((uint8_t *) &TXMsg.dataB[2])= 0x00;
-    *((uint8_t *) &TXMsg.dataB[3])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[3])= 0x55;//YRK 开机
 
 	while(canprotect==1);
 	i = CAN_SendMsg(CHARGER_CAN_TUNNEL_X, &TXMsg);
@@ -220,18 +251,18 @@ int hy_can_start_charger(void){
 //YRK 报文控制关闭充电机输出, 
 int hy_can_stop_charger(void){
 	int i = 0;	
-    TXMsg.format = HY_CHARGE_ID_FORMAT;
+    TXMsg.format = HY_CHARGE_ID_EXT_FORMAT;
     TXMsg.len = 8;
-    TXMsg.id = GW_CONTROL_FRAME_ID;
-		
-    *((uint8_t *) &TXMsg.dataA[0])= 0xff;
-    *((uint8_t *) &TXMsg.dataA[1])= 0x02;
+    TXMsg.id = HY_YRK_CONTROL_FRAME_ID;
+					
+    *((uint8_t *) &TXMsg.dataA[0])= 0x02;//YRK 控制指令2 
+    *((uint8_t *) &TXMsg.dataA[1])= 0x00;
     *((uint8_t *) &TXMsg.dataA[2])= 0x00;
     *((uint8_t *) &TXMsg.dataA[3])= 0x00;
     *((uint8_t *) &TXMsg.dataB[0])= 0x00;
     *((uint8_t *) &TXMsg.dataB[1])= 0x00;
     *((uint8_t *) &TXMsg.dataB[2])= 0x00;
-    *((uint8_t *) &TXMsg.dataB[3])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[3])= 0xAA;//YRK 关机
 
 	while(canprotect==1);
 	i = CAN_SendMsg(CHARGER_CAN_TUNNEL_X, &TXMsg);
@@ -244,20 +275,24 @@ int hy_can_stop_charger(void){
 int hy_can_control_set_charger(uint32_t voltage_x10V, uint32_t current_x10A){
 
 	int i = 0;
-
-    TXMsg.format = HY_CHARGE_ID_FORMAT;
-    TXMsg.len = 8;
-    TXMsg.id = GW_CONTROL_FRAME_ID;
-	  
+	uint32_t current_x1000mA,voltage_x1000mV;
 	
-	*((uint8_t *) &TXMsg.dataA[0])= 0xff;
-	*((uint8_t *) &TXMsg.dataA[1])= 0x03;
-	*((uint8_t *) &TXMsg.dataA[2])= INT32TO8_2((voltage_x10V));
-	*((uint8_t *) &TXMsg.dataA[3])= INT32TO8_1((voltage_x10V));
-	*((uint8_t *) &TXMsg.dataB[0])= INT32TO8_2((current_x10A));
-	*((uint8_t *) &TXMsg.dataB[1])= INT32TO8_1((current_x10A));
-	*((uint8_t *) &TXMsg.dataB[2])= 0x00;
-	*((uint8_t *) &TXMsg.dataB[3])= 0x00;
+	current_x1000mA=current_x10A*100;
+	voltage_x1000mV=voltage_x10V*100;
+	
+    TXMsg.format = HY_CHARGE_ID_EXT_FORMAT;
+    TXMsg.len = 8;
+    TXMsg.id = HY_YRK_CONTROL_FRAME_ID;
+	
+	*((uint8_t *) &TXMsg.dataA[0])= 0x00;//YRK 设定输出
+	*((uint8_t *) &TXMsg.dataA[1])= INT32TO8_3((current_x1000mA));//YRK 电流
+	*((uint8_t *) &TXMsg.dataA[2])= INT32TO8_2((current_x1000mA));//YRK 电流
+	*((uint8_t *) &TXMsg.dataA[3])= INT32TO8_1((current_x1000mA));//YRK 电流
+	*((uint8_t *) &TXMsg.dataB[0])= INT32TO8_4((voltage_x1000mV));//YRK 电压
+	*((uint8_t *) &TXMsg.dataB[1])= INT32TO8_3((voltage_x1000mV));//YRK 电压
+	*((uint8_t *) &TXMsg.dataB[2])= INT32TO8_2((voltage_x1000mV));//YRK 电压
+	*((uint8_t *) &TXMsg.dataB[3])= INT32TO8_1((voltage_x1000mV));//YRK 电压
+
 
 	while(canprotect==1);
 	i = CAN_SendMsg(CHARGER_CAN_TUNNEL_X, &TXMsg);
@@ -268,14 +303,33 @@ int hy_can_control_set_charger(uint32_t voltage_x10V, uint32_t current_x10A){
 
 //报文控制充电机输出, 
 int hy_can_control_query_charger(void){// for YRK
+    TXMsg.format = HY_CHARGE_ID_EXT_FORMAT;
+    TXMsg.len = 8;
+    TXMsg.id = HY_YRK_CONTROL_FRAME_ID;
+	
+    *((uint8_t *) &TXMsg.dataA[0])= 0x01;
+    *((uint8_t *) &TXMsg.dataA[1])= 0x00;
+    *((uint8_t *) &TXMsg.dataA[2])= 0x00;
+    *((uint8_t *) &TXMsg.dataA[3])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[0])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[1])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[2])= 0x00;
+    *((uint8_t *) &TXMsg.dataB[3])= 0x00;//关机
 
+	CAN_SendMsg(CHARGER_CAN_TUNNEL_X, &TXMsg);
 		
-    return 0;	
+    return 0;
+
 }
 
 //获取设置电压
 int hy_can_query_setting_voltage_charger(void){
+    TXMsg.format = HY_CHARGE_ID_EXT_FORMAT;
+    TXMsg.len = 0;
+    TXMsg.id = HY_YRK_READ_SETTING_VOLTAGE_FRAMD_ID;
+	
 
+	CAN_SendMsg(CHARGER_CAN_TUNNEL_X, &TXMsg);
 		
     return 0;	
 
@@ -284,21 +338,32 @@ int hy_can_query_setting_voltage_charger(void){
 //获取设置电流
 int hy_can_query_setting_current_charger(void){
 
-		
-    return 0;
+
 
 }
 
 //获取温度
 int hy_can_query_temperature_charger(void){
+    TXMsg.format = HY_CHARGE_ID_EXT_FORMAT;
+    TXMsg.len = 0;
+    TXMsg.id = HY_YRK_READ_TEMPERATURE_FRAMD_ID;
+	
 
+	CAN_SendMsg(CHARGER_CAN_TUNNEL_X, &TXMsg);
 		
     return 0;
+
+
 }
 
 //获取输入电压
 int hy_can_query_220V_charger(void){
+    TXMsg.format = HY_CHARGE_ID_EXT_FORMAT;
+    TXMsg.len = 0;
+    TXMsg.id = HY_YRK_READ_INPUT_VOLTAGE_FRAMD_ID;
+	
 
+	CAN_SendMsg(CHARGER_CAN_TUNNEL_X, &TXMsg);
 		
     return 0;
 
