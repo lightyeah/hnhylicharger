@@ -93,6 +93,11 @@ int hy_can_getmsg()
 	return ret;
 }
 
+CAN_MSG_Type RXMsgQueue[16];
+int canReciveMsgCount=0;
+int canReadMsgCount=0;
+#define updatemodule(x) s_cancom->##x##_module_canconnected=HY_TRUE;s_cancom->##x##_module_timeout=hy_time_now_ms();
+
 void hy_can_task_main()
 {
 	static hy_canmsg msg = {0};
@@ -100,26 +105,69 @@ void hy_can_task_main()
 	static uint32_t canmonitortime_ms = 0;
 	
 	lastsendtime_ms = lastsendtime_ms;
-	hy_can_getmsg();
-//	if(systime_elapse_ms(canmonitortime_ms)>=HY_CAN_TASK_MONITOR_INTERVAL){
-//		canmonitortime_ms = hy_time_now_ms();
-//		LOG_INFO_TAG(HY_LOG_TAG,"can monitor on cancom.state = [%d]",s_cancom->state);
-//	}
-	
-	switch (s_cancom->state){
-		case HY_CANTASK_IDLE:
-			break;
-		case HY_CANTASK_NORMAL:
-			break;
-		case HY_CANTASK_ERR:
-			break;
-		default:
-			break;
+
+	while(canReadMsgCount < canReciveMsgCount){
+		switch (RXMsgQueue[canReadMsgCount%16].id){
+				//gw模块
+				case GW_MODULE_1_MSG_100MS_MSG_FRAME_ID://返回电压电流和状态
+					updatemodule(charger);
+				
+					s_cancom->get_charger_msg.output1_current_x10A = INT8TO16(RXMsgQueue[canReadMsgCount%16].dataB[2],RXMsgQueue[canReadMsgCount%16].dataB[3]);
+					s_cancom->get_charger_msg.output1_voltage_x10V = INT8TO16(RXMsgQueue[canReadMsgCount%16].dataB[0],RXMsgQueue[canReadMsgCount%16].dataB[1]);
+					s_cancom->get_charger_msg.statu1_1 = RXMsgQueue[canReadMsgCount%16].dataA[0];
+					s_cancom->get_charger_msg.statu1_2 = RXMsgQueue[canReadMsgCount%16].dataA[1];
+					s_cancom->get_charger_msg.temperature1_x1degree = RXMsgQueue[canReadMsgCount%16].dataA[3]-40;
+					
+					break;
+				case GW_MODULE_1_MSG_500MS_MSG_FRAME_ID:
+					updatemodule(charger);
+
+					s_cancom->get_charger_msg.battery1_voltage = INT8TO16(RXMsgQueue[canReadMsgCount%16].dataA[0], RXMsgQueue[canReadMsgCount%16].dataA[1]);
+					s_cancom->get_charger_msg.input1_AC_voltage_x10V = INT8TO16(RXMsgQueue[canReadMsgCount%16].dataA[2], RXMsgQueue[canReadMsgCount%16].dataA[3]);
+
+					break;
+					
+
+				//千航
+				case 0x180215f4:
+				case 0x190515f4:
+					updatemodule(bms);
+					break;
+				case QIANHANG_BMS_ID:
+					updatemodule(bms);
+					s_cancom->bms_msg.bms_max_voltage_x10V=INT8TO16(RXMsgQueue[canReadMsgCount%16].dataA[0], RXMsgQueue[canReadMsgCount%16].dataA[1]);
+					s_cancom->bms_msg.bms_max_current_x10A=INT8TO16(RXMsgQueue[canReadMsgCount%16].dataA[2], RXMsgQueue[canReadMsgCount%16].dataA[3]);
+					s_cancom->bms_msg.control_byte=RXMsgQueue[canReadMsgCount%16].dataB[0];
+					s_cancom->bms_msg.soc=RXMsgQueue[canReadMsgCount%16].dataB[1];
+					//hy_can_broadcast_to_bms();
+					break;
+
+				//end 千航
+
+				 
+		}			
+		canReadMsgCount++;
 	}
+//	hy_can_getmsg();
+////	if(systime_elapse_ms(canmonitortime_ms)>=HY_CAN_TASK_MONITOR_INTERVAL){
+////		canmonitortime_ms = hy_time_now_ms();
+////		LOG_INFO_TAG(HY_LOG_TAG,"can monitor on cancom.state = [%d]",s_cancom->state);
+////	}
+//	
+//	switch (s_cancom->state){
+//		case HY_CANTASK_IDLE:
+//			break;
+//		case HY_CANTASK_NORMAL:
+//			break;
+//		case HY_CANTASK_ERR:
+//			break;
+//		default:
+//			break;
+//	}
 
 }
 
-#define updatemodule(x) s_cancom->##x##_module_canconnected=HY_TRUE;s_cancom->##x##_module_timeout=hy_time_now_ms();
+
 
 int canprotect = 0;
 uint32_t irqtimeout = 0;
@@ -140,47 +188,49 @@ void CAN_IRQHandler()
     if((IntStatus>>0)&0x01)
     {
 			CAN_ReceiveMsg(BMS_CAN_TUNNEL_X,&RXMsg);
+
+			memcpy((char*)&RXMsgQueue[(canReciveMsgCount++)%16],(const char*)&RXMsg,sizeof(CAN_MSG_Type));
 			//todo
 			//LOG_DEBUG_TAG("HY_CAN", "irq [%x]", RXMsg.id);
-			switch (RXMsg.id){
-				//gw模块
-				case GW_MODULE_1_MSG_100MS_MSG_FRAME_ID://返回电压电流和状态
-					updatemodule(charger);
-				
-					s_cancom->get_charger_msg.output1_current_x10A = INT8TO16(RXMsg.dataB[2],RXMsg.dataB[3]);
-					s_cancom->get_charger_msg.output1_voltage_x10V = INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]);
-					s_cancom->get_charger_msg.statu1_1 = RXMsg.dataA[0];
-					s_cancom->get_charger_msg.statu1_2 = RXMsg.dataA[1];
-					s_cancom->get_charger_msg.temperature1_x1degree = RXMsg.dataA[3]-40;
-					
-					break;
-				case GW_MODULE_1_MSG_500MS_MSG_FRAME_ID:
-					updatemodule(charger);
-
-					s_cancom->get_charger_msg.battery1_voltage = INT8TO16(RXMsg.dataA[0], RXMsg.dataA[1]);
-					s_cancom->get_charger_msg.input1_AC_voltage_x10V = INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
-
-					break;
-					
-
-				//千航
-				case 0x180215f4:
-				case 0x190515f4:
-					updatemodule(bms);
-					break;
-				case QIANHANG_BMS_ID:
-					updatemodule(bms);
-					s_cancom->bms_msg.bms_max_voltage_x10V=INT8TO16(RXMsg.dataA[0], RXMsg.dataA[1]);
-					s_cancom->bms_msg.bms_max_current_x10A=INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
-					s_cancom->bms_msg.control_byte=RXMsg.dataB[0];
-					s_cancom->bms_msg.soc=RXMsg.dataB[1];
-					//hy_can_broadcast_to_bms();
-					break;
-
-				//end 千航
-
-				 
-			}
+//			switch (RXMsg.id){
+//				//gw模块
+//				case GW_MODULE_1_MSG_100MS_MSG_FRAME_ID://返回电压电流和状态
+//					updatemodule(charger);
+//				
+//					s_cancom->get_charger_msg.output1_current_x10A = INT8TO16(RXMsg.dataB[2],RXMsg.dataB[3]);
+//					s_cancom->get_charger_msg.output1_voltage_x10V = INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]);
+//					s_cancom->get_charger_msg.statu1_1 = RXMsg.dataA[0];
+//					s_cancom->get_charger_msg.statu1_2 = RXMsg.dataA[1];
+//					s_cancom->get_charger_msg.temperature1_x1degree = RXMsg.dataA[3]-40;
+//					
+//					break;
+//				case GW_MODULE_1_MSG_500MS_MSG_FRAME_ID:
+//					updatemodule(charger);
+//
+//					s_cancom->get_charger_msg.battery1_voltage = INT8TO16(RXMsg.dataA[0], RXMsg.dataA[1]);
+//					s_cancom->get_charger_msg.input1_AC_voltage_x10V = INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
+//
+//					break;
+//					
+//
+//				//千航
+//				case 0x180215f4:
+//				case 0x190515f4:
+//					updatemodule(bms);
+//					break;
+//				case QIANHANG_BMS_ID:
+//					updatemodule(bms);
+//					s_cancom->bms_msg.bms_max_voltage_x10V=INT8TO16(RXMsg.dataA[0], RXMsg.dataA[1]);
+//					s_cancom->bms_msg.bms_max_current_x10A=INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
+//					s_cancom->bms_msg.control_byte=RXMsg.dataB[0];
+//					s_cancom->bms_msg.soc=RXMsg.dataB[1];
+//					//hy_can_broadcast_to_bms();
+//					break;
+//
+//				//end 千航
+//
+//				 
+//			}
 			canprotect = 0;
 			// LOG_DEBUG_TAG(HY_LOG_TAG,"get can msg");
     }
