@@ -161,7 +161,62 @@ void CAN_IRQHandler()
 					s_cancom->get_charger_msg.input1_AC_voltage_x10V = INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
 
 					break;
+
+				case GW_MODULE_2_MSG_100MS_MSG_FRAME_ID://返回电压电流和状态
+					updatemodule(charger);
+				
+					s_cancom->get_charger_msg.output2_current_x10A = INT8TO16(RXMsg.dataB[2],RXMsg.dataB[3]);
+					s_cancom->get_charger_msg.output2_voltage_x10V = INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]);
+					s_cancom->get_charger_msg.statu2_1 = RXMsg.dataA[0];
+					s_cancom->get_charger_msg.statu2_2 = RXMsg.dataA[1];
+					s_cancom->get_charger_msg.temperature2_x1degree = RXMsg.dataA[3]-40;
 					
+					break;
+				case GW_MODULE_2_MSG_500MS_MSG_FRAME_ID:
+					updatemodule(charger);
+
+					s_cancom->get_charger_msg.battery2_voltage = INT8TO16(RXMsg.dataA[0], RXMsg.dataA[1]);
+					s_cancom->get_charger_msg.input2_AC_voltage_x10V = INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
+
+					break;
+
+
+				case GW_MODULE_3_MSG_100MS_MSG_FRAME_ID://返回电压电流和状态
+					updatemodule(charger);
+				
+					s_cancom->get_charger_msg.output3_current_x10A = INT8TO16(RXMsg.dataB[2],RXMsg.dataB[3]);
+					s_cancom->get_charger_msg.output3_voltage_x10V = INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]);
+					s_cancom->get_charger_msg.statu3_1 = RXMsg.dataA[0];
+					s_cancom->get_charger_msg.statu3_2 = RXMsg.dataA[1];
+					s_cancom->get_charger_msg.temperature3_x1degree = RXMsg.dataA[3]-40;
+					
+					break;
+				case GW_MODULE_3_MSG_500MS_MSG_FRAME_ID:
+					updatemodule(charger);
+
+					s_cancom->get_charger_msg.battery3_voltage = INT8TO16(RXMsg.dataA[0], RXMsg.dataA[1]);
+					s_cancom->get_charger_msg.input3_AC_voltage_x10V = INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
+
+					break;	
+
+				case GW_MODULE_4_MSG_100MS_MSG_FRAME_ID://返回电压电流和状态
+					updatemodule(charger);
+				
+					s_cancom->get_charger_msg.output4_current_x10A = INT8TO16(RXMsg.dataB[2],RXMsg.dataB[3]);
+					s_cancom->get_charger_msg.output4_voltage_x10V = INT8TO16(RXMsg.dataB[0],RXMsg.dataB[1]);
+					s_cancom->get_charger_msg.statu4_1 = RXMsg.dataA[0];
+					s_cancom->get_charger_msg.statu4_2 = RXMsg.dataA[1];
+					s_cancom->get_charger_msg.temperature4_x1degree = RXMsg.dataA[3]-40;
+					
+					break;
+				case GW_MODULE_4_MSG_500MS_MSG_FRAME_ID:
+					updatemodule(charger);
+
+					s_cancom->get_charger_msg.battery4_voltage = INT8TO16(RXMsg.dataA[0], RXMsg.dataA[1]);
+					s_cancom->get_charger_msg.input4_AC_voltage_x10V = INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
+
+					break;
+
 
 				//千航
 				case 0x180215f4:
@@ -318,10 +373,10 @@ uint32_t hy_can_get_output_current_x10A(void){
 
 
 
-		return s_cancom->get_charger_msg.output1_current_x10A;//+
-//		s_cancom->get_charger_msg.output2_current_x10A+
-//		s_cancom->get_charger_msg.output3_current_x10A+
-//		s_cancom->get_charger_msg.output4_current_x10A;
+		return s_cancom->get_charger_msg.output1_current_x10A+
+		s_cancom->get_charger_msg.output2_current_x10A+
+		s_cancom->get_charger_msg.output3_current_x10A+
+		s_cancom->get_charger_msg.output4_current_x10A;
 
 
 }
@@ -343,11 +398,10 @@ uint32_t hy_can_get_charger_module_temperature_x10degree(void){
 uint8_t hy_can_get_charger_module_statu1(void){
 
 
-			return s_cancom->get_charger_msg.statu1_1;
-//				|
-//					s_cancom->get_charger_msg.statu2_1|
-//					s_cancom->get_charger_msg.statu3_1|
-//					s_cancom->get_charger_msg.statu4_1;
+			return s_cancom->get_charger_msg.statu1_1|
+					s_cancom->get_charger_msg.statu2_1|
+					s_cancom->get_charger_msg.statu3_1|
+					s_cancom->get_charger_msg.statu4_1;
 
 
 
@@ -355,11 +409,10 @@ uint8_t hy_can_get_charger_module_statu1(void){
 
 uint8_t hy_can_get_charger_module_statu2(void){
 
-				return s_cancom->get_charger_msg.statu1_2;
-//					|
-//						s_cancom->get_charger_msg.statu2_2|
-//						s_cancom->get_charger_msg.statu3_2|
-//						s_cancom->get_charger_msg.statu4_2;
+				return s_cancom->get_charger_msg.statu1_2|
+						s_cancom->get_charger_msg.statu2_2|
+						s_cancom->get_charger_msg.statu3_2|
+						s_cancom->get_charger_msg.statu4_2;
 	
 
 }
@@ -450,7 +503,7 @@ int hy_can_get_bms_battery_voltage_x10V(void)
 
 int hy_can_set_output_msg(uint16_t voltage_x10V, uint16_t current_x10A)
 {
-	s_cancom->charge_to_bms_msg.output_current_x10A=current_x10A;
+	s_cancom->charge_to_bms_msg.output_current_x10A=current_x10A/4;
 	s_cancom->charge_to_bms_msg.output_voltage_x10V=voltage_x10V;
 	return 0;
 }
