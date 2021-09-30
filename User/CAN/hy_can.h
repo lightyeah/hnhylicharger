@@ -59,30 +59,30 @@ typedef struct CHARGER_MSG{
 	uint32_t battery1_voltage;
 	uint32_t input1_AC_voltage_x10V;
 	
-//	uint32_t output2_current_x10A;
-//	uint32_t output2_voltage_x10V;
-//	uint8_t statu2_1;
-//	uint8_t statu2_2;
-//	uint32_t temperature2_x1degree;	
-//	uint32_t battery2_voltage;
-//	uint32_t input2_AC_voltage_x10V;
-//
-//
-//	uint32_t output3_current_x10A;
-//	uint32_t output3_voltage_x10V;
-//	uint8_t statu3_1;
-//	uint8_t statu3_2;
-//	uint32_t temperature3_x1degree;	
-//	uint32_t battery3_voltage;
-//	uint32_t input3_AC_voltage_x10V;
-//
-//	uint32_t output4_current_x10A;
-//	uint32_t output4_voltage_x10V;
-//	uint8_t statu4_1;
-//	uint8_t statu4_2;
-//	uint32_t temperature4_x1degree;	
-//	uint32_t battery4_voltage;
-//	uint32_t input4_AC_voltage_x10V;
+	uint32_t output2_current_x10A;
+	uint32_t output2_voltage_x10V;
+	uint8_t statu2_1;
+	uint8_t statu2_2;
+	uint32_t temperature2_x1degree;	
+	uint32_t battery2_voltage;
+	uint32_t input2_AC_voltage_x10V;
+
+
+	uint32_t output3_current_x10A;
+	uint32_t output3_voltage_x10V;
+	uint8_t statu3_1;
+	uint8_t statu3_2;
+	uint32_t temperature3_x1degree;	
+	uint32_t battery3_voltage;
+	uint32_t input3_AC_voltage_x10V;
+
+	uint32_t output4_current_x10A;
+	uint32_t output4_voltage_x10V;
+	uint8_t statu4_1;
+	uint8_t statu4_2;
+	uint32_t temperature4_x1degree;	
+	uint32_t battery4_voltage;
+	uint32_t input4_AC_voltage_x10V;
 
 
 	uint32_t setting_voltage_x10V;

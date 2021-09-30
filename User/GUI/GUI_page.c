@@ -309,8 +309,8 @@ PAGE welcomepage(){
     lcd_display_chinese_at(2,1,hysy);
     lcd_display_chinese_at(2,2,anchixinnengyuan);
 	lcd_goto_pos(3,2);
-	lcd_display_num3(48,'V');
-	lcd_display_num3(200,'A');
+	lcd_display_num3(80,'V');
+	lcd_display_num3(150,'A');
 	lcd_display_ascii("-");
 	lcd_display_ascii("qh");
 	hy_gui_delay_ms(2200);
