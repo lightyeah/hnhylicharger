@@ -194,7 +194,7 @@ void hy_can_task_main()
 					s_cancom->bms_msg.bms_max_current_x10A=INT8TO16(RXMsgQueue[canReadMsgCount%16].dataA[2], RXMsgQueue[canReadMsgCount%16].dataA[3]);
 					s_cancom->bms_msg.control_byte=RXMsgQueue[canReadMsgCount%16].dataB[0];
 					s_cancom->bms_msg.soc=RXMsgQueue[canReadMsgCount%16].dataB[1];
-					//hy_can_broadcast_to_bms();
+					hy_can_broadcast_to_bms();
 					break;
 
 				//end 千航
@@ -553,7 +553,7 @@ int hy_can_get_bms_battery_voltage_x10V(void)
 
 int hy_can_set_output_msg(uint16_t voltage_x10V, uint16_t current_x10A)
 {
-	s_cancom->charge_to_bms_msg.output_current_x10A=current_x10A/4;
+	s_cancom->charge_to_bms_msg.output_current_x10A=current_x10A;
 	s_cancom->charge_to_bms_msg.output_voltage_x10V=voltage_x10V;
 	return 0;
 }
