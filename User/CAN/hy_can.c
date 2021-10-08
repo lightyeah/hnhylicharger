@@ -503,7 +503,8 @@ int hy_can_get_bms_battery_voltage_x10V(void)
 
 int hy_can_set_output_msg(uint16_t voltage_x10V, uint16_t current_x10A)
 {
-	s_cancom->charge_to_bms_msg.output_current_x10A=current_x10A/4;
+	s_cancom->charge_to_bms_msg.output_current_x10A=current_x10A;
+	
 	s_cancom->charge_to_bms_msg.output_voltage_x10V=voltage_x10V;
 	return 0;
 }

@@ -79,15 +79,17 @@ int hy_set_stop_output(void)
 }
 
 int hy_set_charger_output(uint16_t voltage_x10V, uint16_t current_x10A){
-	hy_can_control_set_charger((uint32_t)voltage_x10V, (uint32_t)current_x10A);
+	if(voltage_x10V>=960)voltage_x10V=960;
+	if(current_x10A>=1700)current_x10A=1700;
+
+	hy_can_control_set_charger((uint32_t)voltage_x10V, (uint32_t)(current_x10A/4));
 	return 0;
 }
 
 int hy_set_data_broadcast_to_bms(uint16_t voltage_x10V, uint16_t current_x10A)
 {
 	uint8_t status=0;
-	if(voltage_x10V>=960)voltage_x10V=960;
-	if(current_x10A>=1700)current_x10A=1700;
+
 	hy_can_set_output_msg(voltage_x10V, current_x10A);
 	if(hy_get_charger_module_statu1()&0x80){//硬件故障
 		status |= (1<<0);
