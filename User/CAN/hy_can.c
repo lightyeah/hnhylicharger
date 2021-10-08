@@ -229,7 +229,7 @@ void CAN_IRQHandler()
 					s_cancom->bms_msg.bms_max_current_x10A=INT8TO16(RXMsg.dataA[2], RXMsg.dataA[3]);
 					s_cancom->bms_msg.control_byte=RXMsg.dataB[0];
 					s_cancom->bms_msg.soc=RXMsg.dataB[1];
-					//hy_can_broadcast_to_bms();
+					hy_can_broadcast_to_bms();
 					break;
 
 				//end 千航
