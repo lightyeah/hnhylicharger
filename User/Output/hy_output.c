@@ -79,9 +79,19 @@ int hy_set_stop_output(void)
 }
 
 int hy_set_charger_output(uint16_t voltage_x10V, uint16_t current_x10A){
-	if(voltage_x10V>=960)voltage_x10V=960;
-	if(current_x10A>=1700)current_x10A=1700;
 
+	if(voltage_x10V<=880)
+		{
+			if(current_x10A>=1500)current_x10A=1500;//88V以内时允许150A电流
+		}
+	else if(voltage_x10V>880&&voltage_x10V<=920)
+		{
+			if(current_x10A>=1200)current_x10A=1200;//88V到92V降低到125A以下
+		}
+	else if(voltage_x10V>920)
+		{
+			if(current_x10A>=960)current_x10A=960;//92V到96V降低到100
+		}
 	hy_can_control_set_charger((uint32_t)voltage_x10V, (uint32_t)(current_x10A/4));
 	return 0;
 }
